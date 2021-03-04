@@ -1,7 +1,11 @@
 //было создано на основе https://github.com/principal6/DirectX113DTutorial
 #include "GameWindow.h"
 
-//структура доступа для вертексного шейдера
+//IA (input-assembler) - первая часть граф конвейера
+
+//ОМ - этап слияния вывода, последний этап для определения видимых пикселей
+
+//структура доступа для вертексного шейдера (элемент ввода для этапа IA)
 constexpr D3D11_INPUT_ELEMENT_DESC KInputElementDescs[]
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
