@@ -19,6 +19,9 @@
     <Filter Include="Core">
       <UniqueIdentifier>{ab6275ee-7b4a-4c1e-95e3-7d813092ba49}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{59b4da0a-5e99-4081-b907-402c99ce1c03}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectXTK\Audio.h">
@@ -87,6 +90,15 @@
     <ClInclude Include="Core\GameWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Object3D.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Shader.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SharedHeader.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="DirectXTK\DirectXTK.lib">
@@ -97,13 +109,30 @@
     <None Include="DirectXTK\SimpleMath.inl">
       <Filter>DirectXTK</Filter>
     </None>
+    <None Include="Shader\Header.hlsli">
+      <Filter>Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core\main.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\GameWindow.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Object3D.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Shader.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\main.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\PixelShader.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shader\VertexShader.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
