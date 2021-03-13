@@ -21,7 +21,7 @@ void CShader::Create(EShaderType Type, const wstring& FileName, const string& En
 		//создаем обьект вершинного шейдера из скомпилированного кода
 		m_PtrDevice->CreateVertexShader(m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), nullptr, &m_VertexShader);
 
-		//создаем обьект макета ввода для описания даныхбуфера ввода на этапе ввода-ассемблера
+		//создаем обьект макета ввода для описания данных буфера ввода на этапе ввода-ассемблера
 		m_PtrDevice->CreateInputLayout(InputElementDescs, NumElements,
 			m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), &m_InputLayout);
 		break;

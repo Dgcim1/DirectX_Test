@@ -71,6 +71,9 @@ private:
 	/// Указатель на скомпилированный пиксельный шейдер (если m_ShaderType = PixelShader)
 	/// </summary>
 	ComPtr<ID3D11PixelShader>	m_PixelShader{};
+	/// <summary>
+	/// Обьект макета ввода для описания данных буфера ввода на этапе ввода-ассемблера
+	/// </summary>
 	ComPtr<ID3D11InputLayout>	m_InputLayout{};
 	/// <summary>
 	/// Тип шейдера
