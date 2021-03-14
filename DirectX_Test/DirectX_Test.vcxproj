@@ -19,8 +19,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\GameObject.h" />
     <ClInclude Include="Core\GameWindow.h" />
     <ClInclude Include="Core\Object3D.h" />
+    <ClInclude Include="Core\PrimitiveGenerator.h" />
     <ClInclude Include="Core\Shader.h" />
     <ClInclude Include="Core\SharedHeader.h" />
     <ClInclude Include="DirectXTK\Audio.h" />
@@ -53,6 +55,7 @@
     <None Include="Shader\Header.hlsli" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Core\GameObject.cpp" />
     <ClCompile Include="Core\GameWindow.cpp" />
     <ClCompile Include="Core\main.cpp" />
     <ClCompile Include="Core\Object3D.cpp" />

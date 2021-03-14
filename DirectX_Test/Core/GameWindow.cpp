@@ -286,6 +286,23 @@ void CGameWindow::CreateCBWVP()
 	m_Device->CreateBuffer(&cbWVPDesc, nullptr, &m_CBWVP);
 }
 
+void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
+{
+	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//создает матрицу WVP
+
+	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
+
+	//запрещаем доступ графическому процессору к константному буферу
+	if (SUCCEEDED(m_DeviceContext->Map(m_CBWVP.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
+	{
+		memcpy(MappedSubresource.pData, &MatrixWVP, sizeof(XMMATRIX));//копируем новое значение константного буфера
+
+		m_DeviceContext->Unmap(m_CBWVP.Get(), 0);//вновь разрешаем доступ графическому процессору к константному буферу
+	}
+
+	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//устанавливает константный буфер
+}
+
 CShader* CGameWindow::AddShader()
 {
 	m_vShaders.emplace_back(make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get()));
@@ -310,28 +327,62 @@ CObject3D* CGameWindow::GetObject3D(size_t Index)
 	return m_vObject3Ds[Index].get();
 }
 
+CGameObject* CGameWindow::AddGameObject()
+{
+	m_vGameObjects.emplace_back(make_unique<CGameObject>());
+	return m_vGameObjects.back().get();
+}
+
+CGameObject* CGameWindow::GetGameObject(size_t Index)
+{
+	assert(Index < m_vGameObjects.size());
+	return m_vGameObjects[Index].get();
+}
+
+void CGameWindow::SetRasterizerState(ERasterizerState State)
+{
+	m_eRasterizerState = State;
+}
+
 void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 {
 	m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), ClearColor);//делаем заливку всей области заданным цветом
 	m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
+	
+	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
+	//установка состояния растеризатора
+	switch (m_eRasterizerState)
+	{
+	case ERasterizerState::CullNone:
+		m_DeviceContext->RSSetState(m_CommonStates->CullNone());
+		break;
+	case ERasterizerState::CullClockwise:
+		m_DeviceContext->RSSetState(m_CommonStates->CullClockwise());
+		break;
+	case ERasterizerState::CullCounterClockwise:
+		m_DeviceContext->RSSetState(m_CommonStates->CullCounterClockwise());
+		break;
+	case ERasterizerState::WireFrame:
+		m_DeviceContext->RSSetState(m_CommonStates->Wireframe());
+		break;
+	default:
+		break;
+	}
+	
 	m_MatrixView = XMMatrixLookAtLH(m_PtrCurrentCamera->EyePosition, m_PtrCurrentCamera->FocusPosition, m_PtrCurrentCamera->UpDirection);//создание матрицы вида на основе текущего состояния камеры
 }
 
-void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
+void CGameWindow::DrawGameObjects()
 {
-	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//создает матрицу WVP
-
-	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
-
-	//запрещаем доступ графическому процессору к константному буферу
-	if (SUCCEEDED(m_DeviceContext->Map(m_CBWVP.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
+	for (auto& go : m_vGameObjects)
 	{
-		memcpy(MappedSubresource.pData, &MatrixWVP, sizeof(XMMATRIX));//копируем новое значение константного буфера
+		UpdateCBWVP(go->ComponentTransform.MatrixWorld);
 
-		m_DeviceContext->Unmap(m_CBWVP.Get(), 0);//вновь разрешаем доступ графическому процессору к константному буферу
+		if (go->ComponentRender.PtrObject3D)
+		{
+			go->ComponentRender.PtrObject3D->Draw();
+		}
 	}
-
-	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//устанавливает константный буфер
 }
 
 void CGameWindow::EndRendering()

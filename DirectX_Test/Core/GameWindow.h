@@ -3,6 +3,8 @@
 #include <Windows.h>
 #include "Object3D.h"
 #include "Shader.h"
+#include "PrimitiveGenerator.h"
+#include "GameObject.h"
 
 /// <summary>
 /// Тип камеры
@@ -44,6 +46,29 @@ enum class ECameraMovementDirection
 	/// Направление движения камеры влево
 	/// </summary>
 	Leftward,
+};
+
+/// <summary>
+/// Состояния растеризатора (показывает, какие грани отбраковывать)
+/// </summary>
+enum class ERasterizerState
+{
+	/// <summary>
+	/// Без отбраковки граней (отображает полигоны со всех сторон)
+	/// </summary>
+	CullNone,
+	/// <summary>
+	/// Отбраковка граней по часовой стрелке (отображает полигоны, вершины которых заданы против часовой стрелки)
+	/// </summary>
+	CullClockwise,
+	/// <summary>
+	/// Отбраковка граней против часовой стрелки (отображает полигоны, вершины которых заданы по часовой стрелке, по умолчанию)
+	/// </summary>
+	CullCounterClockwise,
+	/// <summary>
+	/// Отображает только каркас (ребра) полигонов
+	/// </summary>
+	WireFrame
 };
 
 /// <summary>
@@ -168,7 +193,6 @@ public:
 	/// <param name="DeltaWheel">Показатель изменения зума камеры</param>
 	/// <param name="ZoomFactor">Величина (скорость) зума камеры</param>
 	void ZoomCamera(int DeltaWheel, float ZoomFactor = 1.0f);
-
 #pragma endregion
 
 #pragma region ShaderMethods
@@ -199,23 +223,40 @@ public:
 	CObject3D* GetObject3D(size_t Index);
 #pragma endregion
 
+#pragma region GameObjectMethods
+	/// <summary>
+	/// Создает и возвращает указатель на игровой обьект
+	/// </summary>
+	/// <returns>Созданный указатель на игровой обьект</returns>
+	CGameObject* AddGameObject();
+	/// <summary>
+	/// Получение указателя на игровой обьект с указанным индексом
+	/// </summary>
+	/// <param name="Index">Индекс указателя в массиве</param>
+	/// <returns>Указатель на игровой обьект с заданным индексом</returns>
+	CGameObject* GetGameObject(size_t Index);
+#pragma endregion
+
 #pragma region RenderMethods
 	/// <summary>
-	/// Очищает буфер подкачки (задний буфер) заданным цветом
+	/// Установка состояния растеризатора (указывает, какие грани отбраковывать)
 	/// </summary>
-	/// <param name="ClearColor">Цвет заливки</param>
+	/// <param name="State">Новое состояние растеризатора</param>
+	void SetRasterizerState(ERasterizerState State);
+	/// <summary>
+	/// Очищает буфер подкачки (задний буфер) и делает подготовку к рендерингу
+	/// </summary>
+	/// <param name="ClearColor">Цвет заливки области рендеринга</param>
 	void BeginRendering(const FLOAT* ClearColor);
 	/// <summary>
-	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// Обновляет мировую матрицу всех игровых обьектов и отображает их
 	/// </summary>
-	/// <param name="MatrixWorld">Матрица мира</param>
-	void UpdateCBWVP(const XMMATRIX& MatrixWorld);
+	void DrawGameObjects();
 	/// <summary>
 	/// Обновляет изображение, swap буфера подкачки и буфера дисплея
 	/// </summary>
 	void EndRendering();
 #pragma endregion
-
 
 public:
 
@@ -286,6 +327,12 @@ private:
 	void CreateCBWVP();
 #pragma endregion
 
+	/// <summary>
+	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// </summary>
+	/// <param name="MatrixWorld">Матрица мира</param>
+	void UpdateCBWVP(const XMMATRIX& MatrixWorld);
+
 private:
 	static constexpr float KDefaultFOV{ XM_PIDIV2 };
 	static constexpr float KDefaultNearZ{ 0.1f };
@@ -299,6 +346,10 @@ private:
 	/// Массив используемых 3D обьектов
 	/// </summary>
 	vector<unique_ptr<CObject3D>>	m_vObject3Ds{};
+	/// <summary>
+	/// Массив используемых игровых обьектов
+	/// </summary>
+	vector<unique_ptr<CGameObject>>	m_vGameObjects{};
 private:
 	/// <summary>
 	/// Идентификатор экземпляра окна
@@ -337,6 +388,11 @@ private:
 	/// Вектор, направленный вверх
 	/// </summary>
 	XMVECTOR						m_BaseUp{};
+private:
+	/// <summary>
+	/// Текущее состояние растеризатора (указывает, какие грани отбраковыывать)
+	/// </summary>
+	ERasterizerState				m_eRasterizerState{ ERasterizerState::CullCounterClockwise };
 private:
 	/// <summary>
 	/// Указатель на цепочку обмена
