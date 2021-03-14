@@ -1,10 +1,10 @@
 #include "GameWindow.h"
 
-void CGameWindow::CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, bool bWindowed)
+void CGameWindow::CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring& FontFileName, bool bWindowed)
 {
 	CreateWin32Window(WndProc, WindowName);
 
-	InitializeDirectX(bWindowed);
+	InitializeDirectX(FontFileName, bWindowed);
 }
 
 void CGameWindow::SetPerspective(float FOV, float NearZ, float FarZ)
@@ -175,7 +175,7 @@ void CGameWindow::CreateWin32Window(WNDPROC WndProc, LPCTSTR WindowName)
 	assert(m_hWnd);
 }
 
-void CGameWindow::InitializeDirectX(bool bWindowed)
+void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 {
 	CreateSwapChain(bWindowed);
 
@@ -188,6 +188,10 @@ void CGameWindow::InitializeDirectX(bool bWindowed)
 	CreateInputDevices();
 
 	CreateCBWVP();
+
+	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
+	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
+	m_CommonStates = make_unique<CommonStates>(m_Device.Get());
 }
 
 void CGameWindow::CreateSwapChain(bool bWindowed)

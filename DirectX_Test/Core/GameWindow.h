@@ -127,8 +127,9 @@ public:
 	/// </summary>
 	/// <param name="WndProc">Указатель на функцию - оконную процедуру</param>
 	/// <param name="WindowName">Название окна</param>
+	/// <param name="FontFileName">Путь к файлу с используемым шрифтом</param>
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
-	void CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, bool bWindowed);
+	void CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring& FontFileName, bool bWindowed);
 
 #pragma region CameraMethods
 	/// <summary>
@@ -217,6 +218,8 @@ public:
 
 
 public:
+
+#pragma region GetMethods
 	/// <summary>
 	/// Получает дескриптор окна
 	/// </summary>
@@ -232,6 +235,18 @@ public:
 	/// </summary>
 	/// <returns>Текущее состояние мыши</returns>
 	Mouse::State GetMouseState();
+	/// <summary>
+	/// Возвращает указатель нанабор спрайтов
+	/// </summary>
+	/// <returns>Указатель нанабор спрайтов</returns>
+	SpriteBatch* GetSpriteBatchPtr() { return m_SpriteBatch.get(); }
+	/// <summary>
+	/// Возвращает указатель на спрайт шрифтов
+	/// </summary>
+	/// <returns>Указатель на спрайт шрифтов</returns>
+	SpriteFont* GetSpriteFontPtr() { return m_SpriteFont.get(); }
+#pragma endregion
+
 private:
 	/// <summary>
 	/// Инициализация окна приложения
@@ -242,8 +257,9 @@ private:
 	/// <summary>
 	/// Инициализация DirectX компонентов
 	/// </summary>
+	/// <param name="FontFileName">Путь к файлу с используемым шрифтом</param>
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
-	void InitializeDirectX(bool bWindowed);
+	void InitializeDirectX(const wstring& FontFileName, bool bWindowed);
 private:
 
 #pragma region InitD3D11ComponentMethods
@@ -358,4 +374,16 @@ private:
 	/// Указатель на устройство ввода мышь
 	/// </summary>
 	unique_ptr<Mouse>				m_Mouse{};
+	/// <summary>
+	/// Указатель на набор спрайтов
+	/// </summary>
+	unique_ptr<SpriteBatch>			m_SpriteBatch{};
+	/// <summary>
+	/// Указатель на спрайт шрифта
+	/// </summary>
+	unique_ptr<SpriteFont>			m_SpriteFont{};
+	/// <summary>
+	/// Указатель на общую область рендеринга спрайтов (???)
+	/// </summary>
+	unique_ptr<CommonStates>		m_CommonStates{};
 };

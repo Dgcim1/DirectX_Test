@@ -18,7 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 {
 	//создаем окно
 	CGameWindow GameWindow{ hInstance, XMFLOAT2(800, 450) };
-	GameWindow.CreateWin32(WndProc, TEXT("Game"), true);
+	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
 	//создаем и устанавливаем камеру
 	GameWindow.AddCamera(SCameraData(ECameraType::FreeLook));
 	GameWindow.SetCamera(0);
@@ -145,6 +145,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			//рисуем обьекты
 			SkyBoxObject->Draw();
 			Object->Draw();
+			//получаем указатели на набор спрайтов и на спрайт шрифтов
+			SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
+			SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
+			//начало рендеринга спрайтов
+			PtrSpriteBatch->Begin();
+			//пишем текст
+			PtrSpriteFont->DrawString(PtrSpriteBatch, "Test", XMVectorSet(0, 0, 0, 0));
+			//окончание рендеринга спрайтов
+			PtrSpriteBatch->End();
 			//окончание рендеринга
 			GameWindow.EndRendering();
 		}
