@@ -1,11 +1,11 @@
-//было создано на основе https://github.com/principal6/DirectX113DTutorial
+//Р±С‹Р»Рѕ СЃРѕР·РґР°РЅРѕ РЅР° РѕСЃРЅРѕРІРµ https://github.com/principal6/DirectX113DTutorial
 #include "GameWindow.h"
 
-//IA (input-assembler) - первая часть граф конвейера
+//IA (input-assembler) - РїРµСЂРІР°СЏ С‡Р°СЃС‚СЊ РіСЂР°С„ РєРѕРЅРІРµР№РµСЂР°
 
-//ОМ - этап слияния вывода, последний этап для определения видимых пикселей
+//РћРњ - СЌС‚Р°Рї СЃР»РёСЏРЅРёСЏ РІС‹РІРѕРґР°, РїРѕСЃР»РµРґРЅРёР№ СЌС‚Р°Рї РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ РІРёРґРёРјС‹С… РїРёРєСЃРµР»РµР№
 
-//структура доступа для вертексного шейдера (элемент ввода для этапа IA)
+//СЃС‚СЂСѓРєС‚СѓСЂР° РґРѕСЃС‚СѓРїР° РґР»СЏ РІРµСЂС‚РµРєСЃРЅРѕРіРѕ С€РµР№РґРµСЂР° (СЌР»РµРјРµРЅС‚ РІРІРѕРґР° РґР»СЏ СЌС‚Р°РїР° IA)
 constexpr D3D11_INPUT_ELEMENT_DESC KInputElementDescs[]
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -17,24 +17,24 @@ LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-	//создаем окно
+	//СЃРѕР·РґР°РµРј РѕРєРЅРѕ
 	CGameWindow GameWindow{ hInstance, XMFLOAT2(800, 450) };
 	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
-	//создаем и устанавливаем камеру
+	//СЃРѕР·РґР°РµРј Рё СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РєР°РјРµСЂСѓ
 	GameWindow.AddCamera(SCameraData(ECameraType::FreeLook));
 	GameWindow.SetCamera(0);
-	//создаем вертексный шейдер
+	//СЃРѕР·РґР°РµРј РІРµСЂС‚РµРєСЃРЅС‹Р№ С€РµР№РґРµСЂ
 	CShader* VS{ GameWindow.AddShader() };
 	VS->Create(EShaderType::VertexShader, L"Shader\\VertexShader.hlsl", "main", KInputElementDescs, ARRAYSIZE(KInputElementDescs));
-	//создаем пиксельный шейдер
+	//СЃРѕР·РґР°РµРј РїРёРєСЃРµР»СЊРЅС‹Р№ С€РµР№РґРµСЂ
 	CShader* PS{ GameWindow.AddShader() };
 	PS->Create(EShaderType::PixelShader, L"Shader\\PixelShader.hlsl", "main");
-	//загружаем текстуры
+	//Р·Р°РіСЂСѓР¶Р°РµРј С‚РµРєСЃС‚СѓСЂС‹
 	CTexture* TextureGround{ GameWindow.AddTexture() };
 	{
 		TextureGround->CreateFromFile(L"Asset\\ground.png");
 	}
-	//создаем 3D обьекты
+	//СЃРѕР·РґР°РµРј 3D РѕР±СЊРµРєС‚С‹
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
 	{
@@ -81,12 +81,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		else
 		{
-			//начало рендеринга
+			//РЅР°С‡Р°Р»Рѕ СЂРµРЅРґРµСЂРёРЅРіР°
 			GameWindow.BeginRendering(Colors::Aquamarine);
-			//применяем шейдеры
+			//РїСЂРёРјРµРЅСЏРµРј С€РµР№РґРµСЂС‹
 			VS->Use();
 			PS->Use();
-			//проверяем состояние клавиатуры
+			//РїСЂРѕРІРµСЂСЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ РєР»Р°РІРёР°С‚СѓСЂС‹
 			Keyboard::State KeyState{ GameWindow.GetKeyState() };
 			if (KeyState.Escape)
 			{
@@ -116,7 +116,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.SetRasterizerState(ERasterizerState::CullCounterClockwise);
 			}
-			//проверяем состояние мыши
+			//РїСЂРѕРІРµСЂСЏРµРј СЃРѕСЃС‚РѕСЏРЅРёРµ РјС‹С€Рё
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
 			if (MouseState.x || MouseState.y)
 			{
@@ -126,18 +126,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.ZoomCamera(MouseState.scrollWheelValue, 0.01f);
 			}
-			//рисуем обьекты
+			//СЂРёСЃСѓРµРј РѕР±СЊРµРєС‚С‹
 			GameWindow.DrawGameObjects();
-			//получаем указатели на набор спрайтов и на спрайт шрифтов
+			//РїРѕР»СѓС‡Р°РµРј СѓРєР°Р·Р°С‚РµР»Рё РЅР° РЅР°Р±РѕСЂ СЃРїСЂР°Р№С‚РѕРІ Рё РЅР° СЃРїСЂР°Р№С‚ С€СЂРёС„С‚РѕРІ
 			SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
 			SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
-			//начало рендеринга спрайтов
+			//РЅР°С‡Р°Р»Рѕ СЂРµРЅРґРµСЂРёРЅРіР° СЃРїСЂР°Р№С‚РѕРІ
 			PtrSpriteBatch->Begin();
-			//пишем текст
+			//РїРёС€РµРј С‚РµРєСЃС‚
 			PtrSpriteFont->DrawString(PtrSpriteBatch, "Test", XMVectorSet(0, 0, 0, 0));
-			//окончание рендеринга спрайтов
+			//РѕРєРѕРЅС‡Р°РЅРёРµ СЂРµРЅРґРµСЂРёРЅРіР° СЃРїСЂР°Р№С‚РѕРІ
 			PtrSpriteBatch->End();
-			//окончание рендеринга
+			//РѕРєРѕРЅС‡Р°РЅРёРµ СЂРµРЅРґРµСЂРёРЅРіР°
 			GameWindow.EndRendering();
 		}
 	}

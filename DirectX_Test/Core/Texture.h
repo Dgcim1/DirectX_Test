@@ -3,7 +3,7 @@
 #include "SharedHeader.h"
 
 /// <summary>
-/// Представляет собой текстуру
+/// РџСЂРµРґСЃС‚Р°РІР»СЏРµС‚ СЃРѕР±РѕР№ С‚РµРєСЃС‚СѓСЂСѓ
 /// </summary>
 class CTexture
 {
@@ -11,10 +11,10 @@ class CTexture
 
 public:
 	/// <summary>
-	/// Конструктор пустой текстуры
+	/// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ РїСѓСЃС‚РѕР№ С‚РµРєСЃС‚СѓСЂС‹
 	/// </summary>
-	/// <param name="PtrDevice">Указатель на устройство</param>
-	/// <param name="PtrDeviceContext">Указатель на контекст устройства</param>
+	/// <param name="PtrDevice">РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРѕ</param>
+	/// <param name="PtrDeviceContext">РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕРЅС‚РµРєСЃС‚ СѓСЃС‚СЂРѕР№СЃС‚РІР°</param>
 	CTexture(ID3D11Device* PtrDevice, ID3D11DeviceContext* PtrDeviceContext) : 
 		m_PtrDevice{ PtrDevice }, m_PtrDeviceContext{ PtrDeviceContext }
 	{
@@ -24,32 +24,32 @@ public:
 	~CTexture() {}
 
 	/// <summary>
-	/// Загрузка текстуры из файла
+	/// Р—Р°РіСЂСѓР·РєР° С‚РµРєСЃС‚СѓСЂС‹ РёР· С„Р°Р№Р»Р°
 	/// </summary>
-	/// <param name="TextureFileName">Путь к файлу</param>
+	/// <param name="TextureFileName">РџСѓС‚СЊ Рє С„Р°Р№Р»Сѓ</param>
 	void CreateFromFile(const wstring& TextureFileName);
 	
 private:
 	/// <summary>
-	/// Привязка массива ресурсов шейдера и текстуры к этапу пиксельного шейдера
+	/// РџСЂРёРІСЏР·РєР° РјР°СЃСЃРёРІР° СЂРµСЃСѓСЂСЃРѕРІ С€РµР№РґРµСЂР° Рё С‚РµРєСЃС‚СѓСЂС‹ Рє СЌС‚Р°РїСѓ РїРёРєСЃРµР»СЊРЅРѕРіРѕ С€РµР№РґРµСЂР°
 	/// </summary>
 	void Use();
 private:
 	/// <summary>
-	/// Указатель на устройство
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРѕ
 	/// </summary>
 	ID3D11Device*						m_PtrDevice{};
 	/// <summary>
-	/// Указатель на контекст устройства
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕРЅС‚РµРєСЃС‚ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 	/// </summary>
 	ID3D11DeviceContext*				m_PtrDeviceContext{};
 private:
 	/// <summary>
-	/// Указатель на 2D текстуру
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° 2D С‚РµРєСЃС‚СѓСЂСѓ
 	/// </summary>
 	ComPtr<ID3D11Texture2D>				m_Texture2D{};
 	/// <summary>
-	/// Указатель на шейдерный ресурс (подресурс, к которому шейдер может получить доступ во время рендеринга, в данном случае текстура)
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° С€РµР№РґРµСЂРЅС‹Р№ СЂРµСЃСѓСЂСЃ (РїРѕРґСЂРµСЃСѓСЂСЃ, Рє РєРѕС‚РѕСЂРѕРјСѓ С€РµР№РґРµСЂ РјРѕР¶РµС‚ РїРѕР»СѓС‡РёС‚СЊ РґРѕСЃС‚СѓРї РІРѕ РІСЂРµРјСЏ СЂРµРЅРґРµСЂРёРЅРіР°, РІ РґР°РЅРЅРѕРј СЃР»СѓС‡Р°Рµ С‚РµРєСЃС‚СѓСЂР°)
 	/// </summary>
 	ComPtr<ID3D11ShaderResourceView>	m_ShaderResourceView{};
 };

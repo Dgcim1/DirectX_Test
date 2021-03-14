@@ -2,45 +2,45 @@
 
 void CObject3D::Create(const SObject3DData& Object3DData)
 {
-	m_Object3DData = Object3DData;//присваиваем локальное значение полю класса
+	m_Object3DData = Object3DData;//РїСЂРёСЃРІР°РёРІР°РµРј Р»РѕРєР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РїРѕР»СЋ РєР»Р°СЃСЃР°
 	
 	{
-		D3D11_BUFFER_DESC BufferDesc{};//буферный ресурс
-		BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;//как буфер привязан к графическому конвейеру (сейчас - как буфер вершин на этапе IA)
-		BufferDesc.ByteWidth = static_cast<UINT>(sizeof(SVertex3D) * m_Object3DData.vVertices.size());//размер буфера в байтах
-		BufferDesc.CPUAccessFlags = 0;//флаг доступа к ЦП (0 - доступ не требуется)
-		BufferDesc.MiscFlags = 0;//другие флаги
-		BufferDesc.StructureByteStride = 0;//размер элемента вструктуре буфера в байтах (0 - неструктурированный буфер)
-		BufferDesc.Usage = D3D11_USAGE_DEFAULT;//как будет происходить чтение и запись (сейчас - только от GPU)
+		D3D11_BUFFER_DESC BufferDesc{};//Р±СѓС„РµСЂРЅС‹Р№ СЂРµСЃСѓСЂСЃ
+		BufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;//РєР°Рє Р±СѓС„РµСЂ РїСЂРёРІСЏР·Р°РЅ Рє РіСЂР°С„РёС‡РµСЃРєРѕРјСѓ РєРѕРЅРІРµР№РµСЂСѓ (СЃРµР№С‡Р°СЃ - РєР°Рє Р±СѓС„РµСЂ РІРµСЂС€РёРЅ РЅР° СЌС‚Р°РїРµ IA)
+		BufferDesc.ByteWidth = static_cast<UINT>(sizeof(SVertex3D) * m_Object3DData.vVertices.size());//СЂР°Р·РјРµСЂ Р±СѓС„РµСЂР° РІ Р±Р°Р№С‚Р°С…
+		BufferDesc.CPUAccessFlags = 0;//С„Р»Р°Рі РґРѕСЃС‚СѓРїР° Рє Р¦Рџ (0 - РґРѕСЃС‚СѓРї РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ)
+		BufferDesc.MiscFlags = 0;//РґСЂСѓРіРёРµ С„Р»Р°РіРё
+		BufferDesc.StructureByteStride = 0;//СЂР°Р·РјРµСЂ СЌР»РµРјРµРЅС‚Р° РІСЃС‚СЂСѓРєС‚СѓСЂРµ Р±СѓС„РµСЂР° РІ Р±Р°Р№С‚Р°С… (0 - РЅРµСЃС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Р№ Р±СѓС„РµСЂ)
+		BufferDesc.Usage = D3D11_USAGE_DEFAULT;//РєР°Рє Р±СѓРґРµС‚ РїСЂРѕРёСЃС…РѕРґРёС‚СЊ С‡С‚РµРЅРёРµ Рё Р·Р°РїРёСЃСЊ (СЃРµР№С‡Р°СЃ - С‚РѕР»СЊРєРѕ РѕС‚ GPU)
 
-		D3D11_SUBRESOURCE_DATA SubresourceData{};//структура для инициализации подресурса
-		SubresourceData.pSysMem = &m_Object3DData.vVertices[0];//указатель на данные инициализации
-		m_PtrDevice->CreateBuffer(&BufferDesc, &SubresourceData, &m_VertexBuffer);//создаем буфер
+		D3D11_SUBRESOURCE_DATA SubresourceData{};//СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РїРѕРґСЂРµСЃСѓСЂСЃР°
+		SubresourceData.pSysMem = &m_Object3DData.vVertices[0];//СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РґР°РЅРЅС‹Рµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё
+		m_PtrDevice->CreateBuffer(&BufferDesc, &SubresourceData, &m_VertexBuffer);//СЃРѕР·РґР°РµРј Р±СѓС„РµСЂ
 	}
 	
 	{
-		D3D11_BUFFER_DESC BufferDesc{};//буферный ресурс
-		BufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;//как буфер привязан к графическому конвейеру (сейчас - как индексный буфер на этапе IA)
-		BufferDesc.ByteWidth = static_cast<UINT>(sizeof(STriangle) * m_Object3DData.vTriangles.size());//размер буфера в байтах
-		BufferDesc.CPUAccessFlags = 0;//флаг доступа к ЦП (0 - доступ не требуется)
-		BufferDesc.MiscFlags = 0;//другие флаги
-		BufferDesc.StructureByteStride = 0;//размер элемента вструктуре буфера в байтах (0 - неструктурированный буфер)
-		BufferDesc.Usage = D3D11_USAGE_DEFAULT;//как будет происходить чтение и запись (сейчас - только от GPU)
+		D3D11_BUFFER_DESC BufferDesc{};//Р±СѓС„РµСЂРЅС‹Р№ СЂРµСЃСѓСЂСЃ
+		BufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;//РєР°Рє Р±СѓС„РµСЂ РїСЂРёРІСЏР·Р°РЅ Рє РіСЂР°С„РёС‡РµСЃРєРѕРјСѓ РєРѕРЅРІРµР№РµСЂСѓ (СЃРµР№С‡Р°СЃ - РєР°Рє РёРЅРґРµРєСЃРЅС‹Р№ Р±СѓС„РµСЂ РЅР° СЌС‚Р°РїРµ IA)
+		BufferDesc.ByteWidth = static_cast<UINT>(sizeof(STriangle) * m_Object3DData.vTriangles.size());//СЂР°Р·РјРµСЂ Р±СѓС„РµСЂР° РІ Р±Р°Р№С‚Р°С…
+		BufferDesc.CPUAccessFlags = 0;//С„Р»Р°Рі РґРѕСЃС‚СѓРїР° Рє Р¦Рџ (0 - РґРѕСЃС‚СѓРї РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ)
+		BufferDesc.MiscFlags = 0;//РґСЂСѓРіРёРµ С„Р»Р°РіРё
+		BufferDesc.StructureByteStride = 0;//СЂР°Р·РјРµСЂ СЌР»РµРјРµРЅС‚Р° РІСЃС‚СЂСѓРєС‚СѓСЂРµ Р±СѓС„РµСЂР° РІ Р±Р°Р№С‚Р°С… (0 - РЅРµСЃС‚СЂСѓРєС‚СѓСЂРёСЂРѕРІР°РЅРЅС‹Р№ Р±СѓС„РµСЂ)
+		BufferDesc.Usage = D3D11_USAGE_DEFAULT;//РєР°Рє Р±СѓРґРµС‚ РїСЂРѕРёСЃС…РѕРґРёС‚СЊ С‡С‚РµРЅРёРµ Рё Р·Р°РїРёСЃСЊ (СЃРµР№С‡Р°СЃ - С‚РѕР»СЊРєРѕ РѕС‚ GPU)
 
-		D3D11_SUBRESOURCE_DATA SubresourceData{};//структура для инициализации подресурса
-		SubresourceData.pSysMem = &m_Object3DData.vTriangles[0];//указатель на данные инициализации
-		m_PtrDevice->CreateBuffer(&BufferDesc, &SubresourceData, &m_IndexBuffer);//создаем буфер
+		D3D11_SUBRESOURCE_DATA SubresourceData{};//СЃС‚СЂСѓРєС‚СѓСЂР° РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё РїРѕРґСЂРµСЃСѓСЂСЃР°
+		SubresourceData.pSysMem = &m_Object3DData.vTriangles[0];//СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РґР°РЅРЅС‹Рµ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё
+		m_PtrDevice->CreateBuffer(&BufferDesc, &SubresourceData, &m_IndexBuffer);//СЃРѕР·РґР°РµРј Р±СѓС„РµСЂ
 	}
 }
 
 void CObject3D::Draw()
 {
-	//привязка индексного буфера к этапу IA
+	//РїСЂРёРІСЏР·РєР° РёРЅРґРµРєСЃРЅРѕРіРѕ Р±СѓС„РµСЂР° Рє СЌС‚Р°РїСѓ IA
 	m_PtrDeviceContext->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-	//привязка вертексного буфера к этапу IA
+	//РїСЂРёРІСЏР·РєР° РІРµСЂС‚РµРєСЃРЅРѕРіРѕ Р±СѓС„РµСЂР° Рє СЌС‚Р°РїСѓ IA
 	m_PtrDeviceContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &m_VertexBufferStride, &m_VertexBufferOffset);
-	//указываем информацию о типе примитива и порядке данных которые описывают входные данные этапа IA (что это полигоны)
+	//СѓРєР°Р·С‹РІР°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ С‚РёРїРµ РїСЂРёРјРёС‚РёРІР° Рё РїРѕСЂСЏРґРєРµ РґР°РЅРЅС‹С… РєРѕС‚РѕСЂС‹Рµ РѕРїРёСЃС‹РІР°СЋС‚ РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ СЌС‚Р°РїР° IA (С‡С‚Рѕ СЌС‚Рѕ РїРѕР»РёРіРѕРЅС‹)
 	m_PtrDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//Рисуем индексированные примитивы
+	//Р РёСЃСѓРµРј РёРЅРґРµРєСЃРёСЂРѕРІР°РЅРЅС‹Рµ РїСЂРёРјРёС‚РёРІС‹
 	m_PtrDeviceContext->DrawIndexed(static_cast<UINT>(m_Object3DData.vTriangles.size() * 3), 0, 0);
 }

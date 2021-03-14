@@ -3,34 +3,34 @@
 void CShader::Create(EShaderType Type, const wstring& FileName, const string& EntryPoint,
 	const D3D11_INPUT_ELEMENT_DESC* InputElementDescs, UINT NumElements)
 {
-	//åñëè áûë óêàçàí ýëåìåíò ýòàïà ââîäà-àññåìáëåðà, òî ïðîâåðÿåì, âåðòåêñíûé ëè ýòî øåéäåð
+	//ÐµÑÐ»Ð¸ Ð±Ñ‹Ð» ÑƒÐºÐ°Ð·Ð°Ð½ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ ÑÑ‚Ð°Ð¿Ð° Ð²Ð²Ð¾Ð´Ð°-Ð°ÑÑÐµÐ¼Ð±Ð»ÐµÑ€Ð°, Ñ‚Ð¾ Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼, Ð²ÐµÑ€Ñ‚ÐµÐºÑÐ½Ñ‹Ð¹ Ð»Ð¸ ÑÑ‚Ð¾ ÑˆÐµÐ¹Ð´ÐµÑ€
 	if (InputElementDescs) assert(Type == EShaderType::VertexShader);
 
-	m_ShaderType = Type;//ïðèñâàèâàåì ëîêàëüíîå çíà÷åíèå òèïà øåéäåðà ïîëþ êëàññà
+	m_ShaderType = Type;//Ð¿Ñ€Ð¸ÑÐ²Ð°Ð¸Ð²Ð°ÐµÐ¼ Ð»Ð¾ÐºÐ°Ð»ÑŒÐ½Ð¾Ðµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ Ñ‚Ð¸Ð¿Ð° ÑˆÐµÐ¹Ð´ÐµÑ€Ð° Ð¿Ð¾Ð»ÑŽ ÐºÐ»Ð°ÑÑÐ°
 
 	switch (m_ShaderType)
 	{
-	case EShaderType::VertexShader://åñëè òèï øåéäåðà - âåðòåêñíûé
-		//ïðîâåðÿåì ñóùåñòâîâàíèå ýëåìåíòà ýòàïà ââîäà-àññåìáëåðà
+	case EShaderType::VertexShader://ÐµÑÐ»Ð¸ Ñ‚Ð¸Ð¿ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° - Ð²ÐµÑ€Ñ‚ÐµÐºÑÐ½Ñ‹Ð¹
+		//Ð¿Ñ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÑÑƒÑ‰ÐµÑÑ‚Ð²Ð¾Ð²Ð°Ð½Ð¸Ðµ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð° ÑÑ‚Ð°Ð¿Ð° Ð²Ð²Ð¾Ð´Ð°-Ð°ÑÑÐµÐ¼Ð±Ð»ÐµÑ€Ð°
 		assert(InputElementDescs);
 
-		//êîìïèëèèðóåì êîä HLSL â â áàéò-êîä
+		//ÐºÐ¾Ð¼Ð¿Ð¸Ð»Ð¸Ð¸Ñ€ÑƒÐµÐ¼ ÐºÐ¾Ð´ HLSL Ð² Ð² Ð±Ð°Ð¹Ñ‚-ÐºÐ¾Ð´
 		D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(),
 			"vs_4_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &m_Blob, nullptr);
 
-		//ñîçäàåì îáüåêò âåðøèííîãî øåéäåðà èç ñêîìïèëèðîâàííîãî êîäà
+		//ÑÐ¾Ð·Ð´Ð°ÐµÐ¼ Ð¾Ð±ÑŒÐµÐºÑ‚ Ð²ÐµÑ€ÑˆÐ¸Ð½Ð½Ð¾Ð³Ð¾ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° Ð¸Ð· ÑÐºÐ¾Ð¼Ð¿Ð¸Ð»Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ð¾Ð³Ð¾ ÐºÐ¾Ð´Ð°
 		m_PtrDevice->CreateVertexShader(m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), nullptr, &m_VertexShader);
 
-		//ñîçäàåì îáüåêò ìàêåòà ââîäà äëÿ îïèñàíèÿ äàííûõ áóôåðà ââîäà íà ýòàïå ââîäà-àññåìáëåðà
+		//ÑÐ¾Ð·Ð´Ð°ÐµÐ¼ Ð¾Ð±ÑŒÐµÐºÑ‚ Ð¼Ð°ÐºÐµÑ‚Ð° Ð²Ð²Ð¾Ð´Ð° Ð´Ð»Ñ Ð¾Ð¿Ð¸ÑÐ°Ð½Ð¸Ñ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð±ÑƒÑ„ÐµÑ€Ð° Ð²Ð²Ð¾Ð´Ð° Ð½Ð° ÑÑ‚Ð°Ð¿Ðµ Ð²Ð²Ð¾Ð´Ð°-Ð°ÑÑÐµÐ¼Ð±Ð»ÐµÑ€Ð°
 		m_PtrDevice->CreateInputLayout(InputElementDescs, NumElements,
 			m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), &m_InputLayout);
 		break;
 
-	case EShaderType::PixelShader://åñëè òèï øåéäåðà - ïèêñåëüíûé
-		//êîìïèëèèðóåì êîä HLSL â â áàéò-êîä
+	case EShaderType::PixelShader://ÐµÑÐ»Ð¸ Ñ‚Ð¸Ð¿ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° - Ð¿Ð¸ÐºÑÐµÐ»ÑŒÐ½Ñ‹Ð¹
+		//ÐºÐ¾Ð¼Ð¿Ð¸Ð»Ð¸Ð¸Ñ€ÑƒÐµÐ¼ ÐºÐ¾Ð´ HLSL Ð² Ð² Ð±Ð°Ð¹Ñ‚-ÐºÐ¾Ð´
 		D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(),
 			"ps_4_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &m_Blob, nullptr);
-		//ñîçäàåì îáüåêò ïèêñåëüíîãî øåéäåðà èç ñêîìïèëèðîâàííîãî êîäà
+		//ÑÐ¾Ð·Ð´Ð°ÐµÐ¼ Ð¾Ð±ÑŒÐµÐºÑ‚ Ð¿Ð¸ÐºÑÐµÐ»ÑŒÐ½Ð¾Ð³Ð¾ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° Ð¸Ð· ÑÐºÐ¾Ð¼Ð¿Ð¸Ð»Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð½Ð¾Ð³Ð¾ ÐºÐ¾Ð´Ð°
 		m_PtrDevice->CreatePixelShader(m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), nullptr, &m_PixelShader);
 		break;
 	default:
@@ -42,14 +42,14 @@ void CShader::Use()
 {
 	switch (m_ShaderType)
 	{
-	case EShaderType::VertexShader://åñëè òèï øåéäåðà - âåðòåêñíûé
-		//óñòàíàâëèâàåò âåðøèííûé øåéäåð äëÿ êîíòåêñòà óñòðîéñòâà
+	case EShaderType::VertexShader://ÐµÑÐ»Ð¸ Ñ‚Ð¸Ð¿ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° - Ð²ÐµÑ€Ñ‚ÐµÐºÑÐ½Ñ‹Ð¹
+		//ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ð²ÐµÑ€ÑˆÐ¸Ð½Ð½Ñ‹Ð¹ ÑˆÐµÐ¹Ð´ÐµÑ€ Ð´Ð»Ñ ÐºÐ¾Ð½Ñ‚ÐµÐºÑÑ‚Ð° ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð°
 		m_PtrDeviceContext->VSSetShader(m_VertexShader.Get(), nullptr, 0);
-		//ïðèâÿçêà îáüåêòà ìàññèâà ââîäà êýòàïó IA
+		//Ð¿Ñ€Ð¸Ð²ÑÐ·ÐºÐ° Ð¾Ð±ÑŒÐµÐºÑ‚Ð° Ð¼Ð°ÑÑÐ¸Ð²Ð° Ð²Ð²Ð¾Ð´Ð° ÐºÑÑ‚Ð°Ð¿Ñƒ IA
 		m_PtrDeviceContext->IASetInputLayout(m_InputLayout.Get());
 		break;
-	case EShaderType::PixelShader://åñëè òèï øåéäåðà - ïèêñåëüíûé
-		//óñòàíàâëèâàåò ïèêñåëüíûé øåéäåð äëÿ êîíòåêñòà óñòðîéñòâà
+	case EShaderType::PixelShader://ÐµÑÐ»Ð¸ Ñ‚Ð¸Ð¿ ÑˆÐµÐ¹Ð´ÐµÑ€Ð° - Ð¿Ð¸ÐºÑÐµÐ»ÑŒÐ½Ñ‹Ð¹
+		//ÑƒÑÑ‚Ð°Ð½Ð°Ð²Ð»Ð¸Ð²Ð°ÐµÑ‚ Ð¿Ð¸ÐºÑÐµÐ»ÑŒÐ½Ñ‹Ð¹ ÑˆÐµÐ¹Ð´ÐµÑ€ Ð´Ð»Ñ ÐºÐ¾Ð½Ñ‚ÐµÐºÑÑ‚Ð° ÑƒÑÑ‚Ñ€Ð¾Ð¹ÑÑ‚Ð²Ð°
 		m_PtrDeviceContext->PSSetShader(m_PixelShader.Get(), nullptr, 0);
 		break;
 	default:

@@ -36,11 +36,11 @@ void CGameWindow::MoveCamera(ECameraMovementDirection Direction, float StrideFac
 {
 	assert(m_PtrCurrentCamera);
 
-	XMVECTOR dPosition{};//отклонение от текущей позиции
-	//если тип камеры - свободная
+	XMVECTOR dPosition{};//РѕС‚РєР»РѕРЅРµРЅРёРµ РѕС‚ С‚РµРєСѓС‰РµР№ РїРѕР·РёС†РёРё
+	//РµСЃР»Рё С‚РёРї РєР°РјРµСЂС‹ - СЃРІРѕР±РѕРґРЅР°СЏ
 	if (m_PtrCurrentCamera->CameraType == ECameraType::FreeLook)
 	{
-		XMVECTOR Rightward{ XMVector3Normalize(XMVector3Cross(m_PtrCurrentCamera->UpDirection, m_PtrCurrentCamera->Forward)) };//нормальный вектор направленный вправо (нормализованное перекрестное произведение векторов направления вверх относительно камеры и вперед)
+		XMVECTOR Rightward{ XMVector3Normalize(XMVector3Cross(m_PtrCurrentCamera->UpDirection, m_PtrCurrentCamera->Forward)) };//РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РІРµРєС‚РѕСЂ РЅР°РїСЂР°РІР»РµРЅРЅС‹Р№ РІРїСЂР°РІРѕ (РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅРЅРѕРµ РїРµСЂРµРєСЂРµСЃС‚РЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ РІРµРєС‚РѕСЂРѕРІ РЅР°РїСЂР°РІР»РµРЅРёСЏ РІРІРµСЂС… РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РєР°РјРµСЂС‹ Рё РІРїРµСЂРµРґ)
 
 		switch (Direction)
 		{
@@ -60,11 +60,11 @@ void CGameWindow::MoveCamera(ECameraMovementDirection Direction, float StrideFac
 			break;
 		}
 	}
-	//если тип камеры от первого/третьего лица
+	//РµСЃР»Рё С‚РёРї РєР°РјРµСЂС‹ РѕС‚ РїРµСЂРІРѕРіРѕ/С‚СЂРµС‚СЊРµРіРѕ Р»РёС†Р°
 	else if (m_PtrCurrentCamera->CameraType == ECameraType::FirstPerson || m_PtrCurrentCamera->CameraType == ECameraType::ThirdPerson)
 	{
-		XMVECTOR GroundRightward{ XMVector3Normalize(XMVector3Cross(m_BaseUp, m_PtrCurrentCamera->Forward)) };//нормальный вектор направленный вправо относительно сцены (нормализованное перекрестное произведение векторов направления вверх и вперед)
-		XMVECTOR GroundForward{ XMVector3Normalize(XMVector3Cross(GroundRightward, m_BaseUp)) };//Вектор вперед относительно сцены
+		XMVECTOR GroundRightward{ XMVector3Normalize(XMVector3Cross(m_BaseUp, m_PtrCurrentCamera->Forward)) };//РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РІРµРєС‚РѕСЂ РЅР°РїСЂР°РІР»РµРЅРЅС‹Р№ РІРїСЂР°РІРѕ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ СЃС†РµРЅС‹ (РЅРѕСЂРјР°Р»РёР·РѕРІР°РЅРЅРѕРµ РїРµСЂРµРєСЂРµСЃС‚РЅРѕРµ РїСЂРѕРёР·РІРµРґРµРЅРёРµ РІРµРєС‚РѕСЂРѕРІ РЅР°РїСЂР°РІР»РµРЅРёСЏ РІРІРµСЂС… Рё РІРїРµСЂРµРґ)
+		XMVECTOR GroundForward{ XMVector3Normalize(XMVector3Cross(GroundRightward, m_BaseUp)) };//Р’РµРєС‚РѕСЂ РІРїРµСЂРµРґ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ СЃС†РµРЅС‹
 
 		switch (Direction)
 		{
@@ -96,7 +96,7 @@ void CGameWindow::RotateCamera(int DeltaX, int DeltaY, float RotationFactor)
 	m_PtrCurrentCamera->Pitch += RotationFactor * DeltaY;
 	m_PtrCurrentCamera->Yaw += RotationFactor * DeltaX;
 
-	static constexpr float KPitchLimit{ XM_PIDIV2 - 0.01f };//угол отклонения камеры по вертикали
+	static constexpr float KPitchLimit{ XM_PIDIV2 - 0.01f };//СѓРіРѕР» РѕС‚РєР»РѕРЅРµРЅРёСЏ РєР°РјРµСЂС‹ РїРѕ РІРµСЂС‚РёРєР°Р»Рё
 	m_PtrCurrentCamera->Pitch = max(-KPitchLimit, m_PtrCurrentCamera->Pitch);
 	m_PtrCurrentCamera->Pitch = min(+KPitchLimit, m_PtrCurrentCamera->Pitch);
 
@@ -108,19 +108,19 @@ void CGameWindow::RotateCamera(int DeltaX, int DeltaY, float RotationFactor)
 	{
 		m_PtrCurrentCamera->Yaw += XM_2PI;
 	}
-	//определяем, где теперь вперед и вверх для камеры
-	XMMATRIX MatrixRotation{ XMMatrixRotationRollPitchYaw(m_PtrCurrentCamera->Pitch, m_PtrCurrentCamera->Yaw, 0) };//матрица вращения (на основе углов поворота по осям X Y Z соответственно)
+	//РѕРїСЂРµРґРµР»СЏРµРј, РіРґРµ С‚РµРїРµСЂСЊ РІРїРµСЂРµРґ Рё РІРІРµСЂС… РґР»СЏ РєР°РјРµСЂС‹
+	XMMATRIX MatrixRotation{ XMMatrixRotationRollPitchYaw(m_PtrCurrentCamera->Pitch, m_PtrCurrentCamera->Yaw, 0) };//РјР°С‚СЂРёС†Р° РІСЂР°С‰РµРЅРёСЏ (РЅР° РѕСЃРЅРѕРІРµ СѓРіР»РѕРІ РїРѕРІРѕСЂРѕС‚Р° РїРѕ РѕСЃСЏРј X Y Z СЃРѕРѕС‚РІРµС‚СЃС‚РІРµРЅРЅРѕ)
 	m_PtrCurrentCamera->Forward = XMVector3TransformNormal(m_BaseForward, MatrixRotation);
-	XMVECTOR Rightward{ XMVector3Normalize(XMVector3Cross(m_BaseUp, m_PtrCurrentCamera->Forward)) };//вектор, определяющий право для камеры
-	XMVECTOR Upward{ XMVector3Normalize(XMVector3Cross(m_PtrCurrentCamera->Forward, Rightward)) };//вектор, определяющий верх для камеры
+	XMVECTOR Rightward{ XMVector3Normalize(XMVector3Cross(m_BaseUp, m_PtrCurrentCamera->Forward)) };//РІРµРєС‚РѕСЂ, РѕРїСЂРµРґРµР»СЏСЋС‰РёР№ РїСЂР°РІРѕ РґР»СЏ РєР°РјРµСЂС‹
+	XMVECTOR Upward{ XMVector3Normalize(XMVector3Cross(m_PtrCurrentCamera->Forward, Rightward)) };//РІРµРєС‚РѕСЂ, РѕРїСЂРµРґРµР»СЏСЋС‰РёР№ РІРµСЂС… РґР»СЏ РєР°РјРµСЂС‹
 
 	m_PtrCurrentCamera->UpDirection = Upward;
-	//если камера от первого лица или свободная, то меняем фокус (направление взгляда) камеры
+	//РµСЃР»Рё РєР°РјРµСЂР° РѕС‚ РїРµСЂРІРѕРіРѕ Р»РёС†Р° РёР»Рё СЃРІРѕР±РѕРґРЅР°СЏ, С‚Рѕ РјРµРЅСЏРµРј С„РѕРєСѓСЃ (РЅР°РїСЂР°РІР»РµРЅРёРµ РІР·РіР»СЏРґР°) РєР°РјРµСЂС‹
 	if (m_PtrCurrentCamera->CameraType == ECameraType::FirstPerson || m_PtrCurrentCamera->CameraType == ECameraType::FreeLook)
 	{
 		m_PtrCurrentCamera->FocusPosition = m_PtrCurrentCamera->EyePosition + m_PtrCurrentCamera->Forward;
 	}
-	//если камера от третьего лица, то меняем позицию камеры
+	//РµСЃР»Рё РєР°РјРµСЂР° РѕС‚ С‚СЂРµС‚СЊРµРіРѕ Р»РёС†Р°, С‚Рѕ РјРµРЅСЏРµРј РїРѕР·РёС†РёСЋ РєР°РјРµСЂС‹
 	else if (m_PtrCurrentCamera->CameraType == ECameraType::ThirdPerson)
 	{
 		m_PtrCurrentCamera->EyePosition = m_PtrCurrentCamera->FocusPosition - m_PtrCurrentCamera->Forward * m_PtrCurrentCamera->Distance;
@@ -143,7 +143,7 @@ void CGameWindow::CreateWin32Window(WNDPROC WndProc, LPCTSTR WindowName)
 	constexpr LPCTSTR KClassName{ TEXT("GameWindow") };
 	constexpr DWORD KWindowStyle{ WS_CAPTION | WS_SYSMENU };
 
-	//создаем и регистрируем класс окна
+	//СЃРѕР·РґР°РµРј Рё СЂРµРіРёСЃС‚СЂРёСЂСѓРµРј РєР»Р°СЃСЃ РѕРєРЅР°
 	WNDCLASSEX WindowClass{};
 	WindowClass.cbSize = sizeof(WNDCLASSEX);
 	WindowClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
@@ -197,25 +197,25 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 void CGameWindow::CreateSwapChain(bool bWindowed)
 {
-	DXGI_SWAP_CHAIN_DESC SwapChainDesc{};//структура, описывающая свойства переднего буфера
-	SwapChainDesc.BufferCount = 1;//Количество буферов в очереди
-	//режим отображения
-	SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//формат отображения (формат пикселя буфера)
-	SwapChainDesc.BufferDesc.Width = static_cast<UINT>(m_WindowSize.x);//ширина разрешения (ширина буфера)
-	SwapChainDesc.BufferDesc.Height = static_cast<UINT>(m_WindowSize.y);//высота разрешения (высота буфера)
-	//частота обновления в герцах (представлено как 60/1=60)
+	DXGI_SWAP_CHAIN_DESC SwapChainDesc{};//СЃС‚СЂСѓРєС‚СѓСЂР°, РѕРїРёСЃС‹РІР°СЋС‰Р°СЏ СЃРІРѕР№СЃС‚РІР° РїРµСЂРµРґРЅРµРіРѕ Р±СѓС„РµСЂР°
+	SwapChainDesc.BufferCount = 1;//РљРѕР»РёС‡РµСЃС‚РІРѕ Р±СѓС„РµСЂРѕРІ РІ РѕС‡РµСЂРµРґРё
+	//СЂРµР¶РёРј РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ
+	SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//С„РѕСЂРјР°С‚ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ (С„РѕСЂРјР°С‚ РїРёРєСЃРµР»СЏ Р±СѓС„РµСЂР°)
+	SwapChainDesc.BufferDesc.Width = static_cast<UINT>(m_WindowSize.x);//С€РёСЂРёРЅР° СЂР°Р·СЂРµС€РµРЅРёСЏ (С€РёСЂРёРЅР° Р±СѓС„РµСЂР°)
+	SwapChainDesc.BufferDesc.Height = static_cast<UINT>(m_WindowSize.y);//РІС‹СЃРѕС‚Р° СЂР°Р·СЂРµС€РµРЅРёСЏ (РІС‹СЃРѕС‚Р° Р±СѓС„РµСЂР°)
+	//С‡Р°СЃС‚РѕС‚Р° РѕР±РЅРѕРІР»РµРЅРёСЏ РІ РіРµСЂС†Р°С… (РїСЂРµРґСЃС‚Р°РІР»РµРЅРѕ РєР°Рє 60/1=60)
 	SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;//частота обновления экрана
-	SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;//режим масштабирования (как изображение растягивается при изменении масштаба для соответствия разрешению монитора)
-	SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;//в каком порядке растеризатор создает изображение на поверхности (сейчас порядок не указан)
-	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;//как будет использоваться поверхность/ресурс и параметры доступа к ним со стороны ЦП для заднего буфера (сейчас поверхность/ресурс - выходная цель рендеринга) (вкратце - назначение буфера)
-	SwapChainDesc.Flags = 0;//параметры поведения цепочки (очереди) подкачки
-	SwapChainDesc.OutputWindow = m_hWnd;//дескриптор окна вывода (к какому окну привязан буфер)
-	SwapChainDesc.SampleDesc.Count = 1;//количество мультисэмплов на пиксель
-	SwapChainDesc.SampleDesc.Quality = 0;//уровень качества изображения
-	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;//параметры обработки пикселей на поверхности отображения после вызова Present1() (как то связано с мультисэмплингом)
-	SwapChainDesc.Windowed = bWindowed;//true - оконный / false - полноэкранный режим
-	//создаем устройство - адаптер дисплея и цепочку подкачки
+	SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;//С‡Р°СЃС‚РѕС‚Р° РѕР±РЅРѕРІР»РµРЅРёСЏ СЌРєСЂР°РЅР°
+	SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;//СЂРµР¶РёРј РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ (РєР°Рє РёР·РѕР±СЂР°Р¶РµРЅРёРµ СЂР°СЃС‚СЏРіРёРІР°РµС‚СЃСЏ РїСЂРё РёР·РјРµРЅРµРЅРёРё РјР°СЃС€С‚Р°Р±Р° РґР»СЏ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёСЏ СЂР°Р·СЂРµС€РµРЅРёСЋ РјРѕРЅРёС‚РѕСЂР°)
+	SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;//РІ РєР°РєРѕРј РїРѕСЂСЏРґРєРµ СЂР°СЃС‚РµСЂРёР·Р°С‚РѕСЂ СЃРѕР·РґР°РµС‚ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РЅР° РїРѕРІРµСЂС…РЅРѕСЃС‚Рё (СЃРµР№С‡Р°СЃ РїРѕСЂСЏРґРѕРє РЅРµ СѓРєР°Р·Р°РЅ)
+	SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;//РєР°Рє Р±СѓРґРµС‚ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊСЃСЏ РїРѕРІРµСЂС…РЅРѕСЃС‚СЊ/СЂРµСЃСѓСЂСЃ Рё РїР°СЂР°РјРµС‚СЂС‹ РґРѕСЃС‚СѓРїР° Рє РЅРёРј СЃРѕ СЃС‚РѕСЂРѕРЅС‹ Р¦Рџ РґР»СЏ Р·Р°РґРЅРµРіРѕ Р±СѓС„РµСЂР° (СЃРµР№С‡Р°СЃ РїРѕРІРµСЂС…РЅРѕСЃС‚СЊ/СЂРµСЃСѓСЂСЃ - РІС‹С…РѕРґРЅР°СЏ С†РµР»СЊ СЂРµРЅРґРµСЂРёРЅРіР°) (РІРєСЂР°С‚С†Рµ - РЅР°Р·РЅР°С‡РµРЅРёРµ Р±СѓС„РµСЂР°)
+	SwapChainDesc.Flags = 0;//РїР°СЂР°РјРµС‚СЂС‹ РїРѕРІРµРґРµРЅРёСЏ С†РµРїРѕС‡РєРё (РѕС‡РµСЂРµРґРё) РїРѕРґРєР°С‡РєРё
+	SwapChainDesc.OutputWindow = m_hWnd;//РґРµСЃРєСЂРёРїС‚РѕСЂ РѕРєРЅР° РІС‹РІРѕРґР° (Рє РєР°РєРѕРјСѓ РѕРєРЅСѓ РїСЂРёРІСЏР·Р°РЅ Р±СѓС„РµСЂ)
+	SwapChainDesc.SampleDesc.Count = 1;//РєРѕР»РёС‡РµСЃС‚РІРѕ РјСѓР»СЊС‚РёСЃСЌРјРїР»РѕРІ РЅР° РїРёРєСЃРµР»СЊ
+	SwapChainDesc.SampleDesc.Quality = 0;//СѓСЂРѕРІРµРЅСЊ РєР°С‡РµСЃС‚РІР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;//РїР°СЂР°РјРµС‚СЂС‹ РѕР±СЂР°Р±РѕС‚РєРё РїРёРєСЃРµР»РµР№ РЅР° РїРѕРІРµСЂС…РЅРѕСЃС‚Рё РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РїРѕСЃР»Рµ РІС‹Р·РѕРІР° Present1() (РєР°Рє С‚Рѕ СЃРІСЏР·Р°РЅРѕ СЃ РјСѓР»СЊС‚РёСЃСЌРјРїР»РёРЅРіРѕРј)
+	SwapChainDesc.Windowed = bWindowed;//true - РѕРєРѕРЅРЅС‹Р№ / false - РїРѕР»РЅРѕСЌРєСЂР°РЅРЅС‹Р№ СЂРµР¶РёРј
+	//СЃРѕР·РґР°РµРј СѓСЃС‚СЂРѕР№СЃС‚РІРѕ - Р°РґР°РїС‚РµСЂ РґРёСЃРїР»РµСЏ Рё С†РµРїРѕС‡РєСѓ РїРѕРґРєР°С‡РєРё
 	D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION,
 		&SwapChainDesc, &m_SwapChain, &m_Device, nullptr, &m_DeviceContext);
 }
@@ -223,44 +223,44 @@ void CGameWindow::CreateSwapChain(bool bWindowed)
 void CGameWindow::CreateSetViews()
 {
 	ComPtr<ID3D11Texture2D> BackBuffer{};
-	m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer);//получаем указатель на 1-йзадний буфер подкачки
+	m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer);//РїРѕР»СѓС‡Р°РµРј СѓРєР°Р·Р°С‚РµР»СЊ РЅР° 1-Р№Р·Р°РґРЅРёР№ Р±СѓС„РµСЂ РїРѕРґРєР°С‡РєРё
 
-	m_Device->CreateRenderTargetView(BackBuffer.Get(), nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
+	m_Device->CreateRenderTargetView(BackBuffer.Get(), nullptr, &m_RenderTargetView);//СЃРѕР·РґР°РµРј РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ РґРѕСЃС‚СѓРїР° Рє РґР°РЅРЅС‹Рј
 
-	D3D11_TEXTURE2D_DESC DepthStencilBufferDesc{};//создаем трафаретную поверхность глубины
-	DepthStencilBufferDesc.ArraySize = 1;//количество текстур в массиве текстур
-	DepthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;//описывает как привязать данную текстуру к конвейеру (сейчас как буфер (трафарет) глубины)
-	DepthStencilBufferDesc.CPUAccessFlags = 0;//тип доступа к ЦП (0- доступ к ЦП не требуется)
-	DepthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;//формат буфера (сейчас 24 бита глубины и 8 бит трафарета)
-	DepthStencilBufferDesc.Width = static_cast<UINT>(m_WindowSize.x);//ширина текстуры
-	DepthStencilBufferDesc.Height = static_cast<UINT>(m_WindowSize.y);//высота текстуры
-	DepthStencilBufferDesc.MipLevels = 0;//максимальное количество уровней MIP-карты текстуры (0 для отображения без мультисемплинга)
-	DepthStencilBufferDesc.MiscFlags = 0;//флаги
-	DepthStencilBufferDesc.SampleDesc.Count = 1;//количество мультисэмплов на пиксель
-	DepthStencilBufferDesc.SampleDesc.Quality = 0;//уровень качества изображения
-	DepthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;//способ чтения и записи текстуры (сейчас все со стороны GPU)
+	D3D11_TEXTURE2D_DESC DepthStencilBufferDesc{};//СЃРѕР·РґР°РµРј С‚СЂР°С„Р°СЂРµС‚РЅСѓСЋ РїРѕРІРµСЂС…РЅРѕСЃС‚СЊ РіР»СѓР±РёРЅС‹
+	DepthStencilBufferDesc.ArraySize = 1;//РєРѕР»РёС‡РµСЃС‚РІРѕ С‚РµРєСЃС‚СѓСЂ РІ РјР°СЃСЃРёРІРµ С‚РµРєСЃС‚СѓСЂ
+	DepthStencilBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;//РѕРїРёСЃС‹РІР°РµС‚ РєР°Рє РїСЂРёРІСЏР·Р°С‚СЊ РґР°РЅРЅСѓСЋ С‚РµРєСЃС‚СѓСЂСѓ Рє РєРѕРЅРІРµР№РµСЂСѓ (СЃРµР№С‡Р°СЃ РєР°Рє Р±СѓС„РµСЂ (С‚СЂР°С„Р°СЂРµС‚) РіР»СѓР±РёРЅС‹)
+	DepthStencilBufferDesc.CPUAccessFlags = 0;//С‚РёРї РґРѕСЃС‚СѓРїР° Рє Р¦Рџ (0- РґРѕСЃС‚СѓРї Рє Р¦Рџ РЅРµ С‚СЂРµР±СѓРµС‚СЃСЏ)
+	DepthStencilBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;//С„РѕСЂРјР°С‚ Р±СѓС„РµСЂР° (СЃРµР№С‡Р°СЃ 24 Р±РёС‚Р° РіР»СѓР±РёРЅС‹ Рё 8 Р±РёС‚ С‚СЂР°С„Р°СЂРµС‚Р°)
+	DepthStencilBufferDesc.Width = static_cast<UINT>(m_WindowSize.x);//С€РёСЂРёРЅР° С‚РµРєСЃС‚СѓСЂС‹
+	DepthStencilBufferDesc.Height = static_cast<UINT>(m_WindowSize.y);//РІС‹СЃРѕС‚Р° С‚РµРєСЃС‚СѓСЂС‹
+	DepthStencilBufferDesc.MipLevels = 0;//РјР°РєСЃРёРјР°Р»СЊРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ СѓСЂРѕРІРЅРµР№ MIP-РєР°СЂС‚С‹ С‚РµРєСЃС‚СѓСЂС‹ (0 РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ Р±РµР· РјСѓР»СЊС‚РёСЃРµРјРїР»РёРЅРіР°)
+	DepthStencilBufferDesc.MiscFlags = 0;//С„Р»Р°РіРё
+	DepthStencilBufferDesc.SampleDesc.Count = 1;//РєРѕР»РёС‡РµСЃС‚РІРѕ РјСѓР»СЊС‚РёСЃСЌРјРїР»РѕРІ РЅР° РїРёРєСЃРµР»СЊ
+	DepthStencilBufferDesc.SampleDesc.Quality = 0;//СѓСЂРѕРІРµРЅСЊ РєР°С‡РµСЃС‚РІР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+	DepthStencilBufferDesc.Usage = D3D11_USAGE_DEFAULT;//СЃРїРѕСЃРѕР± С‡С‚РµРЅРёСЏ Рё Р·Р°РїРёСЃРё С‚РµРєСЃС‚СѓСЂС‹ (СЃРµР№С‡Р°СЃ РІСЃРµ СЃРѕ СЃС‚РѕСЂРѕРЅС‹ GPU)
 	m_Device->CreateTexture2D(&DepthStencilBufferDesc, nullptr, &m_DepthStencilBuffer);
-	m_Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, &m_DepthStencilView);//создаем представление для буфера глубины
-	//ОМ - этап слияния вывода, последний этап для определения видимых пикселей
-	m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());//привязка цели рендеринга (заднего буфера) и трафарета глубины к этапу ОМ
+	m_Device->CreateDepthStencilView(m_DepthStencilBuffer.Get(), nullptr, &m_DepthStencilView);//СЃРѕР·РґР°РµРј РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РґР»СЏ Р±СѓС„РµСЂР° РіР»СѓР±РёРЅС‹
+	//РћРњ - СЌС‚Р°Рї СЃР»РёСЏРЅРёСЏ РІС‹РІРѕРґР°, РїРѕСЃР»РµРґРЅРёР№ СЌС‚Р°Рї РґР»СЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ РІРёРґРёРјС‹С… РїРёРєСЃРµР»РµР№
+	m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());//РїСЂРёРІСЏР·РєР° С†РµР»Рё СЂРµРЅРґРµСЂРёРЅРіР° (Р·Р°РґРЅРµРіРѕ Р±СѓС„РµСЂР°) Рё С‚СЂР°С„Р°СЂРµС‚Р° РіР»СѓР±РёРЅС‹ Рє СЌС‚Р°РїСѓ РћРњ
 }
 
 void CGameWindow::SetViewports()
 {
-	//задаем массив размеров области просмотра (у нас массив из 1 элемента)
+	//Р·Р°РґР°РµРј РјР°СЃСЃРёРІ СЂР°Р·РјРµСЂРѕРІ РѕР±Р»Р°СЃС‚Рё РїСЂРѕСЃРјРѕС‚СЂР° (Сѓ РЅР°СЃ РјР°СЃСЃРёРІ РёР· 1 СЌР»РµРјРµРЅС‚Р°)
 	vector<D3D11_VIEWPORT> vViewPorts{};
 	{
 		vViewPorts.emplace_back();
 
 		D3D11_VIEWPORT& ViewPort{ vViewPorts.back() };
-		ViewPort.TopLeftX = 0.0f;//положение Х для крайней левой точки
-		ViewPort.TopLeftY = 0.0f;//положение Y для крайней верхней точки
-		ViewPort.Width = m_WindowSize.x;//ширина области просмотра
-		ViewPort.Height = m_WindowSize.y;//высота области просмотра
-		ViewPort.MinDepth = 0.0f;//минимальная глубина области просмотра
-		ViewPort.MaxDepth = 1.0f;//максимальная глубина области просмотра
+		ViewPort.TopLeftX = 0.0f;//РїРѕР»РѕР¶РµРЅРёРµ РҐ РґР»СЏ РєСЂР°Р№РЅРµР№ Р»РµРІРѕР№ С‚РѕС‡РєРё
+		ViewPort.TopLeftY = 0.0f;//РїРѕР»РѕР¶РµРЅРёРµ Y РґР»СЏ РєСЂР°Р№РЅРµР№ РІРµСЂС…РЅРµР№ С‚РѕС‡РєРё
+		ViewPort.Width = m_WindowSize.x;//С€РёСЂРёРЅР° РѕР±Р»Р°СЃС‚Рё РїСЂРѕСЃРјРѕС‚СЂР°
+		ViewPort.Height = m_WindowSize.y;//РІС‹СЃРѕС‚Р° РѕР±Р»Р°СЃС‚Рё РїСЂРѕСЃРјРѕС‚СЂР°
+		ViewPort.MinDepth = 0.0f;//РјРёРЅРёРјР°Р»СЊРЅР°СЏ РіР»СѓР±РёРЅР° РѕР±Р»Р°СЃС‚Рё РїСЂРѕСЃРјРѕС‚СЂР°
+		ViewPort.MaxDepth = 1.0f;//РјР°РєСЃРёРјР°Р»СЊРЅР°СЏ РіР»СѓР±РёРЅР° РѕР±Р»Р°СЃС‚Рё РїСЂРѕСЃРјРѕС‚СЂР°
 	}
-	//устанавливаем массив окон просмотра к этапу растеризации конвейера
+	//СѓСЃС‚Р°РЅР°РІР»РёРІР°РµРј РјР°СЃСЃРёРІ РѕРєРѕРЅ РїСЂРѕСЃРјРѕС‚СЂР° Рє СЌС‚Р°РїСѓ СЂР°СЃС‚РµСЂРёР·Р°С†РёРё РєРѕРЅРІРµР№РµСЂР°
 	m_DeviceContext->RSSetViewports(static_cast<UINT>(vViewPorts.size()), &vViewPorts[0]);
 }
 
@@ -302,19 +302,19 @@ void CGameWindow::CreateCBTexture()
 
 void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
 {
-	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//создает матрицу WVP
+	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//СЃРѕР·РґР°РµС‚ РјР°С‚СЂРёС†Сѓ WVP
 
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
 
-	//запрещаем доступ графическому процессору к константному буферу
+	//Р·Р°РїСЂРµС‰Р°РµРј РґРѕСЃС‚СѓРї РіСЂР°С„РёС‡РµСЃРєРѕРјСѓ РїСЂРѕС†РµСЃСЃРѕСЂСѓ Рє РєРѕРЅСЃС‚Р°РЅС‚РЅРѕРјСѓ Р±СѓС„РµСЂСѓ
 	if (SUCCEEDED(m_DeviceContext->Map(m_CBWVP.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
 	{
-		memcpy(MappedSubresource.pData, &MatrixWVP, sizeof(XMMATRIX));//копируем новое значение константного буфера
+		memcpy(MappedSubresource.pData, &MatrixWVP, sizeof(XMMATRIX));//РєРѕРїРёСЂСѓРµРј РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ РєРѕРЅСЃС‚Р°РЅС‚РЅРѕРіРѕ Р±СѓС„РµСЂР°
 
-		m_DeviceContext->Unmap(m_CBWVP.Get(), 0);//вновь разрешаем доступ графическому процессору к константному буферу
+		m_DeviceContext->Unmap(m_CBWVP.Get(), 0);//РІРЅРѕРІСЊ СЂР°Р·СЂРµС€Р°РµРј РґРѕСЃС‚СѓРї РіСЂР°С„РёС‡РµСЃРєРѕРјСѓ РїСЂРѕС†РµСЃСЃРѕСЂСѓ Рє РєРѕРЅСЃС‚Р°РЅС‚РЅРѕРјСѓ Р±СѓС„РµСЂСѓ
 	}
 
-	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//устанавливает константный буфер
+	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//СѓСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ РєРѕРЅСЃС‚Р°РЅС‚РЅС‹Р№ Р±СѓС„РµСЂ
 }
 
 void CGameWindow::UpdateCBTexture(BOOL UseTexture)
@@ -385,17 +385,17 @@ void CGameWindow::SetRasterizerState(ERasterizerState State)
 
 void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 {
-	m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), ClearColor);//делаем заливку всей области заданным цветом
-	m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
+	m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), ClearColor);//РґРµР»Р°РµРј Р·Р°Р»РёРІРєСѓ РІСЃРµР№ РѕР±Р»Р°СЃС‚Рё Р·Р°РґР°РЅРЅС‹Рј С†РІРµС‚РѕРј
+	m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//РѕС‡РёСЃС‚РєР° С‚СЂР°С„Р°СЂРµС‚Р° РіР»СѓР±РёРЅС‹
 	
-	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
+	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//РѕР±РЅСѓР»РµРЅРёРµ Р·РЅР°С‡РµРЅРёР№ С‚СЂР°С„Р°СЂРµС‚Р° РіР»СѓР±РёРЅС‹ РЅР° СЌС‚Р°РїРµ СЃР»РёСЏРЅРёСЏ-РІС‹РІРѕРґР° OM
 
-	ID3D11SamplerState* SamplerState{ m_CommonStates->LinearWrap() };//состояние сэмплера
-	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//установка состояния сэмплера наэтапе пиксельногошейдера
+	ID3D11SamplerState* SamplerState{ m_CommonStates->LinearWrap() };//СЃРѕСЃС‚РѕСЏРЅРёРµ СЃСЌРјРїР»РµСЂР°
+	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//СѓСЃС‚Р°РЅРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ СЃСЌРјРїР»РµСЂР° РЅР°СЌС‚Р°РїРµ РїРёРєСЃРµР»СЊРЅРѕРіРѕС€РµР№РґРµСЂР°
 
-	m_DeviceContext->OMSetBlendState(m_CommonStates->AlphaBlend(), nullptr, 0xFFFFFFFF);//установка состояния смешивателя (blender-а) наэтапе слияния вывода (смешивание - обьединение пикселей с учетом прозрачности)
+	m_DeviceContext->OMSetBlendState(m_CommonStates->AlphaBlend(), nullptr, 0xFFFFFFFF);//СѓСЃС‚Р°РЅРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ СЃРјРµС€РёРІР°С‚РµР»СЏ (blender-Р°) РЅР°СЌС‚Р°РїРµ СЃР»РёСЏРЅРёСЏ РІС‹РІРѕРґР° (СЃРјРµС€РёРІР°РЅРёРµ - РѕР±СЊРµРґРёРЅРµРЅРёРµ РїРёРєСЃРµР»РµР№ СЃ СѓС‡РµС‚РѕРј РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё)
 
-	//установка состояния растеризатора
+	//СѓСЃС‚Р°РЅРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ СЂР°СЃС‚РµСЂРёР·Р°С‚РѕСЂР°
 	switch (m_eRasterizerState)
 	{
 	case ERasterizerState::CullNone:
@@ -414,12 +414,12 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 		break;
 	}
 	
-	m_MatrixView = XMMatrixLookAtLH(m_PtrCurrentCamera->EyePosition, m_PtrCurrentCamera->FocusPosition, m_PtrCurrentCamera->UpDirection);//создание матрицы вида на основе текущего состояния камеры
+	m_MatrixView = XMMatrixLookAtLH(m_PtrCurrentCamera->EyePosition, m_PtrCurrentCamera->FocusPosition, m_PtrCurrentCamera->UpDirection);//СЃРѕР·РґР°РЅРёРµ РјР°С‚СЂРёС†С‹ РІРёРґР° РЅР° РѕСЃРЅРѕРІРµ С‚РµРєСѓС‰РµРіРѕ СЃРѕСЃС‚РѕСЏРЅРёСЏ РєР°РјРµСЂС‹
 }
 
 void CGameWindow::DrawGameObjects()
 {
-	//обработка обьектов с прозрачной текстурой
+	//РѕР±СЂР°Р±РѕС‚РєР° РѕР±СЊРµРєС‚РѕРІ СЃ РїСЂРѕР·СЂР°С‡РЅРѕР№ С‚РµРєСЃС‚СѓСЂРѕР№
 	for (auto& go : m_vGameObjects)
 	{
 		if (go->ComponentRender.IsTransparent) continue;
@@ -442,7 +442,7 @@ void CGameWindow::DrawGameObjects()
 			go->ComponentRender.PtrObject3D->Draw();
 		}
 	}
-	//обработка обьектов с непрозрачной текстурой
+	//РѕР±СЂР°Р±РѕС‚РєР° РѕР±СЊРµРєС‚РѕРІ СЃ РЅРµРїСЂРѕР·СЂР°С‡РЅРѕР№ С‚РµРєСЃС‚СѓСЂРѕР№
 	for (auto& go : m_vGameObjects)
 	{
 		if (!go->ComponentRender.IsTransparent) continue;
@@ -469,7 +469,7 @@ void CGameWindow::DrawGameObjects()
 
 void CGameWindow::EndRendering()
 {
-	m_SwapChain->Present(0, 0);//делает свап переднего буфера и заднего
+	m_SwapChain->Present(0, 0);//РґРµР»Р°РµС‚ СЃРІР°Рї РїРµСЂРµРґРЅРµРіРѕ Р±СѓС„РµСЂР° Рё Р·Р°РґРЅРµРіРѕ
 }
 
 Keyboard::State CGameWindow::GetKeyState()
@@ -481,7 +481,7 @@ Mouse::State CGameWindow::GetMouseState()
 {
 	Mouse::State ResultState{ m_Mouse->GetState() };
 
-	m_Mouse->ResetScrollWheelValue();//сброс значения колесика прокрутки
+	m_Mouse->ResetScrollWheelValue();//СЃР±СЂРѕСЃ Р·РЅР°С‡РµРЅРёСЏ РєРѕР»РµСЃРёРєР° РїСЂРѕРєСЂСѓС‚РєРё
 
 	return ResultState;
 }

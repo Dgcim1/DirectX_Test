@@ -3,10 +3,10 @@
 #include "Object3D.h"
 
 /// <summary>
-/// Генерация непрерывных граней
+/// Р“РµРЅРµСЂР°С†РёСЏ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№
 /// </summary>
-/// <param name="FaceCount">Количество непрерывных граней</param>
-/// <returns>Набор индексов треугольников непрерывных граней</returns>
+/// <param name="FaceCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№</param>
+/// <returns>РќР°Р±РѕСЂ РёРЅРґРµРєСЃРѕРІ С‚СЂРµСѓРіРѕР»СЊРЅРёРєРѕРІ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№</returns>
 static vector<STriangle> GenerateContinuousFaces(int FaceCount)
 {
 	vector<STriangle> vTriangles{};
@@ -21,10 +21,10 @@ static vector<STriangle> GenerateContinuousFaces(int FaceCount)
 }
 
 /// <summary>
-/// Генерация непрерывных граней с обратной стороны
+/// Р“РµРЅРµСЂР°С†РёСЏ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№ СЃ РѕР±СЂР°С‚РЅРѕР№ СЃС‚РѕСЂРѕРЅС‹
 /// </summary>
-/// <param name="FaceCount">Количество непрерывных граней</param>
-/// <returns>Набор индексов треугольников непрерывных граней</returns>
+/// <param name="FaceCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№</param>
+/// <returns>РќР°Р±РѕСЂ РёРЅРґРµРєСЃРѕРІ С‚СЂРµСѓРіРѕР»СЊРЅРёРєРѕРІ РЅРµРїСЂРµСЂС‹РІРЅС‹С… РіСЂР°РЅРµР№</returns>
 static vector<STriangle> GenerateContinuousFacesReverse(int FaceCount)
 {
 	vector<STriangle> vTriangles{};
@@ -39,13 +39,13 @@ static vector<STriangle> GenerateContinuousFacesReverse(int FaceCount)
 }
 
 /// <summary>
-/// Генерация структуры треугольника
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ С‚СЂРµСѓРіРѕР»СЊРЅРёРєР°
 /// </summary>
-/// <param name="V0">Точка треугольника 1</param>
-/// <param name="V1">Точка треугольника 2</param>
-/// <param name="V2">Точка треугольника 3</param>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о треугольнике</returns>
+/// <param name="V0">РўРѕС‡РєР° С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° 1</param>
+/// <param name="V1">РўРѕС‡РєР° С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° 2</param>
+/// <param name="V2">РўРѕС‡РєР° С‚СЂРµСѓРіРѕР»СЊРЅРёРєР° 3</param>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ С‚СЂРµСѓРіРѕР»СЊРЅРёРєРµ</returns>
 static SObject3DData GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, const XMVECTOR& V2, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -60,10 +60,10 @@ static SObject3DData GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, co
 }
 
 /// <summary>
-/// Генерация структуры квадрата в плоскости XZ с отрисовкой верхней грани
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РєРІР°РґСЂР°С‚Р° РІ РїР»РѕСЃРєРѕСЃС‚Рё XZ СЃ РѕС‚СЂРёСЃРѕРІРєРѕР№ РІРµСЂС…РЅРµР№ РіСЂР°РЅРё
 /// </summary>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о квадрате</returns>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РєРІР°РґСЂР°С‚Рµ</returns>
 static SObject3DData GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -82,11 +82,11 @@ static SObject3DData GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1
 }
 
 /// <summary>
-/// Генерация структуры круга в плоскости XZ с отрисовкой верхней грани
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РєСЂСѓРіР° РІ РїР»РѕСЃРєРѕСЃС‚Рё XZ СЃ РѕС‚СЂРёСЃРѕРІРєРѕР№ РІРµСЂС…РЅРµР№ РіСЂР°РЅРё
 /// </summary>
-/// <param name="SideCount">Количество полигонов, степень сглаженности круга</param>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о круге</returns>
+/// <param name="SideCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РёРіРѕРЅРѕРІ, СЃС‚РµРїРµРЅСЊ СЃРіР»Р°Р¶РµРЅРЅРѕСЃС‚Рё РєСЂСѓРіР°</param>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РєСЂСѓРіРµ</returns>
 static SObject3DData GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -120,10 +120,10 @@ static SObject3DData GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECT
 }
 
 /// <summary>
-/// Генерация структуры четырехугольной пирамиды
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ С‡РµС‚С‹СЂРµС…СѓРіРѕР»СЊРЅРѕР№ РїРёСЂР°РјРёРґС‹
 /// </summary>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о пирамиде</returns>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РїРёСЂР°РјРёРґРµ</returns>
 static SObject3DData GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -173,10 +173,10 @@ static SObject3DData GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1
 }
 
 /// <summary>
-/// Генерация структуры куба
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РєСѓР±Р°
 /// </summary>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о кубе</returns>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РєСѓР±Рµ</returns>
 static SObject3DData GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -229,10 +229,10 @@ static SObject3DData GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1
 }
 
 /// <summary>
-/// Генерация структуры куба, в котором грани отображаются изнутри
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РєСѓР±Р°, РІ РєРѕС‚РѕСЂРѕРј РіСЂР°РЅРё РѕС‚РѕР±СЂР°Р¶Р°СЋС‚СЃСЏ РёР·РЅСѓС‚СЂРё
 /// </summary>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о кубе</returns>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РєСѓР±Рµ</returns>
 static SObject3DData GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -285,12 +285,12 @@ static SObject3DData GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 
 }
 
 /// <summary>
-/// Генерация структуры конус
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ РєРѕРЅСѓСЃ
 /// </summary>
-/// <param name="RadiusRatio">Высота неусеченной части конуса (0.0f для неусеченной, 0.5f для наполовину усеченной пирамиды, 1.0f для цилиндра)</param>
-/// <param name="SideCount">Количество полигонов наклоненной части, степень сглаженности конуса</param>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о конусе</returns>
+/// <param name="RadiusRatio">Р’С‹СЃРѕС‚Р° РЅРµСѓСЃРµС‡РµРЅРЅРѕР№ С‡Р°СЃС‚Рё РєРѕРЅСѓСЃР° (0.0f РґР»СЏ РЅРµСѓСЃРµС‡РµРЅРЅРѕР№, 0.5f РґР»СЏ РЅР°РїРѕР»РѕРІРёРЅСѓ СѓСЃРµС‡РµРЅРЅРѕР№ РїРёСЂР°РјРёРґС‹, 1.0f РґР»СЏ С†РёР»РёРЅРґСЂР°)</param>
+/// <param name="SideCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РёРіРѕРЅРѕРІ РЅР°РєР»РѕРЅРµРЅРЅРѕР№ С‡Р°СЃС‚Рё, СЃС‚РµРїРµРЅСЊ СЃРіР»Р°Р¶РµРЅРЅРѕСЃС‚Рё РєРѕРЅСѓСЃР°</param>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ РєРѕРЅСѓСЃРµ</returns>
 static SObject3DData GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};
@@ -339,22 +339,22 @@ static SObject3DData GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount =
 }
 
 /// <summary>
-/// Генерация структуры цилиндр
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ С†РёР»РёРЅРґСЂ
 /// </summary>
-/// <param name="SideCount">Количество полигонов, степень сглаженности цилиндра</param>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о цилиндре</returns>
+/// <param name="SideCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РёРіРѕРЅРѕРІ, СЃС‚РµРїРµРЅСЊ СЃРіР»Р°Р¶РµРЅРЅРѕСЃС‚Рё С†РёР»РёРЅРґСЂР°</param>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ С†РёР»РёРЅРґСЂРµ</returns>
 static SObject3DData GenerateCylinder(uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
 	return GenerateCone(1.0f, SideCount, Color);
 }
 
 /// <summary>
-/// Генерация структуры сфера
+/// Р“РµРЅРµСЂР°С†РёСЏ СЃС‚СЂСѓРєС‚СѓСЂС‹ СЃС„РµСЂР°
 /// </summary>
-/// <param name="SegmentCount">Количество полигонов, степень сглаженности сферы</param>
-/// <param name="Color">Цвет фигуры</param>
-/// <returns>Обьект, хранящий данные о сфере</returns>
+/// <param name="SegmentCount">РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕР»РёРіРѕРЅРѕРІ, СЃС‚РµРїРµРЅСЊ СЃРіР»Р°Р¶РµРЅРЅРѕСЃС‚Рё СЃС„РµСЂС‹</param>
+/// <param name="Color">Р¦РІРµС‚ С„РёРіСѓСЂС‹</param>
+/// <returns>РћР±СЊРµРєС‚, С…СЂР°РЅСЏС‰РёР№ РґР°РЅРЅС‹Рµ Рѕ СЃС„РµСЂРµ</returns>
 static SObject3DData GenerateSphere(uint32_t SegmentCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
 	SObject3DData Data{};

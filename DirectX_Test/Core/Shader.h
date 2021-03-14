@@ -6,7 +6,7 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 /// <summary>
-/// Тип шейдера
+/// РўРёРї С€РµР№РґРµСЂР°
 /// </summary>
 enum class EShaderType
 {
@@ -15,16 +15,16 @@ enum class EShaderType
 };
 
 /// <summary>
-/// Шейдер
+/// РЁРµР№РґРµСЂ
 /// </summary>
 class CShader final
 {
 public:
 	/// <summary>
-	/// Конструктор шейдера
+	/// РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ С€РµР№РґРµСЂР°
 	/// </summary>
-	/// <param name="PtrDevice">Указатель на устройство</param>
-	/// <param name="PtrDeviceContext">Указатель на контекст устройства</param>
+	/// <param name="PtrDevice">РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРѕ</param>
+	/// <param name="PtrDeviceContext">РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕРЅС‚РµРєСЃС‚ СѓСЃС‚СЂРѕР№СЃС‚РІР°</param>
 	CShader(ID3D11Device* PtrDevice, ID3D11DeviceContext* PtrDeviceContext) :
 		m_PtrDevice{ PtrDevice }, m_PtrDeviceContext{ PtrDeviceContext }
 	{
@@ -33,50 +33,50 @@ public:
 	}
 	~CShader() {}
 	/// <summary>
-	/// Компилирует и добавляет в устройство заданный шейдер
+	/// РљРѕРјРїРёР»РёСЂСѓРµС‚ Рё РґРѕР±Р°РІР»СЏРµС‚ РІ СѓСЃС‚СЂРѕР№СЃС‚РІРѕ Р·Р°РґР°РЅРЅС‹Р№ С€РµР№РґРµСЂ
 	/// </summary>
-	/// <param name="Type">Тип шейдера</param>
-	/// <param name="FileName">Путь к файлу *.hlsl с кодом шейдера</param>
-	/// <param name="EntryPoint">Имя функции - точки входа в шейдер</param>
-	/// <param name="InputElementDescs">Указатель на массив - элемент ввода для этапа IA</param>
-	/// <param name="NumElements">Количество типов входных данных в массиве входных элементов.</param>
+	/// <param name="Type">РўРёРї С€РµР№РґРµСЂР°</param>
+	/// <param name="FileName">РџСѓС‚СЊ Рє С„Р°Р№Р»Сѓ *.hlsl СЃ РєРѕРґРѕРј С€РµР№РґРµСЂР°</param>
+	/// <param name="EntryPoint">РРјСЏ С„СѓРЅРєС†РёРё - С‚РѕС‡РєРё РІС…РѕРґР° РІ С€РµР№РґРµСЂ</param>
+	/// <param name="InputElementDescs">РЈРєР°Р·Р°С‚РµР»СЊ РЅР° РјР°СЃСЃРёРІ - СЌР»РµРјРµРЅС‚ РІРІРѕРґР° РґР»СЏ СЌС‚Р°РїР° IA</param>
+	/// <param name="NumElements">РљРѕР»РёС‡РµСЃС‚РІРѕ С‚РёРїРѕРІ РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С… РІ РјР°СЃСЃРёРІРµ РІС…РѕРґРЅС‹С… СЌР»РµРјРµРЅС‚РѕРІ.</param>
 	void Create(EShaderType Type, const wstring& FileName, const string& EntryPoint, 
 		const D3D11_INPUT_ELEMENT_DESC* InputElementDescs = nullptr, UINT NumElements = 0);
 
 	/// <summary>
-	/// Устанавливает шейдер для контекста устройства
+	/// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµС‚ С€РµР№РґРµСЂ РґР»СЏ РєРѕРЅС‚РµРєСЃС‚Р° СѓСЃС‚СЂРѕР№СЃС‚РІР°
 	/// </summary>
 	void Use();
 
 private:
 	/// <summary>
-	/// указатель на устройство
+	/// СѓРєР°Р·Р°С‚РµР»СЊ РЅР° СѓСЃС‚СЂРѕР№СЃС‚РІРѕ
 	/// </summary>
 	ID3D11Device*				m_PtrDevice{};
 	/// <summary>
-	/// указатель на контекст устройства
+	/// СѓРєР°Р·Р°С‚РµР»СЊ РЅР° РєРѕРЅС‚РµРєСЃС‚ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 	/// </summary>
 	ID3D11DeviceContext*		m_PtrDeviceContext{};
 
 private:
 	/// <summary>
-	/// указатель на скомпилированный код шейдера
+	/// СѓРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРєРѕРјРїРёР»РёСЂРѕРІР°РЅРЅС‹Р№ РєРѕРґ С€РµР№РґРµСЂР°
 	/// </summary>
 	ComPtr<ID3DBlob>			m_Blob{};
 	/// <summary>
-	/// Указатель на скомпилированный вертексный шейдер (если m_ShaderType = VertexShader)
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРєРѕРјРїРёР»РёСЂРѕРІР°РЅРЅС‹Р№ РІРµСЂС‚РµРєСЃРЅС‹Р№ С€РµР№РґРµСЂ (РµСЃР»Рё m_ShaderType = VertexShader)
 	/// </summary>
 	ComPtr<ID3D11VertexShader>	m_VertexShader{};
 	/// <summary>
-	/// Указатель на скомпилированный пиксельный шейдер (если m_ShaderType = PixelShader)
+	/// РЈРєР°Р·Р°С‚РµР»СЊ РЅР° СЃРєРѕРјРїРёР»РёСЂРѕРІР°РЅРЅС‹Р№ РїРёРєСЃРµР»СЊРЅС‹Р№ С€РµР№РґРµСЂ (РµСЃР»Рё m_ShaderType = PixelShader)
 	/// </summary>
 	ComPtr<ID3D11PixelShader>	m_PixelShader{};
 	/// <summary>
-	/// Обьект макета ввода для описания данных буфера ввода на этапе ввода-ассемблера
+	/// РћР±СЊРµРєС‚ РјР°РєРµС‚Р° РІРІРѕРґР° РґР»СЏ РѕРїРёСЃР°РЅРёСЏ РґР°РЅРЅС‹С… Р±СѓС„РµСЂР° РІРІРѕРґР° РЅР° СЌС‚Р°РїРµ РІРІРѕРґР°-Р°СЃСЃРµРјР±Р»РµСЂР°
 	/// </summary>
 	ComPtr<ID3D11InputLayout>	m_InputLayout{};
 	/// <summary>
-	/// Тип шейдера
+	/// РўРёРї С€РµР№РґРµСЂР°
 	/// </summary>
 	EShaderType					m_ShaderType{};
 };
