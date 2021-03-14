@@ -5,6 +5,109 @@
 #include "Shader.h"
 
 /// <summary>
+/// Тип камеры
+/// </summary>
+enum class ECameraType
+{
+	/// <summary>
+	/// Тип камеры от первого лица
+	/// </summary>
+	FirstPerson,
+	/// <summary>
+	/// Тип камеры от третьего лица
+	/// </summary>
+	ThirdPerson,
+	/// <summary>
+	/// Тип камеры свободная
+	/// </summary>
+	FreeLook
+};
+
+/// <summary>
+/// Направление движения камеры
+/// </summary>
+enum class ECameraMovementDirection
+{
+	/// <summary>
+	/// Направление движения камеры вперед
+	/// </summary>
+	Forward,
+	/// <summary>
+	/// Направление движения камеры назад
+	/// </summary>
+	Backward,
+	/// <summary>
+	/// Направление движения камеры вправо
+	/// </summary>
+	Rightward,
+	/// <summary>
+	/// Направление движения камеры влево
+	/// </summary>
+	Leftward,
+};
+
+/// <summary>
+/// Информация о состоянии камеры
+/// </summary>
+struct SCameraData
+{
+	static constexpr float KDefaultDistance{ 10.0f };
+	static constexpr float KDefaultMinDistance{ 1.0f };
+	static constexpr float KDefaultMaxDistance{ 50.0f };
+
+	SCameraData(ECameraType _CameraType) : CameraType{ _CameraType } {}
+	SCameraData(ECameraType _CameraType, XMVECTOR _EyePosition, XMVECTOR _FocusPosition, XMVECTOR _UpDirection,
+		float _Distance = KDefaultDistance, float _MinDistance = KDefaultMinDistance, float _MaxDistance = KDefaultMaxDistance) :
+		CameraType{ _CameraType }, EyePosition{ _EyePosition }, FocusPosition{ _FocusPosition }, UpDirection{ _UpDirection },
+		Distance{ _Distance }, MinDistance{ _MinDistance }, MaxDistance{ _MaxDistance } {}
+	
+	/// <summary>
+	/// Тип камеры
+	/// </summary>
+	ECameraType CameraType{};
+	/// <summary>
+	/// Позиция камеры (откуда смотрит)
+	/// </summary>
+	XMVECTOR EyePosition{ XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f) };
+	/// <summary>
+	/// Фокус (направление взгляда) камеры
+	/// </summary>
+	XMVECTOR FocusPosition{ XMVectorSet(0.0f, 0.0f, 1.0f, 1.0f) };
+	/// <summary>
+	/// Вектор, направленный вверх относительно (взгляда) камеры
+	/// </summary>
+	XMVECTOR UpDirection{ XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f) };
+
+public:
+	/// <summary>
+	/// Текущее отдаление позиции камеры от ее фокуса
+	/// </summary>
+	float Distance{ KDefaultDistance };
+	/// <summary>
+	/// Минимальное отдаление позиции камеры от ее фокуса
+	/// </summary>
+	float MinDistance{ KDefaultMinDistance };
+	/// <summary>
+	/// Максимальное отдаление позиции камеры от ее фокуса
+	/// </summary>
+	float MaxDistance{ KDefaultMaxDistance };
+
+public:
+	/// <summary>
+	/// Угол отклонения камеры по вертикали в радианах
+	/// </summary>
+	float Pitch{};
+	/// <summary>
+	/// Угол отклонения камеры по горизонтали в радианах
+	/// </summary>
+	float Yaw{};
+	/// <summary>
+	/// Вектор, направленный вперед
+	/// </summary>
+	XMVECTOR Forward{};
+};
+
+/// <summary>
 /// Игровое окно
 /// </summary>
 class CGameWindow
@@ -26,6 +129,48 @@ public:
 	/// <param name="WindowName">Название окна</param>
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
 	void CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, bool bWindowed);
+
+#pragma region CameraMethods
+	/// <summary>
+	/// Строит матрицу левой перспективной проекции m_MatrixProjection на основе поля зрения
+	/// </summary>
+	/// <param name="FOV">Угол поля зрения сверху вниз в радианах</param>
+	/// <param name="NearZ">Расстояние до ближайшей плоскости остечения</param>
+	/// <param name="FarZ">Расстояние до дальней плоскости отсечения</param>
+	void SetPerspective(float FOV, float NearZ, float FarZ);
+	/// <summary>
+	/// Добавляет данные о камере в массив камер
+	/// </summary>
+	/// <param name="CameraData">Добавляемые данные о камере</param>
+	void AddCamera(const SCameraData& CameraData);
+	/// <summary>
+	/// Устанавливает текущей камерой заданную из массива камер
+	/// </summary>
+	/// <param name="Index">Индекс задаваемой камеры из массива камер</param>
+	void SetCamera(size_t Index);
+	/// <summary>
+	/// Смещает камеры
+	/// </summary>
+	/// <param name="Direction">Направление смещения камеры</param>
+	/// <param name="StrideFactor">Величина (скорость) смещения камеры</param>
+	void MoveCamera(ECameraMovementDirection Direction, float StrideFactor = 1.0f);
+	/// <summary>
+	/// Поворачивает камеру на заданный угол
+	/// </summary>
+	/// <param name="DeltaX">Угол смещения по горизонтали</param>
+	/// <param name="DeltaY">Угол смещения по вертикали</param>
+	/// <param name="RotationFactor">Величина (скорость) поворота камеры</param>
+	void RotateCamera(int DeltaX, int DeltaY, float RotationFactor = 1.0f);
+	/// <summary>
+	/// Изменение дистанции между позицией и фокусом камеры
+	/// </summary>
+	/// <param name="DeltaWheel">Показатель изменения зума камеры</param>
+	/// <param name="ZoomFactor">Величина (скорость) зума камеры</param>
+	void ZoomCamera(int DeltaWheel, float ZoomFactor = 1.0f);
+
+#pragma endregion
+
+#pragma region ShaderMethods
 	/// <summary>
 	/// Создает и возвращает указатель на шейдер
 	/// </summary>
@@ -37,6 +182,9 @@ public:
 	/// <param name="Index">Индекс указателя в массиве</param>
 	/// <returns>Указатель на шейдер с заданным индексом</returns>
 	CShader* GetShader(size_t Index);
+#pragma endregion
+
+#pragma region Object3DMethods
 	/// <summary>
 	/// Создает и возвращает указатель на 3D обьект
 	/// </summary>
@@ -48,15 +196,42 @@ public:
 	/// <param name="Index">Индекс указателя в массиве</param>
 	/// <returns>Указатель на 3D обьект с заданным индексом</returns>
 	CObject3D* GetObject3D(size_t Index);
+#pragma endregion
+
+#pragma region RenderMethods
 	/// <summary>
 	/// Очищает буфер подкачки (задний буфер) заданным цветом
 	/// </summary>
 	/// <param name="ClearColor">Цвет заливки</param>
 	void BeginRendering(const FLOAT* ClearColor);
 	/// <summary>
+	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// </summary>
+	/// <param name="MatrixWorld">Матрица мира</param>
+	void UpdateCBWVP(const XMMATRIX& MatrixWorld);
+	/// <summary>
 	/// Обновляет изображение, swap буфера подкачки и буфера дисплея
 	/// </summary>
 	void EndRendering();
+#pragma endregion
+
+
+public:
+	/// <summary>
+	/// Получает дескриптор окна
+	/// </summary>
+	/// <returns>Дескриптор окна</returns>
+	HWND GetHWND() { return m_hWnd; }
+	/// <summary>
+	/// Возвращает текущее состояние клавиатуры
+	/// </summary>
+	/// <returns>Текущее состояние клавиатуры</returns>
+	Keyboard::State GetKeyState();
+	/// <summary>
+	/// Возвращает текущее состояние мыши и сбрасывает значение колесика прокрутки
+	/// </summary>
+	/// <returns>Текущее состояние мыши</returns>
+	Mouse::State GetMouseState();
 private:
 	/// <summary>
 	/// Инициализация окна приложения
@@ -70,6 +245,8 @@ private:
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
 	void InitializeDirectX(bool bWindowed);
 private:
+
+#pragma region InitD3D11ComponentMethods
 	/// <summary>
 	/// Инициализация цепочки обмена и подкачки и адаптера дисплея устройства
 	/// </summary>
@@ -83,6 +260,20 @@ private:
 	/// Устанавливает размер области окна
 	/// </summary>
 	void SetViewports();
+	/// <summary>
+	/// Инициализация устройств ввода (мыши и клавиатуры)
+	/// </summary>
+	void CreateInputDevices();
+	/// <summary>
+	/// Создает CBWVP (Constant Buffer World-View-Projection) константный буфер 
+	/// </summary>
+	void CreateCBWVP();
+#pragma endregion
+
+private:
+	static constexpr float KDefaultFOV{ XM_PIDIV2 };
+	static constexpr float KDefaultNearZ{ 0.1f };
+	static constexpr float KDefaultFarZ{ 1000.0f };
 private:
 	/// <summary>
 	/// Массив применяемых шейдеров
@@ -105,12 +296,42 @@ private:
 	/// Размер окна
 	/// </summary>
 	XMFLOAT2	m_WindowSize{};
-
 private:
+	/// <summary>
+	/// Матрица проекции
+	/// </summary>
+	XMMATRIX						m_MatrixProjection{};
+	/// <summary>
+	/// Матрица вида
+	/// </summary>
+	XMMATRIX						m_MatrixView{};
+	/// <summary>
+	/// Массив камер
+	/// </summary>
+	vector<SCameraData>				m_vCameras{};
+	/// <summary>
+	/// Текущая камера
+	/// </summary>
+	SCameraData*					m_PtrCurrentCamera{};
+	/// <summary>
+	/// Вектор, направленный вперед
+	/// </summary>
+	XMVECTOR						m_BaseForward{};
+	/// <summary>
+	/// Вектор, направленный вверх
+	/// </summary>
+	XMVECTOR						m_BaseUp{};
+private:
+	/// <summary>
+	/// Указатель на цепочку обмена
+	/// </summary>
 	ComPtr<IDXGISwapChain>			m_SwapChain{};
+	/// <summary>
+	/// Устройство (инструменты для создания и загрузки в видеопамять текстур, шейдеров и других компонентов)
+	/// </summary>
 	ComPtr<ID3D11Device>			m_Device{};
 	/// <summary>
-	/// Контекст устройства
+	/// Контекст устройства (инструменты для работы с отдельными этапами графического конвейера)
 	/// </summary>
 	ComPtr<ID3D11DeviceContext>		m_DeviceContext{};
 	/// <summary>
@@ -121,5 +342,20 @@ private:
 	/// Указатель на трафарет глубины
 	/// </summary>
 	ComPtr<ID3D11DepthStencilView>	m_DepthStencilView{};
+	/// <summary>
+	/// Указатель на текстуру буфера глубины
+	/// </summary>
 	ComPtr<ID3D11Texture2D>			m_DepthStencilBuffer{};
+	/// <summary>
+	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_CBWVP{};
+	/// <summary>
+	/// Указатель на устройство ввода клавиатура
+	/// </summary>
+	unique_ptr<Keyboard>			m_Keyboard{};
+	/// <summary>
+	/// Указатель на устройство ввода мышь
+	/// </summary>
+	unique_ptr<Mouse>				m_Mouse{};
 };
