@@ -1,7 +1,22 @@
 #include "Header.hlsli"
 
+SamplerState CurrentSampler : register(s0);
+Texture2D CurrentTexture2D : register(t0);
+
+cbuffer cbTexture : register(b0)
+{
+	bool UseTexture;
+	bool3 Pad;
+}
+
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
-	return input.Color;
-	/*return float4(1.0f, 0.0f, 0.0f, 1.0f);*/
+	if (UseTexture == true)
+	{
+		return CurrentTexture2D.Sample(CurrentSampler, input.UV);
+	}
+	else
+	{
+		return input.Color;
+	}
 }

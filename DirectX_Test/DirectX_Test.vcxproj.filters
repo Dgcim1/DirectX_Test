@@ -105,6 +105,9 @@
     <ClInclude Include="Core\GameObject.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Texture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="DirectXTK\DirectXTK.lib">
@@ -133,6 +136,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\GameObject.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Texture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

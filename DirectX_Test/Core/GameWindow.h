@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include "Object3D.h"
+#include "Texture.h"
 #include "Shader.h"
 #include "PrimitiveGenerator.h"
 #include "GameObject.h"
@@ -223,6 +224,20 @@ public:
 	CObject3D* GetObject3D(size_t Index);
 #pragma endregion
 
+#pragma region TextureMethods
+	/// <summary>
+	/// Создает и возвращает указатель на текстуру
+	/// </summary>
+	/// <returns>Созданный указатель на текстуру</returns>
+	CTexture* AddTexture();
+	/// <summary>
+	/// Получение указателя на текстуру с указанным индексом
+	/// </summary>
+	/// <param name="Index">Индекс указателя в массиве</param>
+	/// <returns>Указатель на текстуру с заданным индексом</returns>
+	CTexture* GetTexture(size_t Index);
+#pragma endregion
+
 #pragma region GameObjectMethods
 	/// <summary>
 	/// Создает и возвращает указатель на игровой обьект
@@ -322,17 +337,25 @@ private:
 	/// </summary>
 	void CreateInputDevices();
 	/// <summary>
-	/// Создает CBWVP (Constant Buffer World-View-Projection) константный буфер 
+	/// Создает CBWVP (Constant Buffer World-View-Projection) константный буфер с матрицей WVP для его передачи в вертексный шейдер
 	/// </summary>
 	void CreateCBWVP();
+	/// <summary>
+	/// Создает константный буфер для работы с текстурами в пиксельном шейдере
+	/// </summary>
+	void CreateCBTexture();
 #pragma endregion
 
 	/// <summary>
-	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection) для его обработки в вертексном шейдере
 	/// </summary>
 	/// <param name="MatrixWorld">Матрица мира</param>
 	void UpdateCBWVP(const XMMATRIX& MatrixWorld);
-
+	/// <summary>
+	/// Обновляет константный буфер текстуры
+	/// </summary>
+	/// <param name="UseTexture">Используется ли текстура в следующем отрисовываемом изображении</param>
+	void UpdateCBTexture(BOOL UseTexture);
 private:
 	static constexpr float KDefaultFOV{ XM_PIDIV2 };
 	static constexpr float KDefaultNearZ{ 0.1f };
@@ -346,6 +369,10 @@ private:
 	/// Массив используемых 3D обьектов
 	/// </summary>
 	vector<unique_ptr<CObject3D>>	m_vObject3Ds{};
+	/// <summary>
+	/// Массив используемых текстур
+	/// </summary>
+	vector<unique_ptr<CTexture>>	m_vTextures{};
 	/// <summary>
 	/// Массив используемых игровых обьектов
 	/// </summary>
@@ -419,9 +446,13 @@ private:
 	/// </summary>
 	ComPtr<ID3D11Texture2D>			m_DepthStencilBuffer{};
 	/// <summary>
-	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection)
+	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection), содержащий матрицу WVP
 	/// </summary>
 	ComPtr<ID3D11Buffer>			m_CBWVP{};
+	/// <summary>
+	/// Указатель на константный буфер с текущей текстурой
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_CBTexture{};
 	/// <summary>
 	/// Указатель на устройство ввода клавиатура
 	/// </summary>

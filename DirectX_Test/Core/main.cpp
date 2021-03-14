@@ -8,8 +8,9 @@
 //структура доступа для вертексного шейдера (элемент ввода для этапа IA)
 constexpr D3D11_INPUT_ELEMENT_DESC KInputElementDescs[]
 {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT		, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 
 LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -28,6 +29,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//создаем пиксельный шейдер
 	CShader* PS{ GameWindow.AddShader() };
 	PS->Create(EShaderType::PixelShader, L"Shader\\PixelShader.hlsl", "main");
+	//загружаем текстуры
+	CTexture* TextureGround{ GameWindow.AddTexture() };
+	{
+		TextureGround->CreateFromFile(L"Asset\\ground.png");
+	}
 	//создаем 3D обьекты
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
@@ -49,6 +55,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
 	SphereObject->UpdateWorldMatrix();
 	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
+
+	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
+	{
+		GroundObject3D->Create(GenerateSquareXZPlane());
+	}
+	CGameObject* GroundObject{ GameWindow.AddGameObject() };
+	GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
+	GroundObject->ComponentTransform.Scaling = XMVectorSet(10.0f, 10.0f, 10.0f, 0);
+	GroundObject->UpdateWorldMatrix();
+	GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
+	GroundObject->ComponentRender.PtrTexture = TextureGround;
 	
 
 	while (true)

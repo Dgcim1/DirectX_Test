@@ -71,10 +71,10 @@ static SObject3DData GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1
 	constexpr float HalfLengthX{ 0.5f };
 	constexpr float HalfLengthZ{ 0.5f };
 
-	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +0.0f, +HalfLengthZ, 1), Color);
-	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +0.0f, +HalfLengthZ, 1), Color);
-	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +0.0f, -HalfLengthZ, 1), Color);
-	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +0.0f, -HalfLengthZ, 1), Color);
+	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +0.0f, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +0.0f, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +0.0f, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +0.0f, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 	Data.vTriangles = GenerateContinuousFaces(1);
 
@@ -110,7 +110,7 @@ static SObject3DData GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECT
 		Data.vVertices.emplace_back(XMVectorSet(+Cos1, +0.0f, +Sin1, 1), Color);
 		Data.vVertices.emplace_back(XMVectorSet(+Cos0, +0.0f, +Sin0, 1), Color);
 	}
-	
+
 	for (uint32_t i = 0; i < SideCount; ++i)
 	{
 		Data.vTriangles.emplace_back(i * 3 + 0, i * 3 + 1, i * 3 + 2);
@@ -159,7 +159,7 @@ static SObject3DData GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1
 		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
 		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
 	}
-	
+
 	{
 		Data.vTriangles.emplace_back(0, 1, 2);
 		Data.vTriangles.emplace_back(3, 4, 5);
@@ -187,44 +187,44 @@ static SObject3DData GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1
 
 	{
 		// Front face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Left face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Right face
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Back face
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Top face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Bottom face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 	}
 
 	Data.vTriangles = GenerateContinuousFaces(6);
-	
+
 	return Data;
 }
 
@@ -243,40 +243,40 @@ static SObject3DData GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 
 
 	{
 		// Front face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Left face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Right face
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Back face
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Top face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 
 		// Bottom face
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
-		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color);
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(0, 0));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, -HalfLengthZ, 1), Color, XMFLOAT2(1, 0));
+		Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(0, 1));
+		Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +HalfLengthZ, 1), Color, XMFLOAT2(1, 1));
 	}
 
 	Data.vTriangles = GenerateContinuousFacesReverse(6);

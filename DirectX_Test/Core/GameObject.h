@@ -1,6 +1,9 @@
 #pragma once
 
-#include "Object3D.h"
+#include "SharedHeader.h"
+
+class CObject3D;
+class CTexture;
 
 /// <summary>
 /// Набор векторов (перемещения, вращения, масштаба) и мировая матрица (матрица мировых координат)
@@ -34,6 +37,14 @@ struct SComponentRender
 	/// Указатель на 3D обьект
 	/// </summary>
 	CObject3D* PtrObject3D{};
+	/// <summary>
+	/// Указатель на текстуру
+	/// </summary>
+	CTexture* PtrTexture{};
+	/// <summary>
+	/// Прозрачная ли текстура
+	/// </summary>
+	bool IsTransparent{ false };
 };
 
 class CGameObject

@@ -9,6 +9,9 @@ struct SVertex3D
 {
 	SVertex3D() {}
 	SVertex3D(const XMVECTOR& _Position, const XMVECTOR& _Color) : Position{ _Position }, Color{ _Color } {}
+	SVertex3D(const XMVECTOR& _Position, const XMVECTOR& _Color, const XMFLOAT2& _TexCoord) :
+		Position{ _Position }, Color{ _Color }, TexCoord{ _TexCoord } {}
+	SVertex3D(const XMVECTOR& _Position, const XMFLOAT2& _TexCoord) : Position{ _Position }, TexCoord{ _TexCoord } {}
 
 	/// <summary>
 	/// Вектор позиции
@@ -18,6 +21,10 @@ struct SVertex3D
 	/// Вектор цвета
 	/// </summary>
 	XMVECTOR Color{};
+	/// <summary>
+	/// Координаты начального смещения текстуры
+	/// </summary>
+	XMFLOAT2 TexCoord{};
 };
 
 /// <summary>

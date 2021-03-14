@@ -188,6 +188,7 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 	CreateInputDevices();
 
 	CreateCBWVP();
+	CreateCBTexture();
 
 	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
@@ -286,6 +287,19 @@ void CGameWindow::CreateCBWVP()
 	m_Device->CreateBuffer(&cbWVPDesc, nullptr, &m_CBWVP);
 }
 
+void CGameWindow::CreateCBTexture()
+{
+	D3D11_BUFFER_DESC cbTextureDesc{};
+	cbTextureDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbTextureDesc.ByteWidth = sizeof(BOOL) * 4;
+	cbTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbTextureDesc.MiscFlags = 0;
+	cbTextureDesc.StructureByteStride = 0;
+	cbTextureDesc.Usage = D3D11_USAGE_DYNAMIC;
+
+	m_Device->CreateBuffer(&cbTextureDesc, nullptr, &m_CBTexture);
+}
+
 void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
 {
 	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//создает матрицу WVP
@@ -301,6 +315,19 @@ void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
 	}
 
 	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//устанавливает константный буфер
+}
+
+void CGameWindow::UpdateCBTexture(BOOL UseTexture)
+{
+	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
+	if (SUCCEEDED(m_DeviceContext->Map(m_CBTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
+	{
+		memcpy(MappedSubresource.pData, &UseTexture, sizeof(BOOL));
+
+		m_DeviceContext->Unmap(m_CBTexture.Get(), 0);
+	}
+
+	m_DeviceContext->PSSetConstantBuffers(0, 1, m_CBTexture.GetAddressOf());
 }
 
 CShader* CGameWindow::AddShader()
@@ -327,6 +354,18 @@ CObject3D* CGameWindow::GetObject3D(size_t Index)
 	return m_vObject3Ds[Index].get();
 }
 
+CTexture* CGameWindow::AddTexture()
+{
+	m_vTextures.emplace_back(make_unique<CTexture>(m_Device.Get(), m_DeviceContext.Get()));
+	return m_vTextures.back().get();
+}
+
+CTexture* CGameWindow::GetTexture(size_t Index)
+{
+	assert(Index < m_vTextures.size());
+	return m_vTextures[Index].get();
+}
+
 CGameObject* CGameWindow::AddGameObject()
 {
 	m_vGameObjects.emplace_back(make_unique<CGameObject>());
@@ -350,6 +389,12 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 	m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
 	
 	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
+
+	ID3D11SamplerState* SamplerState{ m_CommonStates->LinearWrap() };//состояние сэмплера
+	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//установка состояния сэмплера наэтапе пиксельногошейдера
+
+	m_DeviceContext->OMSetBlendState(m_CommonStates->AlphaBlend(), nullptr, 0xFFFFFFFF);//установка состояния смешивателя (blender-а) наэтапе слияния вывода (смешивание - обьединение пикселей с учетом прозрачности)
+
 	//установка состояния растеризатора
 	switch (m_eRasterizerState)
 	{
@@ -374,9 +419,46 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 
 void CGameWindow::DrawGameObjects()
 {
+	//обработка обьектов с прозрачной текстурой
 	for (auto& go : m_vGameObjects)
 	{
+		if (go->ComponentRender.IsTransparent) continue;
+
 		UpdateCBWVP(go->ComponentTransform.MatrixWorld);
+
+		if (go->ComponentRender.PtrTexture)
+		{
+			UpdateCBTexture(TRUE);
+
+			go->ComponentRender.PtrTexture->Use();
+		}
+		else
+		{
+			UpdateCBTexture(FALSE);
+		}
+
+		if (go->ComponentRender.PtrObject3D)
+		{
+			go->ComponentRender.PtrObject3D->Draw();
+		}
+	}
+	//обработка обьектов с непрозрачной текстурой
+	for (auto& go : m_vGameObjects)
+	{
+		if (!go->ComponentRender.IsTransparent) continue;
+
+		UpdateCBWVP(go->ComponentTransform.MatrixWorld);
+
+		if (go->ComponentRender.PtrTexture)
+		{
+			UpdateCBTexture(TRUE);
+
+			go->ComponentRender.PtrTexture->Use();
+		}
+		else
+		{
+			UpdateCBTexture(FALSE);
+		}
 
 		if (go->ComponentRender.PtrObject3D)
 		{
