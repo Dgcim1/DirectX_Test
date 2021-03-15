@@ -34,28 +34,28 @@ struct SComponentTransform
 struct SComponentRender
 {
 	/// <summary>
-	/// Представляет собой материал (???)
+	/// Представляет собой материал
 	/// </summary>
 	struct SMaterial
 	{
 		/// <summary>
-		/// Обтекание материала
+		/// Цвет материала (затененной части обьекта)
 		/// </summary>
 		XMFLOAT3	MaterialAmbient{};
 		/// <summary>
-		/// Зеркальная экспонента
+		/// Зеркальная экспонента (размер блика, чем больше значение, тем меньше блик и более размытые границы)
 		/// </summary>
 		float		SpecularExponent{ 1 };
 		/// <summary>
-		/// Диффузия материала
+		/// Цвет материала (освещенной части материала)
 		/// </summary>
 		XMFLOAT3	MaterialDiffuse{};
 		/// <summary>
-		/// Зеркальная интенсивность
+		/// Зеркальная интенсивность (насколько интенсивно/ярко светит отраженный от обьекта бликующий свет)
 		/// </summary>
 		float		SpecularIntensity{ 0 };
 		/// <summary>
-		/// Зеркальность материала
+		/// Цвет материала (цвет блика)
 		/// </summary>
 		XMFLOAT3	MaterialSpecular{};
 

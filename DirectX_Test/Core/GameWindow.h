@@ -188,16 +188,16 @@ struct SCBPSBaseFlagsData
 };
 
 /// <summary>
-/// Структура привязки данных константного буфера (освещение) для пиксельного шейдера (???)
+/// Структура привязки данных константного буфера (освещение) для пиксельного шейдера
 /// </summary>
 struct SCBPSBaseLightsData
 {
 	/// <summary>
-	/// Направление света
+	/// Направление света, положение источника света
 	/// </summary>
 	XMVECTOR	DirectionalLight{ XMVectorSet(0, 1, 0, 0) };
 	/// <summary>
-	/// Цвет направленного света 
+	/// Цвет направленного света от источника
 	/// </summary>
 	XMVECTOR	DirectionalColor{ XMVectorSet(1, 1, 1, 1) };
 	/// <summary>
@@ -205,7 +205,7 @@ struct SCBPSBaseLightsData
 	/// </summary>
 	XMFLOAT3	AmbientColor{ 1, 1, 1 };
 	/// <summary>
-	/// Интенсивность отраженного света
+	/// Интенсивность отраженного света, рассеивание света
 	/// </summary>
 	float		AmbientIntensity{ 0.5f };
 };
@@ -216,7 +216,7 @@ struct SCBPSBaseLightsData
 using SCBPSBaseMaterialData = SComponentRender::SMaterial;
 
 /// <summary>
-/// Структура привязки данных константного буфера (позиция камеры) для пиксельного шейдера (???)
+/// Структура привязки данных константного буфера (позиция камеры) для пиксельного шейдера
 /// </summary>
 struct SCBPSBaseEyeData
 {
@@ -269,16 +269,16 @@ public:
 
 #pragma region LightMethods
 	/// <summary>
-	/// Установка значений направленного света (???)
+	/// Установка значений направленного света
 	/// </summary>
-	/// <param name="LightSourcePosition"></param>
-	/// <param name="Color">Цвет света</param>
+	/// <param name="LightSourcePosition">Направление света, положение источника света</param>
+	/// <param name="Color">Цвет падающего света</param>
 	void SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color);
 	/// <summary>
-	/// Установка значений отраженного света (???)
+	/// Установка значений цвета света, на который непадает источник света
 	/// </summary>
 	/// <param name="Color">Цвет света</param>
-	/// <param name="Intensity">Интенсивность света</param>
+	/// <param name="Intensity">Интенсивность света, рассеивание, насыщенность</param>
 	void SetAmbientlLight(const XMFLOAT3& Color, float Intensity);
 #pragma endregion
 
