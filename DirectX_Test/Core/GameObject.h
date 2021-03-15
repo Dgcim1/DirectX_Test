@@ -34,6 +34,38 @@ struct SComponentTransform
 struct SComponentRender
 {
 	/// <summary>
+	/// Представляет собой материал (???)
+	/// </summary>
+	struct SMaterial
+	{
+		/// <summary>
+		/// Обтекание материала
+		/// </summary>
+		XMFLOAT3	MaterialAmbient{};
+		/// <summary>
+		/// Зеркальная экспонента
+		/// </summary>
+		float		SpecularExponent{ 1 };
+		/// <summary>
+		/// Диффузия материала
+		/// </summary>
+		XMFLOAT3	MaterialDiffuse{};
+		/// <summary>
+		/// Зеркальная интенсивность
+		/// </summary>
+		float		SpecularIntensity{ 0 };
+		/// <summary>
+		/// Зеркальность материала
+		/// </summary>
+		XMFLOAT3	MaterialSpecular{};
+
+	private:
+		/// <summary>
+		/// Неиспользуемая переменная (???)
+		/// </summary>
+		float		Pad{};
+	};
+	/// <summary>
 	/// Указатель на 3D обьект
 	/// </summary>
 	CObject3D* PtrObject3D{};
@@ -45,6 +77,10 @@ struct SComponentRender
 	/// Прозрачная ли текстура
 	/// </summary>
 	bool IsTransparent{ false };
+	/// <summary>
+	/// Материал текстуры
+	/// </summary>
+	SMaterial			Material{};
 };
 
 class CGameObject

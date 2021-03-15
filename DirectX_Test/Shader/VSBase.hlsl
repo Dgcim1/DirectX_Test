@@ -11,10 +11,11 @@ VS_OUTPUT main(VS_INPUT input)
 	VS_OUTPUT output;
 
 	output.Position = mul(input.Position, WVP);
+	output.WorldPosition = mul(input.Position, World);
 	output.Color = input.Color;
 	output.UV = input.UV;
 
-	output.Normal = mul(input.Normal, World);
+	output.WorldNormal = normalize(mul(input.Normal, World));
 	output.WVPNormal = normalize(mul(input.Normal, WVP));
 
 	return output;

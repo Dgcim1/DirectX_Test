@@ -20,6 +20,10 @@ enum class EFlagsGameRendering
 	/// Отрисовываем нормали
 	/// </summary>
 	DrawNormals = 0x01,
+	/// <summary>
+	/// Используется ли освещение
+	/// </summary>
+	UseLighting = 0x02,
 };
 ENUM_CLASS_FLAG(EFlagsGameRendering)
 
@@ -165,7 +169,7 @@ struct SCBVSBaseSpaceData
 };
 
 /// <summary>
-/// Структура привязки данных константного буфера для пиксельного шейдера
+/// Структура привязки данных константного буфера (флаги) для пиксельного шейдера
 /// </summary>
 struct SCBPSBaseFlagsData
 {
@@ -174,9 +178,49 @@ struct SCBPSBaseFlagsData
 	/// </summary>
 	BOOL bUseTexture{};
 	/// <summary>
+	/// Используется ли освещение для данного пикселя
+	/// </summary>
+	BOOL bUseLighting{};
+	/// <summary>
 	/// Пока не используется (???)
 	/// </summary>
-	BOOL Pad[3]{};
+	BOOL Pad[2]{};
+};
+
+/// <summary>
+/// Структура привязки данных константного буфера (освещение) для пиксельного шейдера (???)
+/// </summary>
+struct SCBPSBaseLightsData
+{
+	/// <summary>
+	/// Направление света
+	/// </summary>
+	XMVECTOR	DirectionalLight{ XMVectorSet(0, 1, 0, 0) };
+	/// <summary>
+	/// Цвет направленного света 
+	/// </summary>
+	XMVECTOR	DirectionalColor{ XMVectorSet(1, 1, 1, 1) };
+	/// <summary>
+	/// Цвет отраженного света
+	/// </summary>
+	XMFLOAT3	AmbientColor{ 1, 1, 1 };
+	/// <summary>
+	/// Интенсивность отраженного света
+	/// </summary>
+	float		AmbientIntensity{ 0.5f };
+};
+
+/// <summary>
+/// Структура привязки данных константного буфера (материал) для пиксельного шейдера
+/// </summary>
+using SCBPSBaseMaterialData = SComponentRender::SMaterial;
+
+/// <summary>
+/// Структура привязки данных константного буфера (позиция камеры) для пиксельного шейдера (???)
+/// </summary>
+struct SCBPSBaseEyeData
+{
+	XMVECTOR EyePosition{};
 };
 
 /// <summary>
@@ -212,10 +256,30 @@ public:
 	/// <param name="FarZ">Расстояние до дальней плоскости отсечения</param>
 	void SetPerspective(float FOV, float NearZ, float FarZ);
 	/// <summary>
+	/// Установка указанного флага отрисовки
+	/// </summary>
+	/// <param name="Flags">Устанавливаемое значение флага отрисовки</param>
+	void SetGameRenderingFlags(EFlagsGameRendering Flags);
+	/// <summary>
 	/// Переключение указанного флага отрисовки на противоположный
 	/// </summary>
 	/// <param name="Flags">Переключаемый флаг</param>
 	void ToggleGameRenderingFlags(EFlagsGameRendering Flags);
+#pragma endregion
+
+#pragma region LightMethods
+	/// <summary>
+	/// Установка значений направленного света (???)
+	/// </summary>
+	/// <param name="LightSourcePosition"></param>
+	/// <param name="Color">Цвет света</param>
+	void SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color);
+	/// <summary>
+	/// Установка значений отраженного света (???)
+	/// </summary>
+	/// <param name="Color">Цвет света</param>
+	/// <param name="Intensity">Интенсивность света</param>
+	void SetAmbientlLight(const XMFLOAT3& Color, float Intensity);
 #pragma endregion
 
 #pragma region CameraMethods
@@ -418,17 +482,32 @@ private:
 	void CreateMiniAxes();
 #pragma endregion
 
+#pragma region ConstantBufferMethods
 	/// <summary>
 	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection) для его обработки в вертексном шейдере
 	/// </summary>
 	/// <param name="MatrixWorld">Матрица мира</param>
 	void UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld);
 	/// <summary>
-	/// Обновляет константный буфер текстуры
+	/// Обновляет константный буфер текстуры для его обработки в пиксельном шейдере
 	/// </summary>
-	/// <param name="UseTexture">Используется ли текстура в следующем отрисовываемом изображении</param>
-	void UpdateCBPSBaseFlags(BOOL UseTexture);
-private:
+	void UpdateCBPSBaseFlags();
+	/// <summary>
+	/// Обновляет константный буфер света для его обработки в пиксельном шейдере
+	/// </summary>
+	void UpdateCBPSBaseLights();
+	/// <summary>
+	/// Обновляет константный буфер материала для его обработки в пиксельном шейдере
+	/// </summary>
+	/// <param name="PtrMaterial">Указатель на уставливаемый материал</param>
+	void UpdateCBPSBaseMaterial(const SComponentRender::SMaterial& PtrMaterial);
+	/// <summary>
+	/// Обновляет константный буфер положения камеры для его обработки в пиксельном шейдере
+	/// </summary>
+	void UpdateCBPSBaseEye();
+#pragma endregion
+
+#pragma region BaseConstantBufferMethods
 	/// <summary>
 	/// Создание константного буфера
 	/// </summary>
@@ -441,7 +520,9 @@ private:
 	/// <param name="ByteWidth">Размер буфера в байтах</param>
 	/// <param name="pBuffer">Указатель на обновляемый ресурс (константный буфер)</param>
 	/// <param name="pValue">Указатель на область памяти, которую надо загрузить в константный буфер</param>
-	void UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, void* pValue);
+	void UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, const void* pValue);
+#pragma endregion
+
 private:
 	static constexpr float KDefaultFOV{ XM_PIDIV2 };
 	static constexpr float KDefaultNearZ{ 0.1f };
@@ -584,21 +665,46 @@ private:
 	/// Указатель на общую область рендеринга спрайтов (???)
 	/// </summary>
 	unique_ptr<CommonStates>		m_CommonStates{};
-
+	
+#pragma region VSBaseResources
 	/// <summary>
 	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection), содержащий матрицу WVP
 	/// </summary>
 	ComPtr<ID3D11Buffer>			m_cbVSBaseSpace{};
 	/// <summary>
-	/// Указатель на константный буфер с текущей текстурой
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbPSBaseFlags{};
-	/// <summary>
 	/// Загружаемая в вертексный шейдер структура
 	/// </summary>
 	SCBVSBaseSpaceData				m_cbVSBaseSpaceData{};
+#pragma endregion
+
+#pragma region PSBaseResources
 	/// <summary>
-	/// Загружаемая в пиксельный шейдер структура
+	/// Указатель на константный буфер с текущей информацией о текстуре
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbPSBaseFlags{};
+	/// <summary>
+	/// Указатель на константный буфер с текущей информацией о свете
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbPSBaseLights{};
+	/// <summary>
+	/// Указатель на константный буфер с текущей информацией о материале
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbPSBaseMaterial{};
+	/// <summary>
+	/// Указатель на константный буфер с текущей информацией о позиции камеры
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbPSBaseEye{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура флагов
 	/// </summary>
 	SCBPSBaseFlagsData				m_cbPSBaseFlagsData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура освещения
+	/// </summary>
+	SCBPSBaseLightsData				m_cbPSBaseLightsData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура позиции камеры
+	/// </summary>
+	SCBPSBaseEyeData				m_cbPSBaseEyeData{};
+#pragma endregion
 };

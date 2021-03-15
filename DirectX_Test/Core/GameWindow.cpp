@@ -21,9 +21,30 @@ void CGameWindow::SetPerspective(float FOV, float NearZ, float FarZ)
 	m_MatrixProjection = XMMatrixPerspectiveFovLH(FOV, m_WindowSize.x / m_WindowSize.y, NearZ, FarZ);
 }
 
+void CGameWindow::SetGameRenderingFlags(EFlagsGameRendering Flags)
+{
+	m_eFlagsGamerendering = Flags;
+}
+
 void CGameWindow::ToggleGameRenderingFlags(EFlagsGameRendering Flags)
 {
 	m_eFlagsGamerendering ^= Flags;
+}
+
+void CGameWindow::SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color)
+{
+	m_cbPSBaseLightsData.DirectionalLight = XMVector3Normalize(LightSourcePosition);
+	m_cbPSBaseLightsData.DirectionalColor = Color;
+
+	UpdateCBPSBaseLights();
+}
+
+void CGameWindow::SetAmbientlLight(const XMFLOAT3& Color, float Intensity)
+{
+	m_cbPSBaseLightsData.AmbientColor = Color;
+	m_cbPSBaseLightsData.AmbientIntensity = Intensity;
+
+	UpdateCBPSBaseLights();
 }
 
 void CGameWindow::AddCamera(const SCameraData& CameraData)
@@ -321,6 +342,13 @@ void CGameWindow::CreateCBs()
 	CreateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.GetAddressOf());
 
 	CreateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.GetAddressOf());
+	CreateCB(sizeof(SCBPSBaseLightsData), m_cbPSBaseLights.GetAddressOf());
+	CreateCB(sizeof(SComponentRender::SMaterial), m_cbPSBaseMaterial.GetAddressOf());
+	CreateCB(sizeof(SCBPSBaseEyeData), m_cbPSBaseEye.GetAddressOf());
+
+	UpdateCBPSBaseFlags();
+	UpdateCBPSBaseLights();
+	UpdateCBPSBaseEye();
 }
 
 void CGameWindow::CreateMiniAxes()
@@ -336,9 +364,12 @@ void CGameWindow::CreateMiniAxes()
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
+	m_vMiniAxisGameObjects[0]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(1, 0, 0);
 	m_vMiniAxisGameObjects[0]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[0].get();
 	m_vMiniAxisGameObjects[0]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
+	m_vMiniAxisGameObjects[1]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(0, 1, 0);
 	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
+	m_vMiniAxisGameObjects[2]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(0, 0, 1);
 	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
 	m_vMiniAxisGameObjects[2]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
 
@@ -374,16 +405,35 @@ void CGameWindow::UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld)
 	m_DeviceContext->VSSetConstantBuffers(0, 1, m_cbVSBaseSpace.GetAddressOf());//устанавливает константный буфер для вертексного шейдера
 }
 
-void CGameWindow::UpdateCBPSBaseFlags(BOOL UseTexture)
+void CGameWindow::UpdateCBPSBaseFlags()
 {
-	m_cbPSBaseFlagsData.bUseTexture = UseTexture;
-
 	UpdateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.Get(), &m_cbPSBaseFlagsData);
 
 	m_DeviceContext->PSSetConstantBuffers(0, 1, m_cbPSBaseFlags.GetAddressOf());//устанавливает константный буфер для пиксельного шейдера
 }
 
-void CGameWindow::UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, void* pValue)
+void CGameWindow::UpdateCBPSBaseLights()
+{
+	UpdateCB(sizeof(SCBPSBaseLightsData), m_cbPSBaseLights.Get(), &m_cbPSBaseLightsData);
+
+	m_DeviceContext->PSSetConstantBuffers(1, 1, m_cbPSBaseLights.GetAddressOf());
+}
+
+void CGameWindow::UpdateCBPSBaseMaterial(const SComponentRender::SMaterial& PtrMaterial)
+{
+	UpdateCB(sizeof(SComponentRender::SMaterial), m_cbPSBaseMaterial.Get(), &PtrMaterial);
+
+	m_DeviceContext->PSSetConstantBuffers(2, 1, m_cbPSBaseMaterial.GetAddressOf());
+}
+
+void CGameWindow::UpdateCBPSBaseEye()
+{
+	UpdateCB(sizeof(SCBPSBaseEyeData), m_cbPSBaseEye.Get(), &m_cbPSBaseEyeData);
+
+	m_DeviceContext->PSSetConstantBuffers(3, 1, m_cbPSBaseEye.GetAddressOf());
+}
+
+void CGameWindow::UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, const void* pValue)
 {
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
 	if (SUCCEEDED(m_DeviceContext->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))//запрещаем доступ графическому процессору к константному буферу
@@ -487,7 +537,14 @@ void CGameWindow::DrawGameObjects()
 
 	m_VSBase->Use();//применяем базовый вертексный шейдер
 	m_PSBase->Use();//применяем базовый пиксельный шейдер
-
+	//если установлен флаг использования света, говорим об этом пиксельному шейдеру
+	if ((m_eFlagsGamerendering & EFlagsGameRendering::UseLighting) == EFlagsGameRendering::UseLighting)
+	{
+		m_cbPSBaseFlagsData.bUseLighting = TRUE;
+	}
+	//обновление позиции камеры
+	m_cbPSBaseEyeData.EyePosition = m_PtrCurrentCamera->EyePosition;
+	UpdateCBPSBaseEye();
 	//обработка обьектов с прозрачной текстурой
 	for (auto& go : m_vGameObjects)
 	{
@@ -525,10 +582,14 @@ void CGameWindow::DrawMiniAxes()
 	m_PSBase->Use();//применяем базовый пиксельный шейдер
 	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сбрасываем геометрический шейдер
 
-	UpdateCBPSBaseFlags(FALSE);//сбрасываем константный буфер пиксельного шейдера (не используем текстуры)
+	m_cbPSBaseFlagsData.bUseTexture = FALSE;
+	m_cbPSBaseFlagsData.bUseLighting = FALSE;
+	UpdateCBPSBaseFlags();//сбрасываем константный буфер пиксельного шейдера (не используем текстуры и свет)
 
 	for (auto& i : m_vMiniAxisGameObjects)//перебор всех осей представления
 	{
+		UpdateCBPSBaseMaterial(i->ComponentRender.Material);//обновляем материал у всех обьектов
+
 		UpdateCBVSBaseSpace(i->ComponentTransform.MatrixWorld);//обновляем мировую матрицу у всех обьектов
 
 		i->ComponentRender.PtrObject3D->Draw();//отрисовка
@@ -544,16 +605,18 @@ void CGameWindow::DrawGameObject(CGameObject* PtrGO)
 {
 	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);//обновляем константный буфер WVP вертексного шейдера
 
+	UpdateCBPSBaseMaterial(PtrGO->ComponentRender.Material);//обновляем константный буфер материала вертексного шейдера
+
 	if (PtrGO->ComponentRender.PtrTexture)//если есть указатель на текстуру
 	{
-		UpdateCBPSBaseFlags(TRUE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что она есть
-
+		m_cbPSBaseFlagsData.bUseTexture = TRUE;//обновляем константный буфер пиксельного шейдера (текстуры), указываем что она есть
 		PtrGO->ComponentRender.PtrTexture->Use();//привязываем шейдер и текстуру к эт
 	}
 	else
 	{
-		UpdateCBPSBaseFlags(FALSE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет
+		m_cbPSBaseFlagsData.bUseTexture = FALSE;//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет
 	}
+	UpdateCBPSBaseFlags();
 
 	if (PtrGO->ComponentRender.PtrObject3D)
 	{

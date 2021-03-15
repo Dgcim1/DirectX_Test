@@ -15,6 +15,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//создаем и устанавливаем камеру
 	GameWindow.AddCamera(SCameraData(ECameraType::FreeLook));
 	GameWindow.SetCamera(0);
+	//устанавливаем свет
+	GameWindow.SetAmbientlLight(XMFLOAT3(1, 1, 1), 0.15f);
+	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+	GameWindow.SetGameRenderingFlags(EFlagsGameRendering::UseLighting);
 	//загружаем текстуры
 	CTexture* TextureGround{ GameWindow.AddTexture() };
 	{
@@ -30,7 +34,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
 	SkyBoxObject->UpdateWorldMatrix();
 	SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
-
+	SkyBoxObject->ComponentRender.Material.MaterialAmbient =
+		SkyBoxObject->ComponentRender.Material.MaterialDiffuse =
+		SkyBoxObject->ComponentRender.Material.MaterialSpecular = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	SkyBoxObject->ComponentRender.Material.SpecularExponent = 20.0f;
+	SkyBoxObject->ComponentRender.Material.SpecularIntensity = 0.8f;
 
 	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
 	{
@@ -41,6 +49,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
 	SphereObject->UpdateWorldMatrix();
 	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
+	SphereObject->ComponentRender.Material.MaterialAmbient =
+		SphereObject->ComponentRender.Material.MaterialDiffuse =
+		SphereObject->ComponentRender.Material.MaterialSpecular = XMFLOAT3(1.0f, 0.5f, 1.0f);
+	SphereObject->ComponentRender.Material.SpecularExponent = 20.0f;
+	SphereObject->ComponentRender.Material.SpecularIntensity = 0.8f;
 
 	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
 	{
@@ -48,7 +61,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	CGameObject* GroundObject{ GameWindow.AddGameObject() };
 	GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
-	GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 0.0f, 20.0f, 0);
+	GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 1.0f, 20.0f, 0);
 	GroundObject->UpdateWorldMatrix();
 	GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
 	GroundObject->ComponentRender.PtrTexture = TextureGround;
@@ -107,6 +120,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
 			}
+			if (KeyState.F4)
+			{
+				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::UseLighting);
+			}
 			if (KeyState.F5)
 			{
 				isDrawMiniAxes = !isDrawMiniAxes;
@@ -115,6 +132,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			/*if (key_down == VK_F3)
 			{
 				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
+			}
+			if (key_down == VK_F4)
+			{
+				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::UseLighting);
 			}*/
 			//проверяем состояние мыши
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
