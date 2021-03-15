@@ -8,6 +8,22 @@
 #include "GameObject.h"
 
 /// <summary>
+/// Флаги отрисовки
+/// </summary>
+enum class EFlagsGameRendering
+{
+	/// <summary>
+	/// Пустой флаг
+	/// </summary>
+	None = 0x00,
+	/// <summary>
+	/// Отрисовываем нормали
+	/// </summary>
+	DrawNormals = 0x01,
+};
+ENUM_CLASS_FLAG(EFlagsGameRendering)
+
+/// <summary>
 /// Тип камеры
 /// </summary>
 enum class ECameraType
@@ -134,6 +150,36 @@ public:
 };
 
 /// <summary>
+/// Структура привязки данных константного буфера для вертексного шейдера
+/// </summary>
+struct SCBVSBaseSpaceData
+{
+	/// <summary>
+	/// Матрица World-View-Projection
+	/// </summary>
+	XMMATRIX WVP{};
+	/// <summary>
+	/// Мировая матрица
+	/// </summary>
+	XMMATRIX World{};
+};
+
+/// <summary>
+/// Структура привязки данных константного буфера для пиксельного шейдера
+/// </summary>
+struct SCBPSBaseFlagsData
+{
+	/// <summary>
+	/// Используется ли текстура для данного пикселя
+	/// </summary>
+	BOOL bUseTexture{};
+	/// <summary>
+	/// Пока не используется (???)
+	/// </summary>
+	BOOL Pad[3]{};
+};
+
+/// <summary>
 /// Игровое окно
 /// </summary>
 class CGameWindow
@@ -157,7 +203,7 @@ public:
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
 	void CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring& FontFileName, bool bWindowed);
 
-#pragma region CameraMethods
+#pragma region SetGameRenderPropertyMethods
 	/// <summary>
 	/// Строит матрицу левой перспективной проекции m_MatrixProjection на основе поля зрения
 	/// </summary>
@@ -165,6 +211,14 @@ public:
 	/// <param name="NearZ">Расстояние до ближайшей плоскости остечения</param>
 	/// <param name="FarZ">Расстояние до дальней плоскости отсечения</param>
 	void SetPerspective(float FOV, float NearZ, float FarZ);
+	/// <summary>
+	/// Переключение указанного флага отрисовки на противоположный
+	/// </summary>
+	/// <param name="Flags">Переключаемый флаг</param>
+	void ToggleGameRenderingFlags(EFlagsGameRendering Flags);
+#pragma endregion
+
+#pragma region CameraMethods
 	/// <summary>
 	/// Добавляет данные о камере в массив камер
 	/// </summary>
@@ -316,6 +370,11 @@ private:
 	/// <param name="FontFileName">Путь к файлу с используемым шрифтом</param>
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
 	void InitializeDirectX(const wstring& FontFileName, bool bWindowed);
+	/// <summary>
+	/// Отрисовка отдельного игрового обьекта
+	/// </summary>
+	/// <param name="PtrGO">Указатель на игровой обьект</param>
+	void DrawGameObject(CGameObject* PtrGO);
 private:
 
 #pragma region InitD3D11ComponentMethods
@@ -337,25 +396,40 @@ private:
 	/// </summary>
 	void CreateInputDevices();
 	/// <summary>
-	/// Создает CBWVP (Constant Buffer World-View-Projection) константный буфер с матрицей WVP для его передачи в вертексный шейдер
+	/// Создание геометрического шейдера нормалей
 	/// </summary>
-	void CreateCBWVP();
+	void CreateGSNormal();
 	/// <summary>
-	/// Создает константный буфер для работы с текстурами в пиксельном шейдере
+	/// Создание константных буферов
 	/// </summary>
-	void CreateCBTexture();
+	void CreateCBs();
+
 #pragma endregion
 
 	/// <summary>
 	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection) для его обработки в вертексном шейдере
 	/// </summary>
 	/// <param name="MatrixWorld">Матрица мира</param>
-	void UpdateCBWVP(const XMMATRIX& MatrixWorld);
+	void UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld);
 	/// <summary>
 	/// Обновляет константный буфер текстуры
 	/// </summary>
 	/// <param name="UseTexture">Используется ли текстура в следующем отрисовываемом изображении</param>
-	void UpdateCBTexture(BOOL UseTexture);
+	void UpdateCBPSBaseFlags(BOOL UseTexture);
+private:
+	/// <summary>
+	/// Создание константного буфера
+	/// </summary>
+	/// <param name="ByteWidth">Размер создаваемого буфера в байтах</param>
+	/// <param name="ppBuffer">Адрес указателя на создаваемый буфер</param>
+	void CreateCB(size_t ByteWidth, ID3D11Buffer** ppBuffer);
+	/// <summary>
+	/// Обновляет указанный константный буфер заданным значением
+	/// </summary>
+	/// <param name="ByteWidth">Размер буфера в байтах</param>
+	/// <param name="pBuffer">Указатель на обновляемый ресурс (константный буфер)</param>
+	/// <param name="pValue">Указатель на область памяти, которую надо загрузить в константный буфер</param>
+	void UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, void* pValue);
 private:
 	static constexpr float KDefaultFOV{ XM_PIDIV2 };
 	static constexpr float KDefaultNearZ{ 0.1f };
@@ -377,19 +451,24 @@ private:
 	/// Массив используемых игровых обьектов
 	/// </summary>
 	vector<unique_ptr<CGameObject>>	m_vGameObjects{};
+
+	/// <summary>
+	/// Указатель на геометрический шейдер нормалей
+	/// </summary>
+	unique_ptr<CShader>				m_ShaderGSNormal{};
 private:
 	/// <summary>
 	/// Идентификатор экземпляра окна
 	/// </summary>
-	HWND		m_hWnd{};
+	HWND							m_hWnd{};
 	/// <summary>
 	/// Идентификатор экземпляра приложения
 	/// </summary>
-	HINSTANCE	m_hInstance{};
+	HINSTANCE						m_hInstance{};
 	/// <summary>
 	/// Размер окна
 	/// </summary>
-	XMFLOAT2	m_WindowSize{};
+	XMFLOAT2						m_WindowSize{};
 private:
 	/// <summary>
 	/// Матрица проекции
@@ -420,6 +499,10 @@ private:
 	/// Текущее состояние растеризатора (указывает, какие грани отбраковыывать)
 	/// </summary>
 	ERasterizerState				m_eRasterizerState{ ERasterizerState::CullCounterClockwise };
+	/// <summary>
+	/// Текущий флаг отрисовки
+	/// </summary>
+	EFlagsGameRendering				m_eFlagsGamerendering{};
 private:
 	/// <summary>
 	/// Указатель на цепочку обмена
@@ -446,14 +529,6 @@ private:
 	/// </summary>
 	ComPtr<ID3D11Texture2D>			m_DepthStencilBuffer{};
 	/// <summary>
-	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection), содержащий матрицу WVP
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_CBWVP{};
-	/// <summary>
-	/// Указатель на константный буфер с текущей текстурой
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_CBTexture{};
-	/// <summary>
 	/// Указатель на устройство ввода клавиатура
 	/// </summary>
 	unique_ptr<Keyboard>			m_Keyboard{};
@@ -473,4 +548,21 @@ private:
 	/// Указатель на общую область рендеринга спрайтов (???)
 	/// </summary>
 	unique_ptr<CommonStates>		m_CommonStates{};
+
+	/// <summary>
+	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection), содержащий матрицу WVP
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbVSBaseSpace{};
+	/// <summary>
+	/// Указатель на константный буфер с текущей текстурой
+	/// </summary>
+	ComPtr<ID3D11Buffer>			m_cbPSBaseFlags{};
+	/// <summary>
+	/// Загружаемая в вертексный шейдер структура
+	/// </summary>
+	SCBVSBaseSpaceData				m_cbVSBaseSpaceData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура
+	/// </summary>
+	SCBPSBaseFlagsData				m_cbPSBaseFlagsData{};
 };

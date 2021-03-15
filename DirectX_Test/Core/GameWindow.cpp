@@ -12,6 +12,11 @@ void CGameWindow::SetPerspective(float FOV, float NearZ, float FarZ)
 	m_MatrixProjection = XMMatrixPerspectiveFovLH(FOV, m_WindowSize.x / m_WindowSize.y, NearZ, FarZ);
 }
 
+void CGameWindow::ToggleGameRenderingFlags(EFlagsGameRendering Flags)
+{
+	m_eFlagsGamerendering ^= Flags;
+}
+
 void CGameWindow::AddCamera(const SCameraData& CameraData)
 {
 	m_vCameras.emplace_back(CameraData);
@@ -187,8 +192,9 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 	CreateInputDevices();
 
-	CreateCBWVP();
-	CreateCBTexture();
+	CreateGSNormal();
+
+	CreateCBs();
 
 	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
@@ -274,60 +280,60 @@ void CGameWindow::CreateInputDevices()
 	m_Mouse->SetMode(Mouse::Mode::MODE_RELATIVE);
 }
 
-void CGameWindow::CreateCBWVP()
+void CGameWindow::CreateGSNormal()
 {
-	D3D11_BUFFER_DESC cbWVPDesc{};
-	cbWVPDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbWVPDesc.ByteWidth = sizeof(XMMATRIX);
-	cbWVPDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbWVPDesc.MiscFlags = 0;
-	cbWVPDesc.StructureByteStride = 0;
-	cbWVPDesc.Usage = D3D11_USAGE_DYNAMIC;
-
-	m_Device->CreateBuffer(&cbWVPDesc, nullptr, &m_CBWVP);
+	m_ShaderGSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_ShaderGSNormal->Create(EShaderType::GeometryShader, L"Shader\\GSNormal.hlsl", "main");
 }
 
-void CGameWindow::CreateCBTexture()
+void CGameWindow::CreateCBs()
 {
-	D3D11_BUFFER_DESC cbTextureDesc{};
-	cbTextureDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbTextureDesc.ByteWidth = sizeof(BOOL) * 4;
-	cbTextureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbTextureDesc.MiscFlags = 0;
-	cbTextureDesc.StructureByteStride = 0;
-	cbTextureDesc.Usage = D3D11_USAGE_DYNAMIC;
+	CreateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.GetAddressOf());
 
-	m_Device->CreateBuffer(&cbTextureDesc, nullptr, &m_CBTexture);
+	CreateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.GetAddressOf());
 }
 
-void CGameWindow::UpdateCBWVP(const XMMATRIX& MatrixWorld)
+void CGameWindow::CreateCB(size_t ByteWidth, ID3D11Buffer** ppBuffer)
 {
-	XMMATRIX MatrixWVP{ XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection) };//создает матрицу WVP
+	D3D11_BUFFER_DESC BufferDesc{};
+	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;//тип буфера (константный)
+	BufferDesc.ByteWidth = static_cast<UINT>(ByteWidth);//размер буфера
+	BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;//доступ к буферу со стороны ЦПУ
+	BufferDesc.MiscFlags = 0;//прочие флаги
+	BufferDesc.StructureByteStride = 0;//размер структуры (0 для неструктурированных буферов)
+	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;//режим доступа (сейчас ЦПУ - запись, ГПУ - чтение)
 
+	m_Device->CreateBuffer(&BufferDesc, nullptr, ppBuffer);
+}
+
+void CGameWindow::UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld)
+{
+	m_cbVSBaseSpaceData.WVP = XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection);//считаем матрицу WVP
+	m_cbVSBaseSpaceData.World = XMMatrixTranspose(MatrixWorld);
+
+	UpdateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.Get(), &m_cbVSBaseSpaceData);//обновляем буфер для гпу
+
+	m_DeviceContext->VSSetConstantBuffers(0, 1, m_cbVSBaseSpace.GetAddressOf());//устанавливает константный буфер для вертексного шейдера
+}
+
+void CGameWindow::UpdateCBPSBaseFlags(BOOL UseTexture)
+{
+	m_cbPSBaseFlagsData.bUseTexture = UseTexture;
+
+	UpdateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.Get(), &m_cbPSBaseFlagsData);
+
+	m_DeviceContext->PSSetConstantBuffers(0, 1, m_cbPSBaseFlags.GetAddressOf());//устанавливает константный буфер для пиксельного шейдера
+}
+
+void CGameWindow::UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, void* pValue)
+{
 	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
-
-	//запрещаем доступ графическому процессору к константному буферу
-	if (SUCCEEDED(m_DeviceContext->Map(m_CBWVP.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
+	if (SUCCEEDED(m_DeviceContext->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))//запрещаем доступ графическому процессору к константному буферу
 	{
-		memcpy(MappedSubresource.pData, &MatrixWVP, sizeof(XMMATRIX));//копируем новое значение константного буфера
+		memcpy(MappedSubresource.pData, pValue, ByteWidth);//копируем новое значение константного буфера
 
-		m_DeviceContext->Unmap(m_CBWVP.Get(), 0);//вновь разрешаем доступ графическому процессору к константному буферу
+		m_DeviceContext->Unmap(pBuffer, 0);//вновь разрешаем доступ графическому процессору к константному буферу
 	}
-
-	m_DeviceContext->VSSetConstantBuffers(0, 1, m_CBWVP.GetAddressOf());//устанавливает константный буфер
-}
-
-void CGameWindow::UpdateCBTexture(BOOL UseTexture)
-{
-	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
-	if (SUCCEEDED(m_DeviceContext->Map(m_CBTexture.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))
-	{
-		memcpy(MappedSubresource.pData, &UseTexture, sizeof(BOOL));
-
-		m_DeviceContext->Unmap(m_CBTexture.Get(), 0);
-	}
-
-	m_DeviceContext->PSSetConstantBuffers(0, 1, m_CBTexture.GetAddressOf());
 }
 
 CShader* CGameWindow::AddShader()
@@ -424,45 +430,45 @@ void CGameWindow::DrawGameObjects()
 	{
 		if (go->ComponentRender.IsTransparent) continue;
 
-		UpdateCBWVP(go->ComponentTransform.MatrixWorld);
-
-		if (go->ComponentRender.PtrTexture)
-		{
-			UpdateCBTexture(TRUE);
-
-			go->ComponentRender.PtrTexture->Use();
-		}
-		else
-		{
-			UpdateCBTexture(FALSE);
-		}
-
-		if (go->ComponentRender.PtrObject3D)
-		{
-			go->ComponentRender.PtrObject3D->Draw();
-		}
+		DrawGameObject(go.get());
 	}
 	//обработка обьектов с непрозрачной текстурой
 	for (auto& go : m_vGameObjects)
 	{
 		if (!go->ComponentRender.IsTransparent) continue;
 
-		UpdateCBWVP(go->ComponentTransform.MatrixWorld);
+		DrawGameObject(go.get());
+	}
+}
 
-		if (go->ComponentRender.PtrTexture)
-		{
-			UpdateCBTexture(TRUE);
+void CGameWindow::DrawGameObject(CGameObject* PtrGO)
+{
+	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);//обновляем константный буфер WVP вертексного шейдера
 
-			go->ComponentRender.PtrTexture->Use();
-		}
-		else
-		{
-			UpdateCBTexture(FALSE);
-		}
+	if (PtrGO->ComponentRender.PtrTexture)//если есть указатель на текстуру
+	{
+		UpdateCBPSBaseFlags(TRUE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что она есть
 
-		if (go->ComponentRender.PtrObject3D)
+		PtrGO->ComponentRender.PtrTexture->Use();//привязываем шейдер и текстуру к эт
+	}
+	else
+	{
+		UpdateCBPSBaseFlags(FALSE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет
+	}
+
+	if (PtrGO->ComponentRender.PtrObject3D)
+	{
+		PtrGO->ComponentRender.PtrObject3D->Draw();//отрисовываем полигоны
+
+		if ((m_eFlagsGamerendering & EFlagsGameRendering::DrawNormals) == EFlagsGameRendering::DrawNormals)//если стоит флаг отрисовки нормали
 		{
-			go->ComponentRender.PtrObject3D->Draw();
+			UpdateCBPSBaseFlags(FALSE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет (т к рисуем линию)
+
+			m_ShaderGSNormal->Use();//устанавливаем геометрический шейдер нормали
+
+			PtrGO->ComponentRender.PtrObject3D->DrawNormals();//отрисовываем нормали
+
+			m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сброс геометрического шейдера
 		}
 	}
 }

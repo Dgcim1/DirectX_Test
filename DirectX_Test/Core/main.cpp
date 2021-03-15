@@ -10,7 +10,8 @@ constexpr D3D11_INPUT_ELEMENT_DESC KInputElementDescs[]
 {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT		, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 
 LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -25,10 +26,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetCamera(0);
 	//создаем вертексный шейдер
 	CShader* VS{ GameWindow.AddShader() };
-	VS->Create(EShaderType::VertexShader, L"Shader\\VertexShader.hlsl", "main", KInputElementDescs, ARRAYSIZE(KInputElementDescs));
+	VS->Create(EShaderType::VertexShader, L"Shader\\VSBase.hlsl", "main", KInputElementDescs, ARRAYSIZE(KInputElementDescs));
 	//создаем пиксельный шейдер
 	CShader* PS{ GameWindow.AddShader() };
-	PS->Create(EShaderType::PixelShader, L"Shader\\PixelShader.hlsl", "main");
+	PS->Create(EShaderType::PixelShader, L"Shader\\PSBase.hlsl", "main");
 	//загружаем текстуры
 	CTexture* TextureGround{ GameWindow.AddTexture() };
 	{
@@ -71,9 +72,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	while (true)
 	{
 		static MSG Msg{};
+		static char key_down{};
 
 		if (PeekMessage(&Msg, nullptr, 0, 0, PM_REMOVE))
 		{
+			if (Msg.message == WM_KEYDOWN) key_down = (char)Msg.wParam;
 			if (Msg.message == WM_QUIT) break;
 
 			TranslateMessage(&Msg);
@@ -116,6 +119,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.SetRasterizerState(ERasterizerState::CullCounterClockwise);
 			}
+			if (KeyState.F3)
+			{
+				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
+			}
+			//дополнительные состояния клавиатуры
+			/*if (key_down == VK_F3)
+			{
+				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
+			}*/
 			//проверяем состояние мыши
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
 			if (MouseState.x || MouseState.y)

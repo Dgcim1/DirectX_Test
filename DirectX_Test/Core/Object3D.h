@@ -3,15 +3,13 @@
 #include "SharedHeader.h"
 
 /// <summary>
-/// Вершина, состоящая из вектора позиции и цвета
+/// Вершина, состоящая из вектора позиции, вектора цвета, вектора текстурных координат и вектора нормали
 /// </summary>
 struct SVertex3D
 {
 	SVertex3D() {}
-	SVertex3D(const XMVECTOR& _Position, const XMVECTOR& _Color) : Position{ _Position }, Color{ _Color } {}
-	SVertex3D(const XMVECTOR& _Position, const XMVECTOR& _Color, const XMFLOAT2& _TexCoord) :
+	SVertex3D(const XMVECTOR& _Position, const XMVECTOR& _Color, const XMVECTOR& _TexCoord = XMVectorSet(0, 0, 0, 0)) :
 		Position{ _Position }, Color{ _Color }, TexCoord{ _TexCoord } {}
-	SVertex3D(const XMVECTOR& _Position, const XMFLOAT2& _TexCoord) : Position{ _Position }, TexCoord{ _TexCoord } {}
 
 	/// <summary>
 	/// Вектор позиции
@@ -24,7 +22,11 @@ struct SVertex3D
 	/// <summary>
 	/// Координаты начального смещения текстуры
 	/// </summary>
-	XMFLOAT2 TexCoord{};
+	XMVECTOR TexCoord{};
+	/// <summary>
+	/// Вектор нормали
+	/// </summary>
+	XMVECTOR Normal{};
 };
 
 /// <summary>
@@ -45,6 +47,7 @@ struct SObject3DData
 
 class CObject3D
 {
+	friend class CGameWindow;
 public:
 	/// <summary>
 	/// Конструктор 3D обьекта
@@ -64,11 +67,15 @@ public:
 	/// </summary>
 	/// <param name="Object3DData">Указатель на данные о 3D обьекте</param>
 	void Create(const SObject3DData& Object3DData);
+private:
 	/// <summary>
 	/// Привязываем вертексный и индексный буферы (полигоны) к конвейеру и рисуем их
 	/// </summary>
 	void Draw();
-
+	/// <summary>
+	/// Отрисовывает нормали
+	/// </summary>
+	void DrawNormals();
 private:
 	/// <summary>
 	/// Указатель на устройство
@@ -80,6 +87,9 @@ private:
 	ID3D11DeviceContext*	m_PtrDeviceContext{};
 
 private:
+	/// <summary>
+	/// Информация о данном 3D обьекте в виде набора вершин и полигонов
+	/// </summary>
 	SObject3DData			m_Object3DData{};
 	/// <summary>
 	/// Указатель на индексный буфер

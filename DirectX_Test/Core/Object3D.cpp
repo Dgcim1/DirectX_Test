@@ -44,3 +44,13 @@ void CObject3D::Draw()
 	//Рисуем индексированные примитивы
 	m_PtrDeviceContext->DrawIndexed(static_cast<UINT>(m_Object3DData.vTriangles.size() * 3), 0, 0);
 }
+
+void CObject3D::DrawNormals()
+{
+	//привязка вертексного буфера к этапу IA
+	m_PtrDeviceContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &m_VertexBufferStride, &m_VertexBufferOffset);
+	//указываем информацию о типе примитива и порядке данных которые описывают входные данные этапа IA (что это линии)
+	m_PtrDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+	//Рисуем примитивы
+	m_PtrDeviceContext->Draw(static_cast<UINT>(m_Object3DData.vVertices.size() * 2), 0);
+}

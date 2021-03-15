@@ -16,6 +16,7 @@ using namespace DirectX;
 
 using std::string;
 using std::wstring;
+using std::to_string;
 using std::vector;
 using std::unique_ptr;
 using std::make_unique;
@@ -32,3 +33,36 @@ struct STriangle
 	uint32_t I1{};
 	uint32_t I2{};
 };
+
+#define ENUM_CLASS_FLAG(enum_type)\
+static enum_type operator|(enum_type a, enum_type b)\
+{\
+	return static_cast<enum_type>(static_cast<int>(a) | static_cast<int>(b));\
+}\
+static enum_type& operator|=(enum_type& a, enum_type b)\
+{\
+	a = static_cast<enum_type>(static_cast<int>(a) | static_cast<int>(b));\
+	return a;\
+}\
+static enum_type operator&(enum_type a, enum_type b)\
+{\
+	return static_cast<enum_type>(static_cast<int>(a) & static_cast<int>(b));\
+}\
+static enum_type& operator&=(enum_type& a, enum_type b)\
+{\
+	a = static_cast<enum_type>(static_cast<int>(a) & static_cast<int>(b));\
+	return a;\
+}\
+static enum_type operator^(enum_type a, enum_type b)\
+{\
+	return static_cast<enum_type>(static_cast<int>(a) ^ static_cast<int>(b)); \
+}\
+static enum_type& operator^=(enum_type& a, enum_type b)\
+{\
+	a = static_cast<enum_type>(static_cast<int>(a) ^ static_cast<int>(b)); \
+	return a; \
+}\
+static enum_type operator~(enum_type a)\
+{\
+	return static_cast<enum_type>(~static_cast<int>(a)); \
+}

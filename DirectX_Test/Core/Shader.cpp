@@ -33,6 +33,12 @@ void CShader::Create(EShaderType Type, const wstring& FileName, const string& En
 		//создаем обьект пиксельного шейдера из скомпилированного кода
 		m_PtrDevice->CreatePixelShader(m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), nullptr, &m_PixelShader);
 		break;
+	case EShaderType::GeometryShader://если тип шейдера - геометрический
+		//компилиируем код HLSL в в байт-код
+		D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(),
+			"gs_4_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &m_Blob, nullptr);
+		//создаем обьект геометрического шейдера из скомпилированного кода
+		m_PtrDevice->CreateGeometryShader(m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), nullptr, &m_GeometryShader);
 	default:
 		break;
 	}
@@ -51,6 +57,10 @@ void CShader::Use()
 	case EShaderType::PixelShader://если тип шейдера - пиксельный
 		//устанавливает пиксельный шейдер для контекста устройства
 		m_PtrDeviceContext->PSSetShader(m_PixelShader.Get(), nullptr, 0);
+		break;
+	case EShaderType::GeometryShader://если тип шейдера - геометрический
+		//устанавливает геометрический шейдер для контекста устройства
+		m_PtrDeviceContext->GSSetShader(m_GeometryShader.Get(), nullptr, 0);
 		break;
 	default:
 		break;

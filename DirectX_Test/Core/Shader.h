@@ -10,8 +10,18 @@
 /// </summary>
 enum class EShaderType
 {
+	/// <summary>
+	/// Вертексный шейдер
+	/// </summary>
 	VertexShader,
+	/// <summary>
+	/// Пиксельный шейдер
+	/// </summary>
 	PixelShader,
+	/// <summary>
+	/// Геометрическийи шейдер
+	/// </summary>
+	GeometryShader,
 };
 
 /// <summary>
@@ -71,6 +81,10 @@ private:
 	/// Указатель на скомпилированный пиксельный шейдер (если m_ShaderType = PixelShader)
 	/// </summary>
 	ComPtr<ID3D11PixelShader>	m_PixelShader{};
+	/// <summary>
+	/// Указатель на скомпилированный геометрический шейдер (если m_ShaderType = GeometryShader)
+	/// </summary>
+	ComPtr<ID3D11GeometryShader>	m_GeometryShader{};
 	/// <summary>
 	/// Обьект макета ввода для описания данных буфера ввода на этапе ввода-ассемблера
 	/// </summary>
