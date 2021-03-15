@@ -22,7 +22,7 @@ void CTexture::CreateFromFile(const wstring& TextureFileName)
 
 }
 
-void CTexture::Use()
+void CTexture::Use() const
 {
 	m_PtrDeviceContext->PSSetShaderResources(0, 1, m_ShaderResourceView.GetAddressOf());
 }

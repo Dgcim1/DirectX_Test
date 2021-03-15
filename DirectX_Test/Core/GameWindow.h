@@ -322,6 +322,10 @@ public:
 	/// </summary>
 	void DrawGameObjects();
 	/// <summary>
+	/// Рисует представление мини осей в углу экрана
+	/// </summary>
+	void DrawMiniAxes();
+	/// <summary>
 	/// Обновляет изображение, swap буфера подкачки и буфера дисплея
 	/// </summary>
 	void EndRendering();
@@ -375,6 +379,11 @@ private:
 	/// </summary>
 	/// <param name="PtrGO">Указатель на игровой обьект</param>
 	void DrawGameObject(CGameObject* PtrGO);
+	/// <summary>
+	/// Отрисовка нормалей отдельного игрового обьекта
+	/// </summary>
+	/// <param name="PtrGO">Указатель на игровой обьект</param>
+	void DrawGameObjectNormal(CGameObject* PtrGO);
 private:
 
 #pragma region InitD3D11ComponentMethods
@@ -396,14 +405,17 @@ private:
 	/// </summary>
 	void CreateInputDevices();
 	/// <summary>
-	/// Создание геометрического шейдера нормалей
+	/// Загрузка базовых шейдеров
 	/// </summary>
-	void CreateGSNormal();
+	void CreateBaseShaders();
 	/// <summary>
 	/// Создание константных буферов
 	/// </summary>
 	void CreateCBs();
-
+	/// <summary>
+	/// Создание представления мини осей в углу экрана
+	/// </summary>
+	void CreateMiniAxes();
 #pragma endregion
 
 	/// <summary>
@@ -453,9 +465,33 @@ private:
 	vector<unique_ptr<CGameObject>>	m_vGameObjects{};
 
 	/// <summary>
+	/// Массив 3D обьектов представления мини осей в углу экрана
+	/// </summary>
+	vector<unique_ptr<CObject3D>>	m_vMiniAxisObject3Ds{};
+	/// <summary>
+	/// Массив игровых обьектов представления мини осей в углу экрана
+	/// </summary>
+	vector<unique_ptr<CGameObject>>	m_vMiniAxisGameObjects{};
+	/// <summary>
+	/// Указатель на базовый вертекный шейдер
+	/// </summary>
+	unique_ptr<CShader>				m_VSBase{};
+	/// <summary>
+	/// Указатель на базовый пиксельный шейдер
+	/// </summary>
+	unique_ptr<CShader>				m_PSBase{};
+	/// <summary>
 	/// Указатель на геометрический шейдер нормалей
 	/// </summary>
-	unique_ptr<CShader>				m_ShaderGSNormal{};
+	unique_ptr<CShader>				m_GSNormal{};
+	/// <summary>
+	/// Указатель на пиксельный шейдер нормалей
+	/// </summary>
+	unique_ptr<CShader>				m_PSNormal{};
+	/// <summary>
+	/// Массив используемых вьюпортов
+	/// </summary>
+	vector<D3D11_VIEWPORT>			m_vViewports{};
 private:
 	/// <summary>
 	/// Идентификатор экземпляра окна

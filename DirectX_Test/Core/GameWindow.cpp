@@ -1,5 +1,14 @@
 #include "GameWindow.h"
 
+//структура доступа для вертексного шейдера (элемент ввода для этапа IA)
+constexpr D3D11_INPUT_ELEMENT_DESC KBaseInputElementDescs[]
+{
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+
 void CGameWindow::CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring& FontFileName, bool bWindowed)
 {
 	CreateWin32Window(WndProc, WindowName);
@@ -192,9 +201,11 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 	CreateInputDevices();
 
-	CreateGSNormal();
+	CreateBaseShaders();
 
 	CreateCBs();
+
+	CreateMiniAxes();
 
 	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
@@ -253,12 +264,11 @@ void CGameWindow::CreateSetViews()
 
 void CGameWindow::SetViewports()
 {
-	//задаем массив размеров области просмотра (у нас массив из 1 элемента)
-	vector<D3D11_VIEWPORT> vViewPorts{};
+	//основной вьюпорт
 	{
-		vViewPorts.emplace_back();
+		m_vViewports.emplace_back();
 
-		D3D11_VIEWPORT& ViewPort{ vViewPorts.back() };
+		D3D11_VIEWPORT& ViewPort{ m_vViewports.back() };
 		ViewPort.TopLeftX = 0.0f;//положение Х для крайней левой точки
 		ViewPort.TopLeftY = 0.0f;//положение Y для крайней верхней точки
 		ViewPort.Width = m_WindowSize.x;//ширина области просмотра
@@ -266,8 +276,19 @@ void CGameWindow::SetViewports()
 		ViewPort.MinDepth = 0.0f;//минимальная глубина области просмотра
 		ViewPort.MaxDepth = 1.0f;//максимальная глубина области просмотра
 	}
-	//устанавливаем массив окон просмотра к этапу растеризации конвейера
-	m_DeviceContext->RSSetViewports(static_cast<UINT>(vViewPorts.size()), &vViewPorts[0]);
+
+	//дополнительный вьюпорт для отрисовки представления мини осей в углу экрана
+	{
+		m_vViewports.emplace_back();
+
+		D3D11_VIEWPORT& Viewport{ m_vViewports.back() };
+		Viewport.TopLeftX = m_WindowSize.x * 0.875f;
+		Viewport.TopLeftY = 0.0f;
+		Viewport.Width = m_WindowSize.x / 8.0f;
+		Viewport.Height = m_WindowSize.y / 8.0f;
+		Viewport.MinDepth = 0.0f;
+		Viewport.MaxDepth = 1.0f;
+	}
 }
 
 void CGameWindow::CreateInputDevices()
@@ -280,10 +301,19 @@ void CGameWindow::CreateInputDevices()
 	m_Mouse->SetMode(Mouse::Mode::MODE_RELATIVE);
 }
 
-void CGameWindow::CreateGSNormal()
+void CGameWindow::CreateBaseShaders()
 {
-	m_ShaderGSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
-	m_ShaderGSNormal->Create(EShaderType::GeometryShader, L"Shader\\GSNormal.hlsl", "main");
+	m_VSBase = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_VSBase->Create(EShaderType::VertexShader, L"Shader\\VSBase.hlsl", "main", KBaseInputElementDescs, ARRAYSIZE(KBaseInputElementDescs));
+
+	m_PSBase = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSBase->Create(EShaderType::PixelShader, L"Shader\\PSBase.hlsl", "main");
+
+	m_GSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_GSNormal->Create(EShaderType::GeometryShader, L"Shader\\GSNormal.hlsl", "main");
+
+	m_PSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSNormal->Create(EShaderType::PixelShader, L"Shader\\PSNormal.hlsl", "main");
 }
 
 void CGameWindow::CreateCBs()
@@ -291,6 +321,34 @@ void CGameWindow::CreateCBs()
 	CreateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.GetAddressOf());
 
 	CreateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.GetAddressOf());
+}
+
+void CGameWindow::CreateMiniAxes()
+{
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
+
+	m_vMiniAxisObject3Ds[0]->Create(GenerateCone(0, 16, XMVectorSet(1, 0, 0, 1)));
+	m_vMiniAxisObject3Ds[1]->Create(GenerateCone(0, 16, XMVectorSet(0, 1, 0, 1)));
+	m_vMiniAxisObject3Ds[2]->Create(GenerateCone(0, 16, XMVectorSet(0, 0, 1, 1)));
+
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
+	m_vMiniAxisGameObjects[0]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[0].get();
+	m_vMiniAxisGameObjects[0]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
+	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
+	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
+	m_vMiniAxisGameObjects[2]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
+
+	m_vMiniAxisGameObjects[0]->ComponentTransform.Scaling =
+		m_vMiniAxisGameObjects[1]->ComponentTransform.Scaling =
+		m_vMiniAxisGameObjects[2]->ComponentTransform.Scaling = XMVectorSet(0.1f, 1.0f, 0.1f, 0);
+
+	m_vMiniAxisGameObjects[0]->UpdateWorldMatrix();
+	m_vMiniAxisGameObjects[1]->UpdateWorldMatrix();
+	m_vMiniAxisGameObjects[2]->UpdateWorldMatrix();
 }
 
 void CGameWindow::CreateCB(size_t ByteWidth, ID3D11Buffer** ppBuffer)
@@ -397,7 +455,7 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
 
 	ID3D11SamplerState* SamplerState{ m_CommonStates->LinearWrap() };//состояние сэмплера
-	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//установка состояния сэмплера наэтапе пиксельногошейдера
+	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//установка состояния сэмплера наэтапе пиксельного шейдера
 
 	m_DeviceContext->OMSetBlendState(m_CommonStates->AlphaBlend(), nullptr, 0xFFFFFFFF);//установка состояния смешивателя (blender-а) наэтапе слияния вывода (смешивание - обьединение пикселей с учетом прозрачности)
 
@@ -425,6 +483,11 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 
 void CGameWindow::DrawGameObjects()
 {
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//устанавливаем основной вьюпорт
+
+	m_VSBase->Use();//применяем базовый вертексный шейдер
+	m_PSBase->Use();//применяем базовый пиксельный шейдер
+
 	//обработка обьектов с прозрачной текстурой
 	for (auto& go : m_vGameObjects)
 	{
@@ -439,6 +502,42 @@ void CGameWindow::DrawGameObjects()
 
 		DrawGameObject(go.get());
 	}
+
+	if ((m_eFlagsGamerendering & EFlagsGameRendering::DrawNormals) == EFlagsGameRendering::DrawNormals)//если установлен флаг отрисовки нормалей
+	{
+		m_GSNormal->Use();//применяем геометрический шейдер нормалей
+		m_PSNormal->Use();//применяем пиксельный шейдер нормалей
+		//рисуем нормали
+		for (auto& go : m_vGameObjects)
+		{
+			DrawGameObjectNormal(go.get());
+		}
+
+		m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сброс геометрического шейдера
+	}
+}
+
+void CGameWindow::DrawMiniAxes()
+{
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[1]);//установка альтернативного вьюпорта
+
+	m_VSBase->Use();//применяем базовый вертексный шейдер
+	m_PSBase->Use();//применяем базовый пиксельный шейдер
+	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сбрасываем геометрический шейдер
+
+	UpdateCBPSBaseFlags(FALSE);//сбрасываем константный буфер пиксельного шейдера (не используем текстуры)
+
+	for (auto& i : m_vMiniAxisGameObjects)//перебор всех осей представления
+	{
+		UpdateCBVSBaseSpace(i->ComponentTransform.MatrixWorld);//обновляем мировую матрицу у всех обьектов
+
+		i->ComponentRender.PtrObject3D->Draw();//отрисовка
+
+		i->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + m_PtrCurrentCamera->Forward;//смещение обьекта (следование за камерой)
+		i->UpdateWorldMatrix();//обновление мировой матрицы оси
+	}
+
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//установка основного вьюпорта
 }
 
 void CGameWindow::DrawGameObject(CGameObject* PtrGO)
@@ -459,17 +558,16 @@ void CGameWindow::DrawGameObject(CGameObject* PtrGO)
 	if (PtrGO->ComponentRender.PtrObject3D)
 	{
 		PtrGO->ComponentRender.PtrObject3D->Draw();//отрисовываем полигоны
+	}
+}
 
-		if ((m_eFlagsGamerendering & EFlagsGameRendering::DrawNormals) == EFlagsGameRendering::DrawNormals)//если стоит флаг отрисовки нормали
-		{
-			UpdateCBPSBaseFlags(FALSE);//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет (т к рисуем линию)
+void CGameWindow::DrawGameObjectNormal(CGameObject* PtrGO)
+{
+	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);
 
-			m_ShaderGSNormal->Use();//устанавливаем геометрический шейдер нормали
-
-			PtrGO->ComponentRender.PtrObject3D->DrawNormals();//отрисовываем нормали
-
-			m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сброс геометрического шейдера
-		}
+	if (PtrGO->ComponentRender.PtrObject3D)
+	{
+		PtrGO->ComponentRender.PtrObject3D->DrawNormals();
 	}
 }
 

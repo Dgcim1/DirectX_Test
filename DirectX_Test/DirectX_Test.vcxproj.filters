@@ -152,5 +152,8 @@
     <FxCompile Include="Shader\GSNormal.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="Shader\PSNormal.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

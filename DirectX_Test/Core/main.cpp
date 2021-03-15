@@ -5,15 +5,6 @@
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
-//структура доступа для вертексного шейдера (элемент ввода для этапа IA)
-constexpr D3D11_INPUT_ELEMENT_DESC KInputElementDescs[]
-{
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-};
-
 LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -24,12 +15,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//создаем и устанавливаем камеру
 	GameWindow.AddCamera(SCameraData(ECameraType::FreeLook));
 	GameWindow.SetCamera(0);
-	//создаем вертексный шейдер
-	CShader* VS{ GameWindow.AddShader() };
-	VS->Create(EShaderType::VertexShader, L"Shader\\VSBase.hlsl", "main", KInputElementDescs, ARRAYSIZE(KInputElementDescs));
-	//создаем пиксельный шейдер
-	CShader* PS{ GameWindow.AddShader() };
-	PS->Create(EShaderType::PixelShader, L"Shader\\PSBase.hlsl", "main");
 	//загружаем текстуры
 	CTexture* TextureGround{ GameWindow.AddTexture() };
 	{
@@ -42,7 +27,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green));
 	}
 	CGameObject* SkyBoxObject{ GameWindow.AddGameObject() };
-	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(10.0f, 10.0f, 10.0f, 0);
+	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
 	SkyBoxObject->UpdateWorldMatrix();
 	SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
 
@@ -63,7 +48,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	CGameObject* GroundObject{ GameWindow.AddGameObject() };
 	GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
-	GroundObject->ComponentTransform.Scaling = XMVectorSet(10.0f, 10.0f, 10.0f, 0);
+	GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 0.0f, 20.0f, 0);
 	GroundObject->UpdateWorldMatrix();
 	GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
 	GroundObject->ComponentRender.PtrTexture = TextureGround;
@@ -73,6 +58,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		static MSG Msg{};
 		static char key_down{};
+
+		static bool isDrawMiniAxes = false;
 
 		if (PeekMessage(&Msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -86,9 +73,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		{
 			//начало рендеринга
 			GameWindow.BeginRendering(Colors::Aquamarine);
-			//применяем шейдеры
-			VS->Use();
-			PS->Use();
 			//проверяем состояние клавиатуры
 			Keyboard::State KeyState{ GameWindow.GetKeyState() };
 			if (KeyState.Escape)
@@ -123,6 +107,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
 			}
+			if (KeyState.F5)
+			{
+				isDrawMiniAxes = !isDrawMiniAxes;
+			}
 			//дополнительные состояния клавиатуры
 			/*if (key_down == VK_F3)
 			{
@@ -140,6 +128,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			//рисуем обьекты
 			GameWindow.DrawGameObjects();
+			//отрисовка представления мини осей
+			if (isDrawMiniAxes)
+			{
+				GameWindow.DrawMiniAxes();
+			}
 			//получаем указатели на набор спрайтов и на спрайт шрифтов
 			SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
 			SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
