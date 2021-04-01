@@ -2,6 +2,8 @@
 
 #include "SharedHeader.h"
 
+class CGameWindow;
+
 /// <summary>
 /// Вершина, состоящая из вектора позиции, вектора цвета, вектора текстурных координат и вектора нормали
 /// </summary>
@@ -30,9 +32,9 @@ struct SVertex3D
 };
 
 /// <summary>
-/// Информация о 3D обьекте, состоящая из вершин и полигонов
+/// Информация о 3D обьекте, состоящая из вершин, полигонов и идентификатора материала
 /// </summary>
-struct SObject3DData
+struct SMesh
 {
 	/// <summary>
 	/// Набор вершин
@@ -43,8 +45,86 @@ struct SObject3DData
 	/// Набор полигонов (3 точки - порядковые номера массива вершин)
 	/// </summary>
 	vector<STriangle>	vTriangles{};
+	/// <summary>
+	/// ID материала
+	/// </summary>
+	size_t				MaterialID{};
 };
 
+/// <summary>
+/// Информация о буферах отдельного меша (модели)
+/// </summary>
+struct SMeshBuffers
+{
+	/// <summary>
+	/// Указатель на буфер вершин
+	/// </summary>
+	ComPtr<ID3D11Buffer>	VertexBuffer{};
+	/// <summary>
+	/// Значение шага. Каждый шаг - это размер (в байтах) элементов, которые должны использоваться из этого буфера вершин.
+	/// </summary>
+	UINT					VertexBufferStride{ sizeof(SVertex3D) };
+	/// <summary>
+	/// Значение смещения. Каждое смещение - это количество байтов между первым элементом буфера вершин и первым элементом, который будет использоваться.
+	/// </summary>
+	UINT					VertexBufferOffset{};
+	/// <summary>
+	/// Указатель на буфер индексов
+	/// </summary>
+	ComPtr<ID3D11Buffer>	IndexBuffer{};
+};
+
+/// <summary>
+/// Представляет собой материал
+/// </summary>
+struct SMaterial
+{
+	/// <summary>
+	/// Конструктор материала по умолчанию
+	/// </summary>
+	SMaterial() {}
+	/// <summary>
+	/// Конструктор материала
+	/// </summary>
+	/// <param name="UniversalColor">Цвет (материала, света, блика)</param>
+	SMaterial(const XMFLOAT3& UniversalColor) : MaterialAmbient{ UniversalColor }, MaterialDiffuse{ UniversalColor }, MaterialSpecular{ UniversalColor } {}
+	/// <summary>
+	/// Цвет материала (затененной части обьекта)
+	/// </summary>
+	XMFLOAT3	MaterialAmbient{};
+	/// <summary>
+	/// Зеркальная экспонента (размер блика, чем больше значение, тем меньше блик и более размытые границы)
+	/// </summary>
+	float		SpecularExponent{ 1 };
+	/// <summary>
+	/// Цвет материала (освещенной части материала)
+	/// </summary>
+	XMFLOAT3	MaterialDiffuse{};
+	/// <summary>
+	/// Зеркальная интенсивность (насколько интенсивно/ярко светит отраженный от обьекта бликующий свет)
+	/// </summary>
+	float		SpecularIntensity{ 0 };
+	/// <summary>
+	/// Цвет материала (цвет блика)
+	/// </summary>
+	XMFLOAT3	MaterialSpecular{};
+	/// <summary>
+	/// Имеет ли обьект текстуру
+	/// </summary>
+	bool		bHasTexture{ false };
+	/// <summary>
+	/// Путь к файлу с текстурой
+	/// </summary>
+	string		TextureFileName{};
+	/// <summary>
+	/// Идентификатор текстуры
+	/// </summary>
+	size_t		TextureID{};
+};
+
+/// <summary>
+/// Представляет собой 3D обьект
+/// </summary>
 class CObject3D
 {
 	friend class CGameWindow;
@@ -54,28 +134,42 @@ public:
 	/// </summary>
 	/// <param name="PtrDevice">Указатель на устройство</param>
 	/// <param name="PtrDeviceContext">Указатель на контекст устройства</param>
-	CObject3D(ID3D11Device* PtrDevice, ID3D11DeviceContext* PtrDeviceContext) :
-		m_PtrDevice{ PtrDevice }, m_PtrDeviceContext{ PtrDeviceContext }
+	/// <param name="PtrGameWindow"></param>
+	CObject3D(ID3D11Device* PtrDevice, ID3D11DeviceContext* PtrDeviceContext, CGameWindow* PtrGameWindow) :
+		m_PtrDevice{ PtrDevice }, m_PtrDeviceContext{ PtrDeviceContext }, m_PtrGameWindow{ PtrGameWindow }
 	{
 		assert(m_PtrDevice);
 		assert(m_PtrDeviceContext);
+		assert(m_PtrGameWindow);
 	}
 	~CObject3D() {}
-	
+
 	/// <summary>
-	/// Создает вертексный и индексный буферы данного 3D обьекта и привязывает их к устройству 
+	/// Создает 3D обьект
 	/// </summary>
-	/// <param name="Object3DData">Указатель на данные о 3D обьекте</param>
-	void Create(const SObject3DData& Object3DData);
+	/// <param name="Mesh">Меш 3D обьекта</param>
+	/// <param name="Material">Материал 3D обьекта</param>
+	void Create(const SMesh& Mesh, const SMaterial& Material = SMaterial());
+	/// <summary>
+	/// Создает 3D обьект
+	/// </summary>
+	/// <param name="vMeshes">Вектор мешей 3D обьекта</param>
+	/// <param name="vMaterials">Вектор материалов 3D обьекта</param>
+	void Create(const vector<SMesh>& vMeshes, const vector<SMaterial>& vMaterials);
 private:
+	/// <summary>
+	/// Создает вертексный и индексный буферы заданного меша данного 3D обьекта и привязывает их к устройству
+	/// </summary>
+	/// <param name="MeshIndex">Индекс меша в массиве</param>
+	void CreateMeshBuffers(size_t MeshIndex);
 	/// <summary>
 	/// Привязываем вертексный и индексный буферы (полигоны) к конвейеру и рисуем их
 	/// </summary>
-	void Draw();
+	void Draw() const;
 	/// <summary>
 	/// Отрисовывает нормали
 	/// </summary>
-	void DrawNormals();
+	void DrawNormals() const;
 private:
 	/// <summary>
 	/// Указатель на устройство
@@ -85,26 +179,21 @@ private:
 	/// Указатель на контекст устройства
 	/// </summary>
 	ID3D11DeviceContext*	m_PtrDeviceContext{};
-
+	/// <summary>
+	/// Указатель на игровое окно
+	/// </summary>
+	CGameWindow* m_PtrGameWindow{};
 private:
 	/// <summary>
-	/// Информация о данном 3D обьекте в виде набора вершин и полигонов
+	/// Информация о данном 3D обьекте в виде массива мешей
 	/// </summary>
-	SObject3DData			m_Object3DData{};
+	vector<SMesh>			m_vMeshes{};
 	/// <summary>
-	/// Указатель на индексный буфер
+	/// Информация о данном 3D обьекте в виде массива материалов
 	/// </summary>
-	ComPtr<ID3D11Buffer>	m_VertexBuffer{};
+	vector<SMaterial>		m_vMaterials{};
 	/// <summary>
-	/// Указатель на массив значений шага. Каждый шаг - это размер (в байтах) элементов, которые должны использоваться из этого буфера вершин.
+	/// Информация о данном 3D обьекте в виде массива буфферов мешей
 	/// </summary>
-	UINT					m_VertexBufferStride{ sizeof(SVertex3D) };
-	/// <summary>
-	/// Указатель на массив значений смещения. Каждое смещение - это количество байтов между первым элементом буфера вершин и первым элементом, который будет использоваться.
-	/// </summary>
-	UINT					m_VertexBufferOffset{};
-	/// <summary>
-	/// Указатель на индексный буфер (полигоны точек из вертексного буфера)
-	/// </summary>
-	ComPtr<ID3D11Buffer>	m_IndexBuffer{};
+	vector<SMeshBuffers>	m_vMeshBuffers{};
 };

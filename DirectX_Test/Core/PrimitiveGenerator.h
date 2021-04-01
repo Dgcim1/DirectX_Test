@@ -28,7 +28,7 @@ static string ConvertXMVECTORToString(const XMVECTOR& Vector)
 /// Подсчитывает нормаль каждой вершины исходя из нормалей полигонов
 /// </summary>
 /// <param name="Object3DData">Указатель на данные о 3D обьекте</param>
-static void CalculateVertexNormalsFromFaceNormals(SObject3DData& Object3DData)
+static void CalculateVertexNormalsFromFaceNormals(SMesh& Object3DData)
 {
 	using std::unordered_map;
 	using std::pair;
@@ -84,13 +84,13 @@ static void CalculateVertexNormalsFromFaceNormals(SObject3DData& Object3DData)
 /// Подсчитывает нормали для каждого полигона 3D обьекта
 /// </summary>
 /// <param name="Object3DData">Указатель на данные о 3D обьекте</param>
-static void CalculateFaceNormals(SObject3DData& Object3DData)
+static void CalculateFaceNormals(SMesh& Object3DData)
 {
 	for (const STriangle& Triangle : Object3DData.vTriangles)
 	{
 		SVertex3D& V0{ Object3DData.vVertices[Triangle.I0] };
 		SVertex3D& V1{ Object3DData.vVertices[Triangle.I1] };
-		SVertex3D& V2{ Object3DData.vVertices[Triangle.I2] }; 
+		SVertex3D& V2{ Object3DData.vVertices[Triangle.I2] };
 
 		XMVECTOR Edge01{ V1.Position - V0.Position };
 		XMVECTOR Edge02{ V2.Position - V0.Position };
@@ -147,9 +147,9 @@ static vector<STriangle> GenerateContinuousFacesReverse(int FaceCount)
 /// <param name="V2">Точка треугольника 3</param>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о треугольнике</returns>
-static SObject3DData GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, const XMVECTOR& V2, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, const XMVECTOR& V2, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	Data.vVertices.emplace_back(V0, Color);
 	Data.vVertices.emplace_back(V1, Color);
@@ -169,9 +169,9 @@ static SObject3DData GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, co
 /// </summary>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о квадрате</returns>
-static SObject3DData GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	constexpr float HalfLengthX{ 0.5f };
 	constexpr float HalfLengthZ{ 0.5f };
@@ -196,9 +196,9 @@ static SObject3DData GenerateSquareXZPlane(const XMVECTOR& Color = XMVectorSet(1
 /// <param name="SideCount">Количество полигонов, степень сглаженности круга</param>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о круге</returns>
-static SObject3DData GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	SideCount = max(SideCount, 8);
 
@@ -241,9 +241,9 @@ static SObject3DData GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECT
 /// </summary>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о пирамиде</returns>
-static SObject3DData GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	constexpr float HalfLengthX{ 0.5f };
 	constexpr float HalfLengthY{ 0.5f };
@@ -298,9 +298,9 @@ static SObject3DData GeneratePyramid(const XMVECTOR& Color = XMVectorSet(1, 1, 1
 /// </summary>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о кубе</returns>
-static SObject3DData GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	constexpr float HalfLengthX{ 0.5f };
 	constexpr float HalfLengthY{ 0.5f };
@@ -358,9 +358,9 @@ static SObject3DData GenerateCube(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1
 /// </summary>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о кубе</returns>
-static SObject3DData GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	constexpr float HalfLengthX{ 0.5f };
 	constexpr float HalfLengthY{ 0.5f };
@@ -420,9 +420,9 @@ static SObject3DData GenerateCubeReverse(const XMVECTOR& Color = XMVectorSet(1, 
 /// <param name="SideCount">Количество полигонов наклоненной части, степень сглаженности конуса</param>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о конусе</returns>
-static SObject3DData GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	SideCount = max(SideCount, 3);
 
@@ -477,7 +477,7 @@ static SObject3DData GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount =
 /// <param name="SideCount">Количество полигонов, степень сглаженности цилиндра</param>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о цилиндре</returns>
-static SObject3DData GenerateCylinder(uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateCylinder(uint32_t SideCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
 	return GenerateCone(1.0f, SideCount, Color);
 }
@@ -488,9 +488,9 @@ static SObject3DData GenerateCylinder(uint32_t SideCount = 16, const XMVECTOR & 
 /// <param name="SegmentCount">Количество полигонов, степень сглаженности сферы</param>
 /// <param name="Color">Цвет фигуры</param>
 /// <returns>Обьект, хранящий данные о сфере</returns>
-static SObject3DData GenerateSphere(uint32_t SegmentCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
+static SMesh GenerateSphere(uint32_t SegmentCount = 16, const XMVECTOR & Color = XMVectorSet(1, 1, 1, 1))
 {
-	SObject3DData Data{};
+	SMesh Data{};
 
 	SegmentCount = max(SegmentCount, 4);
 	if (SegmentCount % 2) ++SegmentCount;

@@ -28,32 +28,29 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
 	{
-		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green));
+		SMaterial Material{ XMFLOAT3(Colors::Green) };
+		Material.SpecularExponent = 20.0f;
+		Material.SpecularIntensity = 0.8f;
+		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
 	}
 	CGameObject* SkyBoxObject{ GameWindow.AddGameObject() };
 	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
 	SkyBoxObject->UpdateWorldMatrix();
 	SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
-	SkyBoxObject->ComponentRender.Material.MaterialAmbient =
-		SkyBoxObject->ComponentRender.Material.MaterialDiffuse =
-		SkyBoxObject->ComponentRender.Material.MaterialSpecular = XMFLOAT3(Colors::Green);
-	SkyBoxObject->ComponentRender.Material.SpecularExponent = 20.0f;
-	SkyBoxObject->ComponentRender.Material.SpecularIntensity = 0.8f;
 
 	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
 	{
-		SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)));
+		SMaterial Material{ XMFLOAT3(Colors::Red) };
+		Material.MaterialSpecular = XMFLOAT3(Colors::White);
+		Material.SpecularExponent = 200.0f;
+		Material.SpecularIntensity = 1.8f;
+		SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)), Material);
 	}
 	CGameObject* SphereObject{ GameWindow.AddGameObject() };
 	SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
 	SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
 	SphereObject->UpdateWorldMatrix();
 	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
-	SphereObject->ComponentRender.Material.MaterialAmbient = XMFLOAT3(Colors::DarkRed);
-	SphereObject->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(Colors::Red);
-	SphereObject->ComponentRender.Material.MaterialSpecular = XMFLOAT3(Colors::White);
-	SphereObject->ComponentRender.Material.SpecularExponent = 200.0f;
-	SphereObject->ComponentRender.Material.SpecularIntensity = 1.8f;
 
 	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
 	{
@@ -70,48 +67,42 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CObject3D* SnowmanSphere1Object3D{ GameWindow.AddObject3D() };
 	{
-		SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White));
+		SMaterial Material{ XMFLOAT3(Colors::White) };
+		Material.SpecularExponent = 2.0f;
+		Material.SpecularIntensity = 0.51f;
+		SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
 	CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject() };
 	SnowmanSphere1Object->ComponentTransform.Scaling = XMVectorSet(2.0f, 2.0f, 2.0f, 0);
 	SnowmanSphere1Object->ComponentTransform.Translation = XMVectorSet(-5.0f, -0.2f, +5.0f, 0);
 	SnowmanSphere1Object->UpdateWorldMatrix();
 	SnowmanSphere1Object->ComponentRender.PtrObject3D = SnowmanSphere1Object3D;
-	SnowmanSphere1Object->ComponentRender.Material.MaterialAmbient =
-		SnowmanSphere1Object->ComponentRender.Material.MaterialDiffuse =
-		SnowmanSphere1Object->ComponentRender.Material.MaterialSpecular = XMFLOAT3(Colors::White);
-	SnowmanSphere1Object->ComponentRender.Material.SpecularExponent = 2.0f;
-	SnowmanSphere1Object->ComponentRender.Material.SpecularIntensity = 0.51f;
 
 	CObject3D* SnowmanSphere2Object3D{ GameWindow.AddObject3D() };
 	{
-		SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White));
+		SMaterial Material{ XMFLOAT3(Colors::White) };
+		Material.SpecularExponent = 2.0f;
+		Material.SpecularIntensity = 0.51f;
+		SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
 	CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject() };
 	SnowmanSphere2Object->ComponentTransform.Scaling = XMVectorSet(1.6f, 1.6f, 1.6f, 0);
 	SnowmanSphere2Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 2.2f, +5.0f, 0);
 	SnowmanSphere2Object->UpdateWorldMatrix();
 	SnowmanSphere2Object->ComponentRender.PtrObject3D = SnowmanSphere2Object3D;
-	SnowmanSphere2Object->ComponentRender.Material.MaterialAmbient =
-		SnowmanSphere2Object->ComponentRender.Material.MaterialDiffuse =
-		SnowmanSphere2Object->ComponentRender.Material.MaterialSpecular = XMFLOAT3(Colors::White);
-	SnowmanSphere2Object->ComponentRender.Material.SpecularExponent = 2.0f;
-	SnowmanSphere2Object->ComponentRender.Material.SpecularIntensity = 0.51f;
 
 	CObject3D* SnowmanSphere3Object3D{ GameWindow.AddObject3D() };
 	{
-		SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White));
+		SMaterial Material{ XMFLOAT3(Colors::White) };
+		Material.SpecularExponent = 2.0f;
+		Material.SpecularIntensity = 0.51f;
+		SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
 	CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject() };
 	SnowmanSphere3Object->ComponentTransform.Scaling = XMVectorSet(1.3f, 1.3f, 1.3f, 0);
 	SnowmanSphere3Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 4.2f, +5.0f, 0);
 	SnowmanSphere3Object->UpdateWorldMatrix();
 	SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
-	SnowmanSphere3Object->ComponentRender.Material.MaterialAmbient =
-		SnowmanSphere3Object->ComponentRender.Material.MaterialDiffuse =
-		SnowmanSphere3Object->ComponentRender.Material.MaterialSpecular = XMFLOAT3(Colors::White);
-	SnowmanSphere3Object->ComponentRender.Material.SpecularExponent = 2.0f;
-	SnowmanSphere3Object->ComponentRender.Material.SpecularIntensity = 0.51f;
 
 	while (true)
 	{

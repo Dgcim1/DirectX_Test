@@ -343,7 +343,7 @@ void CGameWindow::CreateCBs()
 
 	CreateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.GetAddressOf());
 	CreateCB(sizeof(SCBPSBaseLightsData), m_cbPSBaseLights.GetAddressOf());
-	CreateCB(sizeof(SComponentRender::SMaterial), m_cbPSBaseMaterial.GetAddressOf());
+	CreateCB(sizeof(SCBPSBaseMaterialData), m_cbPSBaseMaterial.GetAddressOf());
 	CreateCB(sizeof(SCBPSBaseEyeData), m_cbPSBaseEye.GetAddressOf());
 
 	UpdateCBPSBaseFlags();
@@ -353,23 +353,22 @@ void CGameWindow::CreateCBs()
 
 void CGameWindow::CreateMiniAxes()
 {
-	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
-	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
-	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
+	m_vMiniAxisObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
 
-	m_vMiniAxisObject3Ds[0]->Create(GenerateCone(0, 16, XMVectorSet(1, 0, 0, 1)));
-	m_vMiniAxisObject3Ds[1]->Create(GenerateCone(0, 16, XMVectorSet(0, 1, 0, 1)));
-	m_vMiniAxisObject3Ds[2]->Create(GenerateCone(0, 16, XMVectorSet(0, 0, 1, 1)));
+	SMesh Cone{ GenerateCone(0, 16) };
+	vector<SMaterial> vMaterials{ SMaterial(XMFLOAT3(1, 0, 0)), SMaterial(XMFLOAT3(0, 1, 0)), SMaterial(XMFLOAT3(0, 0, 1)) };
+	m_vMiniAxisObject3Ds[0]->Create(Cone, vMaterials[0]);
+	m_vMiniAxisObject3Ds[1]->Create(Cone, vMaterials[1]);
+	m_vMiniAxisObject3Ds[2]->Create(Cone, vMaterials[2]);
 
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
 	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
-	m_vMiniAxisGameObjects[0]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(1, 0, 0);
 	m_vMiniAxisGameObjects[0]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[0].get();
 	m_vMiniAxisGameObjects[0]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
-	m_vMiniAxisGameObjects[1]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(0, 1, 0);
 	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
-	m_vMiniAxisGameObjects[2]->ComponentRender.Material.MaterialDiffuse = XMFLOAT3(0, 0, 1);
 	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
 	m_vMiniAxisGameObjects[2]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
 
@@ -419,9 +418,16 @@ void CGameWindow::UpdateCBPSBaseLights()
 	m_DeviceContext->PSSetConstantBuffers(1, 1, m_cbPSBaseLights.GetAddressOf());
 }
 
-void CGameWindow::UpdateCBPSBaseMaterial(const SComponentRender::SMaterial& PtrMaterial)
+void CGameWindow::UpdateCBPSBaseMaterial(const SMaterial& Material)
 {
-	UpdateCB(sizeof(SComponentRender::SMaterial), m_cbPSBaseMaterial.Get(), &PtrMaterial);
+	m_cbPSBaseMaterialData.MaterialAmbient = Material.MaterialAmbient;
+	m_cbPSBaseMaterialData.MaterialDiffuse = Material.MaterialDiffuse;
+	m_cbPSBaseMaterialData.MaterialSpecular = Material.MaterialSpecular;
+
+	m_cbPSBaseMaterialData.SpecularExponent = Material.SpecularExponent;
+	m_cbPSBaseMaterialData.SpecularIntensity = Material.SpecularIntensity;
+
+	UpdateCB(sizeof(SCBPSBaseMaterialData), m_cbPSBaseMaterial.Get(), &m_cbPSBaseMaterialData);
 
 	m_DeviceContext->PSSetConstantBuffers(2, 1, m_cbPSBaseMaterial.GetAddressOf());
 }
@@ -458,7 +464,7 @@ CShader* CGameWindow::GetShader(size_t Index)
 
 CObject3D* CGameWindow::AddObject3D()
 {
-	m_vObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get()));
+	m_vObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
 	return m_vObject3Ds.back().get();
 }
 
@@ -588,8 +594,6 @@ void CGameWindow::DrawMiniAxes()
 
 	for (auto& i : m_vMiniAxisGameObjects)//перебор всех осей представления
 	{
-		UpdateCBPSBaseMaterial(i->ComponentRender.Material);//обновляем материал у всех обьектов
-
 		UpdateCBVSBaseSpace(i->ComponentTransform.MatrixWorld);//обновляем мировую матрицу у всех обьектов
 
 		i->ComponentRender.PtrObject3D->Draw();//отрисовка
@@ -604,8 +608,6 @@ void CGameWindow::DrawMiniAxes()
 void CGameWindow::DrawGameObject(CGameObject* PtrGO)
 {
 	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);//обновляем константный буфер WVP вертексного шейдера
-
-	UpdateCBPSBaseMaterial(PtrGO->ComponentRender.Material);//обновляем константный буфер материала вертексного шейдера
 
 	if (PtrGO->ComponentRender.PtrTexture)//если есть указатель на текстуру
 	{

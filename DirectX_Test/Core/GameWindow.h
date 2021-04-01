@@ -213,7 +213,33 @@ struct SCBPSBaseLightsData
 /// <summary>
 /// Структура привязки данных константного буфера (материал) для пиксельного шейдера
 /// </summary>
-using SCBPSBaseMaterialData = SComponentRender::SMaterial;
+struct SCBPSBaseMaterialData
+{
+	/// <summary>
+	/// Цвет материала (затененной части обьекта)
+	/// </summary>
+	XMFLOAT3	MaterialAmbient{};
+	/// <summary>
+	/// Зеркальная экспонента (размер блика, чем больше значение, тем меньше блик и более размытые границы)
+	/// </summary>
+	float		SpecularExponent{ 1 };
+	/// <summary>
+	/// Цвет материала (освещенной части материала)
+	/// </summary>
+	XMFLOAT3	MaterialDiffuse{};
+	/// <summary>
+	/// Зеркальная интенсивность (насколько интенсивно/ярко светит отраженный от обьекта бликующий свет)
+	/// </summary>
+	float		SpecularIntensity{ 0 };
+	/// <summary>
+	/// Цвет материала (цвет блика)
+	/// </summary>
+	XMFLOAT3	MaterialSpecular{};
+	/// <summary>
+	/// Неиспользуемая переменная (???)
+	/// </summary>
+	float		Pad{};
+};
 
 /// <summary>
 /// Структура привязки данных константного буфера (позиция камеры) для пиксельного шейдера
@@ -497,14 +523,16 @@ private:
 	/// </summary>
 	void UpdateCBPSBaseLights();
 	/// <summary>
-	/// Обновляет константный буфер материала для его обработки в пиксельном шейдере
-	/// </summary>
-	/// <param name="PtrMaterial">Указатель на уставливаемый материал</param>
-	void UpdateCBPSBaseMaterial(const SComponentRender::SMaterial& PtrMaterial);
-	/// <summary>
 	/// Обновляет константный буфер положения камеры для его обработки в пиксельном шейдере
 	/// </summary>
 	void UpdateCBPSBaseEye();
+
+public:
+	/// <summary>
+	/// Обновляет константный буфер материала для его обработки в пиксельном шейдере
+	/// </summary>
+	/// <param name="Material">Указатель на уставливаемый материал</param>
+	void UpdateCBPSBaseMaterial(const SMaterial& Material);
 #pragma endregion
 
 #pragma region BaseConstantBufferMethods
@@ -702,6 +730,10 @@ private:
 	/// Загружаемая в пиксельный шейдер структура освещения
 	/// </summary>
 	SCBPSBaseLightsData				m_cbPSBaseLightsData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура материала
+	/// </summary>
+	SCBPSBaseMaterialData			m_cbPSBaseMaterialData{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура позиции камеры
 	/// </summary>
