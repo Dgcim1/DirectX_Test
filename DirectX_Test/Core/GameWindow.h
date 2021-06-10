@@ -317,6 +317,11 @@ public:
 	/// <param name="CameraData">Добавляемые данные о камере</param>
 	void AddCamera(const SCameraData& CameraData);
 	/// <summary>
+	/// Возвращает текущую камеру
+	/// </summary>
+	/// <returns>Текущая камера</returns>
+	SCameraData* GetCurrentCamera();
+	/// <summary>
 	/// Устанавливает текущей камерой заданную из массива камер
 	/// </summary>
 	/// <param name="Index">Индекс задаваемой камеры из массива камер</param>

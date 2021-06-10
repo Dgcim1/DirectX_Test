@@ -1,6 +1,7 @@
 //было создано на основе https://github.com/principal6/DirectX113DTutorial
 #include "GameWindow.h"
 #include "AssimpLoader.h"
+#include <ctime>
 //IA (input-assembler) - первая часть граф конвейера
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
@@ -10,7 +11,7 @@ LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	//создаем окно
-	CGameWindow GameWindow{ hInstance, XMFLOAT2(800, 450) };
+	CGameWindow GameWindow{ hInstance, XMFLOAT2(1000, 600) };
 	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
 	//создаем и устанавливаем камеру
 	SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
@@ -40,8 +41,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		goFarmhouse->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
 		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
-
-		goFarmhouse->ComponentTransform.Rotation = XMVectorSet(-0.5f, 0.5f, 0, 0);
 		goFarmhouse->UpdateWorldMatrix();
 
 		goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
@@ -56,9 +55,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
 	}
 	CGameObject* SkyBoxObject{ GameWindow.AddGameObject() };
-	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
-	SkyBoxObject->UpdateWorldMatrix();
-	SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
+	{
+		SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
+		SkyBoxObject->UpdateWorldMatrix();
+		SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
+	}
 
 	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
 	{
@@ -69,21 +70,25 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)), Material);
 	}
 	CGameObject* SphereObject{ GameWindow.AddGameObject() };
-	SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
-	SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
-	SphereObject->UpdateWorldMatrix();
-	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
+	{
+		SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
+		SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
+		SphereObject->UpdateWorldMatrix();
+		SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
+	}
 
 	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
 	{
 		GroundObject3D->Create(GenerateSquareXZPlane());
 	}
 	CGameObject* GroundObject{ GameWindow.AddGameObject() };
-	GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
-	GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 1.0f, 20.0f, 0);
-	GroundObject->UpdateWorldMatrix();
-	GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
-	GroundObject->ComponentRender.PtrTexture = TextureGround;
+	{
+		GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
+		GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 1.0f, 20.0f, 0);
+		GroundObject->UpdateWorldMatrix();
+		GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
+		GroundObject->ComponentRender.PtrTexture = TextureGround;
+	}
 	
 	//снеговик
 
@@ -128,12 +133,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	int rotationDeg = 0;
 
+	bool isDrawMiniAxes = false;
+
+	//задержка для клавиш управления
+	int keyPressDelay = 0;
+
+	//лог
+	bool isPrintLog = true;
+	std::string logInfo = "";
+	
+	clock_t oldTime = clock();
+	clock_t deltaTime = oldTime;
+
 	while (true)
 	{
 		static MSG Msg{};
 		static char key_down{};
-
-		static bool isDrawMiniAxes = false;
 
 		if (PeekMessage(&Msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -145,17 +160,43 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		else
 		{
-			//начало рендеринга
-			GameWindow.BeginRendering(Colors::Aquamarine);
+			deltaTime = clock() - oldTime;
+			int fps = (1.0 / deltaTime) * 1000;
+			oldTime = clock();
 
-			//goFarmhouse->ComponentTransform.Translation = XMVectorSet(-3.0f, 0.0f, 0.0f, 0);
-			//goFarmhouse->ComponentTransform.Rotation = XMVectorSet(1, 0, 0, rotationDeg * AI_MATH_PI / 180);
-			//goFarmhouse->ComponentTransform.Rotation = XMVectorSet(1, 0, 0, AI_MATH_PI);
-			goFarmhouse->UpdateWorldMatrix();
-			rotationDeg += 10;
-			//
-			//goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
-			//
+		 	SCameraData* CurCamera = GameWindow.GetCurrentCamera();
+
+			std::string logFPS = "FPS: " + std::to_string(fps) + "\n\n";
+			XMFLOAT4 cameraPos;
+			DirectX::XMStoreFloat4(&cameraPos, CurCamera->EyePosition);
+			std::string logCameraPos = "Camera pos:\n\tx: " + std::to_string(cameraPos.x) + 
+				"\n\ty: " + std::to_string(cameraPos.y) +
+				"\n\tz: " + std::to_string(cameraPos.z) +
+				"\n\tvertical: " + std::to_string(CurCamera->Pitch) +
+				"\n\thorizontal: " + std::to_string(CurCamera->Yaw) +
+				"\n\n";
+
+			std::string helpF1 = "F1: WireFrame rasteriser";
+			std::string helpF2 = "F2: Normal rasteriser";
+			std::string helpF3 = "F3: Toggle render normals";
+			std::string helpF4 = "F4: Toggle render light";
+			std::string helpF5 = "F5: Toggle mini axes visible";
+			std::string helpF6 = "F6: Toggle log visible";
+			std::string help = "Help menu:\n\t" +
+				helpF1 + "\n\t" +
+				helpF2 + "\n\t" +
+				helpF3 + "\n\t" +
+				helpF4 + "\n\t" +
+				helpF5 + "\n\t" +
+				helpF6 + "\n\t" +
+				"\n\n";
+			
+			//лог
+			logInfo = logFPS + logCameraPos + help;
+
+
+			//начало рендеринга
+			GameWindow.BeginRendering(Colors::DarkGray);
 			//проверяем состояние клавиатуры
 			Keyboard::State KeyState{ GameWindow.GetKeyState() };
 			if (KeyState.Escape)
@@ -178,35 +219,37 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				GameWindow.MoveCamera(ECameraMovementDirection::Rightward, 0.01f);
 			}
-			if (KeyState.F1)
-			{
-				GameWindow.SetRasterizerState(ERasterizerState::WireFrame);
+			if (keyPressDelay == 0) {
+				keyPressDelay = fps / 10;
+				if (KeyState.F1)
+				{
+					GameWindow.SetRasterizerState(ERasterizerState::WireFrame);
+				}
+				if (KeyState.F2)
+				{
+					GameWindow.SetRasterizerState(ERasterizerState::CullCounterClockwise);
+				}
+				if (KeyState.F3)
+				{
+					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
+					keyPressDelay = fps / 7;
+				}
+				if (KeyState.F4)
+				{
+					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::UseLighting);
+				}
+				if (KeyState.F5)
+				{
+					isDrawMiniAxes = !isDrawMiniAxes;
+				}
+				if (KeyState.F6) {
+					isPrintLog = !isPrintLog;
+				}
 			}
-			if (KeyState.F2)
+			else
 			{
-				GameWindow.SetRasterizerState(ERasterizerState::CullCounterClockwise);
+				keyPressDelay--;
 			}
-			if (KeyState.F3)
-			{
-				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
-			}
-			if (KeyState.F4)
-			{
-				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::UseLighting);
-			}
-			if (KeyState.F5)
-			{
-				isDrawMiniAxes = !isDrawMiniAxes;
-			}
-			//дополнительные состояния клавиатуры
-			/*if (key_down == VK_F3)
-			{
-				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawNormals);
-			}*/
-			/*if (key_down == VK_F4)
-			{
-				GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::UseLighting);
-			}*/
 			//проверяем состояние мыши
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
 			if (MouseState.x || MouseState.y)
@@ -229,8 +272,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
 			//начало рендеринга спрайтов
 			PtrSpriteBatch->Begin();
-			//пишем текст
-			PtrSpriteFont->DrawString(PtrSpriteBatch, "Test", XMVectorSet(0, 0, 0, 0));
+			if (isPrintLog) {
+				//пишем текст
+				PtrSpriteFont->DrawString(PtrSpriteBatch, logInfo.c_str(), XMVectorSet(0, 0, 0, 0));
+			}
 			//окончание рендеринга спрайтов
 			PtrSpriteBatch->End();
 			//окончание рендеринга

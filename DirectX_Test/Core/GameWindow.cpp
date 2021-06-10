@@ -52,6 +52,10 @@ void CGameWindow::AddCamera(const SCameraData& CameraData)
 	m_vCameras.emplace_back(CameraData);
 }
 
+SCameraData* CGameWindow::GetCurrentCamera() {
+	return m_PtrCurrentCamera;
+}
+
 void CGameWindow::SetCamera(size_t Index)
 {
 	assert(Index < m_vCameras.size());
