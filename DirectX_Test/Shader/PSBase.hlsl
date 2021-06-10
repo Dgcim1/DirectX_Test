@@ -12,10 +12,10 @@ cbuffer cbFlags : register(b0)
 
 cbuffer cbLights : register(b1)
 {
-	float4	DirectionalDirection;
-	float4	DirectionalColor;
-	float3	AmbientColor;
-	float	AmbientIntensity;
+	float4	DirectionalLightDirection;
+	float4	DirectionalLightColor;
+	float3	AmbientLightColor;
+	float	AmbientLightIntensity;
 }
 
 cbuffer cbMaterial : register(b2)
@@ -33,38 +33,41 @@ cbuffer cbEye : register(b3)
 	float4	EyePosition;
 }
 
-float4 CalculateAmbient()
+float4 CalculateAmbient(float4 AmbientColor)
 {
-	return float4(MaterialAmbient * AmbientColor * AmbientIntensity, 1);
+	return float4(AmbientColor.xyz * AmbientLightColor * AmbientLightIntensity, 1);
 }
 
-float4 CalculateDirectional(float4 DiffuseColor, float4 ToEye, float4 Normal)
+float4 CalculateDirectional(float4 DiffuseColor, float4 SpecularColor, float4 ToEye, float4 Normal)
 {
-	float NDotL = saturate(dot(DirectionalDirection, Normal));
-	float4 PhongDiffuse = DiffuseColor * DirectionalColor * NDotL;
+	float NDotL = saturate(dot(DirectionalLightDirection, Normal));
+	float4 PhongDiffuse = DiffuseColor * DirectionalLightColor * NDotL;
 
-	float4 H = normalize(ToEye + DirectionalDirection);
+	float4 H = normalize(ToEye + DirectionalLightDirection);
 	float NDotH = saturate(dot(H, Normal));
 	float SpecularPower = pow(NDotH, SpecularExponent);
-	float4 BlinnSpecular = float4(MaterialSpecular * DirectionalColor.xyz * SpecularPower * SpecularIntensity, 1);
+	float4 BlinnSpecular = float4(SpecularColor.xyz * DirectionalLightColor.xyz * SpecularPower * SpecularIntensity, 1);
 
 	return PhongDiffuse + BlinnSpecular;
 }
 
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
+	float4 AmbientColor = float4(MaterialAmbient, 1);
 	float4 DiffuseColor = float4(MaterialDiffuse, 1);
+	float4 SpecularColor = float4(MaterialSpecular, 1);
+
 	if (UseTexture == true)
 	{
-		DiffuseColor = CurrentTexture2D.Sample(CurrentSampler, input.UV);
+		AmbientColor = DiffuseColor = SpecularColor = CurrentTexture2D.Sample(CurrentSampler, input.UV);
 	}
 	DiffuseColor.xyz *= DiffuseColor.xyz;
 
 	float4 Result = DiffuseColor;
 	if (UseLighting == true)
 	{
-		Result = CalculateAmbient();
-		Result += CalculateDirectional(DiffuseColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
+		Result = CalculateAmbient(AmbientColor);
+		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
 	}
 
 	return Result;

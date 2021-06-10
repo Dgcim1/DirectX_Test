@@ -11,19 +11,36 @@ void CObject3D::Create(const SMesh& Mesh, const SMaterial& Material)
 
 void CObject3D::Create(const vector<SMesh>& vMeshes, const vector<SMaterial>& vMaterials)
 {
-	m_vMeshes = vMeshes;
-	m_vMaterials = vMaterials;
+	SModel Model{ vMeshes, vMaterials };
 
-	m_vMeshBuffers.resize(m_vMeshes.size());
-	for (size_t iMesh = 0; iMesh < m_vMeshes.size(); ++iMesh)
+	Create(Model);
+}
+
+void CObject3D::Create(const SModel& Model)
+{
+	m_Model = Model;
+
+	m_vMeshBuffers.resize(m_Model.vMeshes.size());
+	for (size_t iMesh = 0; iMesh < m_Model.vMeshes.size(); ++iMesh)
 	{
 		CreateMeshBuffers(iMesh);
+	}
+
+	m_vTextures.reserve(m_Model.vMaterials.size());
+	for (SMaterial& Material : m_Model.vMaterials)
+	{
+		if (Material.bHasTexture && Material.vEmbeddedTextureRawData.size())
+		{
+			m_vTextures.emplace_back(make_unique<CTexture>(m_PtrDevice, m_PtrDeviceContext));
+
+			m_vTextures.back()->CreateWICFromMemory(Material.vEmbeddedTextureRawData);
+		}
 	}
 }
 
 void CObject3D::CreateMeshBuffers(size_t MeshIndex)
 {
-	const SMesh& Mesh{ m_vMeshes[MeshIndex] };//Извлекаем адрес меша из массива
+	const SMesh& Mesh{ m_Model.vMeshes[MeshIndex] };//Извлекаем адрес меша из массива
 	
 	{
 		D3D11_BUFFER_DESC BufferDesc{};//буферный ресурс
@@ -56,11 +73,20 @@ void CObject3D::CreateMeshBuffers(size_t MeshIndex)
 
 void CObject3D::Draw() const
 {
-	for (size_t iMesh = 0; iMesh < m_vMeshes.size(); ++iMesh)
+	for (size_t iMesh = 0; iMesh < m_Model.vMeshes.size(); ++iMesh)
 	{
-		const SMesh& Mesh{ m_vMeshes[iMesh] };
+		const SMesh& Mesh{ m_Model.vMeshes[iMesh] };
+		const SMaterial& Material{ m_Model.vMaterials[Mesh.MaterialID] };
 
-		m_PtrGameWindow->UpdateCBPSBaseMaterial(m_vMaterials[Mesh.MaterialID]);
+		m_PtrGameWindow->UpdateCBPSBaseMaterial(Material);
+
+		if (Material.bHasTexture && Material.bHasEmbeddedTexture)
+		{
+			m_PtrGameWindow->m_cbPSBaseFlagsData.bUseTexture = TRUE;
+			m_PtrGameWindow->UpdateCBPSBaseFlags();
+
+			m_vTextures[Mesh.MaterialID]->Use();
+		}
 
 		m_PtrDeviceContext->IASetIndexBuffer(m_vMeshBuffers[iMesh].IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);//привязка индексного буфера к этапу IA
 		m_PtrDeviceContext->IASetVertexBuffers(0, 1, m_vMeshBuffers[iMesh].VertexBuffer.GetAddressOf(),//привязка вертексного буфера к этапу IA
@@ -73,9 +99,9 @@ void CObject3D::Draw() const
 
 void CObject3D::DrawNormals() const
 {
-	for (size_t iMesh = 0; iMesh < m_vMeshes.size(); ++iMesh)
+	for (size_t iMesh = 0; iMesh < m_Model.vMeshes.size(); ++iMesh)
 	{
-		const SMesh& Mesh{ m_vMeshes[iMesh] };
+		const SMesh& Mesh{ m_Model.vMeshes[iMesh] };
 
 		m_PtrDeviceContext->IASetVertexBuffers(0, 1, m_vMeshBuffers[iMesh].VertexBuffer.GetAddressOf(),//привязка вертексного буфера к этапу IA
 			&m_vMeshBuffers[iMesh].VertexBufferStride, &m_vMeshBuffers[iMesh].VertexBufferOffset);

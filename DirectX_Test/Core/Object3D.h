@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SharedHeader.h"
+#include "Texture.h"
 
 class CGameWindow;
 
@@ -113,6 +114,10 @@ struct SMaterial
 	/// </summary>
 	bool		bHasTexture{ false };
 	/// <summary>
+	/// Имеет ли строенную (загруженную извне, из файла текстуры) текстуру
+	/// </summary>
+	bool		bHasEmbeddedTexture{ false };
+	/// <summary>
 	/// Путь к файлу с текстурой
 	/// </summary>
 	string		TextureFileName{};
@@ -120,6 +125,25 @@ struct SMaterial
 	/// Идентификатор текстуры
 	/// </summary>
 	size_t		TextureID{};
+	/// <summary>
+	/// WIC текстуры (условно говоря сама текстура)
+	/// </summary>
+	vector<uint8_t>		vEmbeddedTextureRawData{};
+};
+
+/// <summary>
+/// Представляет собой модель (текстура и точки вершин)
+/// </summary>
+struct SModel
+{
+	/// <summary>
+	/// Массив мешей (сама модель, ее точки)
+	/// </summary>
+	vector<SMesh>		vMeshes{};
+	/// <summary>
+	/// Массив материалов модели (коэффициенты отражения, блик и т п)
+	/// </summary>
+	vector<SMaterial>	vMaterials{};
 };
 
 /// <summary>
@@ -156,6 +180,11 @@ public:
 	/// <param name="vMeshes">Вектор мешей 3D обьекта</param>
 	/// <param name="vMaterials">Вектор материалов 3D обьекта</param>
 	void Create(const vector<SMesh>& vMeshes, const vector<SMaterial>& vMaterials);
+	/// <summary>
+	/// Создает 3D обьект из модели
+	/// </summary>
+	/// <param name="Model">Модель 3D обьекта</param>
+	void Create(const SModel& Model);
 private:
 	/// <summary>
 	/// Создает вертексный и индексный буферы заданного меша данного 3D обьекта и привязывает их к устройству
@@ -185,15 +214,15 @@ private:
 	CGameWindow* m_PtrGameWindow{};
 private:
 	/// <summary>
-	/// Информация о данном 3D обьекте в виде массива мешей
+	/// Информация о данном 3D обьекте (в виде массива мешей и  массива материалов)
 	/// </summary>
-	vector<SMesh>			m_vMeshes{};
-	/// <summary>
-	/// Информация о данном 3D обьекте в виде массива материалов
-	/// </summary>
-	vector<SMaterial>		m_vMaterials{};
+	SModel					m_Model{};
 	/// <summary>
 	/// Информация о данном 3D обьекте в виде массива буфферов мешей
 	/// </summary>
 	vector<SMeshBuffers>	m_vMeshBuffers{};
+	/// <summary>
+	/// Массив указателей на текстуру модели
+	/// </summary>
+	vector<unique_ptr<CTexture>>	m_vTextures{};
 };

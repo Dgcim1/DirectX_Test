@@ -1,8 +1,9 @@
 #pragma once
 
+#define NOMINMAX 0
+
 #include <Windows.h>
 #include "Object3D.h"
-#include "Texture.h"
 #include "Shader.h"
 #include "PrimitiveGenerator.h"
 #include "GameObject.h"
@@ -195,7 +196,7 @@ struct SCBPSBaseLightsData
 	/// <summary>
 	/// Направление света, положение источника света
 	/// </summary>
-	XMVECTOR	DirectionalLight{ XMVectorSet(0, 1, 0, 0) };
+	XMVECTOR	DirectionalLightDirection{ XMVectorSet(0, 1, 0, 0) };
 	/// <summary>
 	/// Цвет направленного света от источника
 	/// </summary>
@@ -203,11 +204,11 @@ struct SCBPSBaseLightsData
 	/// <summary>
 	/// Цвет отраженного света
 	/// </summary>
-	XMFLOAT3	AmbientColor{ 1, 1, 1 };
+	XMFLOAT3	AmbientLightColor{ 1, 1, 1 };
 	/// <summary>
 	/// Интенсивность отраженного света, рассеивание света
 	/// </summary>
-	float		AmbientIntensity{ 0.5f };
+	float		AmbientLightIntensity{ 0.5f };
 };
 
 /// <summary>
@@ -254,6 +255,7 @@ struct SCBPSBaseEyeData
 /// </summary>
 class CGameWindow
 {
+	friend class CObject3D;
 public:
 	/// <summary>
 	/// Конструктор экземпляра игрового окна

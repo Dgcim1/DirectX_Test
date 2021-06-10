@@ -6,6 +6,7 @@
 #include <memory>
 #include <d3d11.h>
 #include <wrl.h>
+#include <algorithm>
 #include "../DirectXTK/DirectXTK.h"
 
 #pragma comment(lib, "d3d11.lib")
@@ -20,6 +21,8 @@ using std::to_string;
 using std::vector;
 using std::unique_ptr;
 using std::make_unique;
+using std::min;
+using std::max;
 
 /// <summary>
 /// Полигон, состоящий из трех точек вектора SVertex3D (порядковый номер)

@@ -1,6 +1,6 @@
 //было создано на основе https://github.com/principal6/DirectX113DTutorial
 #include "GameWindow.h"
-
+#include "AssimpLoader.h"
 //IA (input-assembler) - первая часть граф конвейера
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
@@ -13,7 +13,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CGameWindow GameWindow{ hInstance, XMFLOAT2(800, 450) };
 	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
 	//создаем и устанавливаем камеру
-	GameWindow.AddCamera(SCameraData(ECameraType::FreeLook));
+	SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
+	{
+		//MainCamera.EyePosition = XMVectorSet(0, +2.0f, 0, 0);
+		GameWindow.AddCamera(MainCamera);
+	}
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
 	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
@@ -25,6 +29,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		TextureGround->CreateFromFile(L"Asset\\ground.png");
 	}
 	//создаем 3D обьекты
+
+
+	CObject3D* ObjectFarmhouse{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
+		ObjectFarmhouse->Create(Model);
+	}
+	CGameObject* goFarmhouse{ GameWindow.AddGameObject() };
+	{
+		goFarmhouse->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
+		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
+
+		goFarmhouse->ComponentTransform.Rotation = XMVectorSet(-0.5f, 0.5f, 0, 0);
+		goFarmhouse->UpdateWorldMatrix();
+
+		goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
+	}
+
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
 	{
@@ -104,6 +126,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SnowmanSphere3Object->UpdateWorldMatrix();
 	SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
 
+	int rotationDeg = 0;
+
 	while (true)
 	{
 		static MSG Msg{};
@@ -123,6 +147,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		{
 			//начало рендеринга
 			GameWindow.BeginRendering(Colors::Aquamarine);
+
+			//goFarmhouse->ComponentTransform.Translation = XMVectorSet(-3.0f, 0.0f, 0.0f, 0);
+			//goFarmhouse->ComponentTransform.Rotation = XMVectorSet(1, 0, 0, rotationDeg * AI_MATH_PI / 180);
+			//goFarmhouse->ComponentTransform.Rotation = XMVectorSet(1, 0, 0, AI_MATH_PI);
+			goFarmhouse->UpdateWorldMatrix();
+			rotationDeg += 10;
+			//
+			//goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
+			//
 			//проверяем состояние клавиатуры
 			Keyboard::State KeyState{ GameWindow.GetKeyState() };
 			if (KeyState.Escape)

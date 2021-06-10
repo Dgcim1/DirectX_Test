@@ -19,6 +19,80 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Assimp\aabb.h" />
+    <ClInclude Include="Assimp\ai_assert.h" />
+    <ClInclude Include="Assimp\anim.h" />
+    <ClInclude Include="Assimp\BaseImporter.h" />
+    <ClInclude Include="Assimp\Bitmap.h" />
+    <ClInclude Include="Assimp\BlobIOSystem.h" />
+    <ClInclude Include="Assimp\ByteSwapper.h" />
+    <ClInclude Include="Assimp\camera.h" />
+    <ClInclude Include="Assimp\cexport.h" />
+    <ClInclude Include="Assimp\cfileio.h" />
+    <ClInclude Include="Assimp\cimport.h" />
+    <ClInclude Include="Assimp\color4.h" />
+    <ClInclude Include="Assimp\config.h" />
+    <ClInclude Include="Assimp\CreateAnimMesh.h" />
+    <ClInclude Include="Assimp\DefaultIOStream.h" />
+    <ClInclude Include="Assimp\DefaultIOSystem.h" />
+    <ClInclude Include="Assimp\DefaultLogger.hpp" />
+    <ClInclude Include="Assimp\Defines.h" />
+    <ClInclude Include="Assimp\defs.h" />
+    <ClInclude Include="Assimp\Exceptional.h" />
+    <ClInclude Include="Assimp\Exporter.hpp" />
+    <ClInclude Include="Assimp\fast_atof.h" />
+    <ClInclude Include="Assimp\GenericProperty.h" />
+    <ClInclude Include="Assimp\Hash.h" />
+    <ClInclude Include="Assimp\Importer.hpp" />
+    <ClInclude Include="Assimp\importerdesc.h" />
+    <ClInclude Include="Assimp\IOStream.hpp" />
+    <ClInclude Include="Assimp\IOStreamBuffer.h" />
+    <ClInclude Include="Assimp\IOSystem.hpp" />
+    <ClInclude Include="Assimp\irrXMLWrapper.h" />
+    <ClInclude Include="Assimp\light.h" />
+    <ClInclude Include="Assimp\LineSplitter.h" />
+    <ClInclude Include="Assimp\LogAux.h" />
+    <ClInclude Include="Assimp\Logger.hpp" />
+    <ClInclude Include="Assimp\LogStream.hpp" />
+    <ClInclude Include="Assimp\Macros.h" />
+    <ClInclude Include="Assimp\material.h" />
+    <ClInclude Include="Assimp\MathFunctions.h" />
+    <ClInclude Include="Assimp\matrix3x3.h" />
+    <ClInclude Include="Assimp\matrix4x4.h" />
+    <ClInclude Include="Assimp\MemoryIOWrapper.h" />
+    <ClInclude Include="Assimp\mesh.h" />
+    <ClInclude Include="Assimp\metadata.h" />
+    <ClInclude Include="Assimp\NullLogger.hpp" />
+    <ClInclude Include="Assimp\ParsingUtils.h" />
+    <ClInclude Include="Assimp\pbrmaterial.h" />
+    <ClInclude Include="Assimp\postprocess.h" />
+    <ClInclude Include="Assimp\Profiler.h" />
+    <ClInclude Include="Assimp\ProgressHandler.hpp" />
+    <ClInclude Include="Assimp\qnan.h" />
+    <ClInclude Include="Assimp\quaternion.h" />
+    <ClInclude Include="Assimp\RemoveComments.h" />
+    <ClInclude Include="Assimp\scene.h" />
+    <ClInclude Include="Assimp\SceneCombiner.h" />
+    <ClInclude Include="Assimp\SGSpatialSort.h" />
+    <ClInclude Include="Assimp\SkeletonMeshBuilder.h" />
+    <ClInclude Include="Assimp\SmoothingGroups.h" />
+    <ClInclude Include="Assimp\SpatialSort.h" />
+    <ClInclude Include="Assimp\StandardShapes.h" />
+    <ClInclude Include="Assimp\StreamReader.h" />
+    <ClInclude Include="Assimp\StreamWriter.h" />
+    <ClInclude Include="Assimp\StringComparison.h" />
+    <ClInclude Include="Assimp\StringUtils.h" />
+    <ClInclude Include="Assimp\Subdivision.h" />
+    <ClInclude Include="Assimp\texture.h" />
+    <ClInclude Include="Assimp\TinyFormatter.h" />
+    <ClInclude Include="Assimp\types.h" />
+    <ClInclude Include="Assimp\vector2.h" />
+    <ClInclude Include="Assimp\vector3.h" />
+    <ClInclude Include="Assimp\version.h" />
+    <ClInclude Include="Assimp\Vertex.h" />
+    <ClInclude Include="Assimp\XMLTools.h" />
+    <ClInclude Include="Assimp\ZipArchiveIOSystem.h" />
+    <ClInclude Include="Core\AssimpLoader.h" />
     <ClInclude Include="Core\GameObject.h" />
     <ClInclude Include="Core\GameWindow.h" />
     <ClInclude Include="Core\Object3D.h" />
@@ -49,9 +123,20 @@
     <ClInclude Include="DirectXTK\XboxDDSTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="Assimp\assimp-vc142-mtd.lib" />
     <Library Include="DirectXTK\DirectXTK.lib" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assimp\.editorconfig" />
+    <None Include="Assimp\assimp-vc142-mtd.dll" />
+    <None Include="Assimp\color4.inl" />
+    <None Include="Assimp\material.inl" />
+    <None Include="Assimp\matrix3x3.inl" />
+    <None Include="Assimp\matrix4x4.inl" />
+    <None Include="Assimp\quaternion.inl" />
+    <None Include="Assimp\SmoothingGroups.inl" />
+    <None Include="Assimp\vector2.inl" />
+    <None Include="Assimp\vector3.inl" />
     <None Include="DirectXTK\SimpleMath.inl" />
     <None Include="Shader\Header.hlsli" />
   </ItemGroup>
@@ -67,6 +152,8 @@
     <FxCompile Include="Shader\GSNormal.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="Shader\PSBase.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -74,9 +161,11 @@
     </FxCompile>
     <FxCompile Include="Shader\PSNormal.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="Shader\VSBase.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -149,10 +238,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\Users\gindr\source\repos\Dgcim1\DirectX_Test\DirectX_Test;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\gindr\source\repos\Dgcim1\DirectX_Test\DirectX_Test\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -177,10 +269,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)DirectX_Test\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\gindr\source\repos\Dgcim1\DirectX_Test\DirectX_Test\Assimp;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

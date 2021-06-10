@@ -8,6 +8,7 @@
 class CTexture
 {
 	friend class CGameWindow;
+	friend class CObject3D;
 
 public:
 	/// <summary>
@@ -28,6 +29,12 @@ public:
 	/// </summary>
 	/// <param name="TextureFileName">Путь к файлу</param>
 	void CreateFromFile(const wstring& TextureFileName);
+
+	/// <summary>
+	/// Создание WIC (Windows Imaging Component) для текстуры и размещение его представления в RawData
+	/// </summary>
+	/// <param name="RawData">Массив-представление WIC</param>
+	void CreateWICFromMemory(const vector<uint8_t>& RawData);
 	
 private:
 	/// <summary>

@@ -200,7 +200,7 @@ static SMesh GenerateCircleXZPlane(uint32_t SideCount = 16, const XMVECTOR& Colo
 {
 	SMesh Data{};
 
-	SideCount = max(SideCount, 8);
+	SideCount = max(SideCount, (uint32_t)8);
 
 	constexpr float Radius{ 1.0f };
 	const float ThetaUnit{ XM_2PI / SideCount };
@@ -424,7 +424,7 @@ static SMesh GenerateCone(float RadiusRatio = 0.0f, uint32_t SideCount = 16, con
 {
 	SMesh Data{};
 
-	SideCount = max(SideCount, 3);
+	SideCount = max(SideCount, (uint32_t)3);
 
 	constexpr float HalfHeight{ 0.5f };
 	constexpr float Radius{ 1.0f };
@@ -492,7 +492,7 @@ static SMesh GenerateSphere(uint32_t SegmentCount = 16, const XMVECTOR & Color =
 {
 	SMesh Data{};
 
-	SegmentCount = max(SegmentCount, 4);
+	SegmentCount = max(SegmentCount, (uint32_t)4);
 	if (SegmentCount % 2) ++SegmentCount;
 
 	constexpr float Radius{ 1.0f };

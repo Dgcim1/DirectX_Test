@@ -33,7 +33,7 @@ void CGameWindow::ToggleGameRenderingFlags(EFlagsGameRendering Flags)
 
 void CGameWindow::SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color)
 {
-	m_cbPSBaseLightsData.DirectionalLight = XMVector3Normalize(LightSourcePosition);
+	m_cbPSBaseLightsData.DirectionalLightDirection = XMVector3Normalize(LightSourcePosition);
 	m_cbPSBaseLightsData.DirectionalColor = Color;
 
 	UpdateCBPSBaseLights();
@@ -41,8 +41,8 @@ void CGameWindow::SetDirectionalLight(const XMVECTOR& LightSourcePosition, const
 
 void CGameWindow::SetAmbientlLight(const XMFLOAT3& Color, float Intensity)
 {
-	m_cbPSBaseLightsData.AmbientColor = Color;
-	m_cbPSBaseLightsData.AmbientIntensity = Intensity;
+	m_cbPSBaseLightsData.AmbientLightColor = Color;
+	m_cbPSBaseLightsData.AmbientLightIntensity = Intensity;
 
 	UpdateCBPSBaseLights();
 }
