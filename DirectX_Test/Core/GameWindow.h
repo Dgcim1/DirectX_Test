@@ -7,6 +7,8 @@
 #include "Shader.h"
 #include "PrimitiveGenerator.h"
 #include "GameObject.h"
+#include "Math.h"
+#include "ObjectLine.h"
 
 /// <summary>
 /// Флаги отрисовки
@@ -202,11 +204,11 @@ struct SCBPSBaseLightsData
 	/// </summary>
 	XMVECTOR	DirectionalColor{ XMVectorSet(1, 1, 1, 1) };
 	/// <summary>
-	/// Цвет отраженного света
+	/// Цвет минимальной яркости мира
 	/// </summary>
 	XMFLOAT3	AmbientLightColor{ 1, 1, 1 };
 	/// <summary>
-	/// Интенсивность отраженного света, рассеивание света
+	/// Интенсивность света минимальной яркости мира
 	/// </summary>
 	float		AmbientLightIntensity{ 0.5f };
 };
@@ -256,6 +258,7 @@ struct SCBPSBaseEyeData
 class CGameWindow
 {
 	friend class CObject3D;
+	friend class CGameObject;
 public:
 	/// <summary>
 	/// Конструктор экземпляра игрового окна
@@ -303,10 +306,10 @@ public:
 	/// <param name="Color">Цвет падающего света</param>
 	void SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color);
 	/// <summary>
-	/// Установка значений цвета света, на который непадает источник света
+	/// Установка значений цвета света минимальной яркости мира
 	/// </summary>
 	/// <param name="Color">Цвет света</param>
-	/// <param name="Intensity">Интенсивность света, рассеивание, насыщенность</param>
+	/// <param name="Intensity">Интенсивность света минимальной яркости мира</param>
 	void SetAmbientlLight(const XMFLOAT3& Color, float Intensity);
 #pragma endregion
 
@@ -394,7 +397,7 @@ public:
 	/// Создает и возвращает указатель на игровой обьект
 	/// </summary>
 	/// <returns>Созданный указатель на игровой обьект</returns>
-	CGameObject* AddGameObject();
+	CGameObject* AddGameObject(const string& Name);
 	/// <summary>
 	/// Получение указателя на игровой обьект с указанным индексом
 	/// </summary>
@@ -409,6 +412,21 @@ public:
 	/// </summary>
 	/// <param name="State">Новое состояние растеризатора</param>
 	void SetRasterizerState(ERasterizerState State);
+	/// <summary>
+	/// Получает полигон/обьект, на который наведен курсор
+	/// </summary>
+	/// <param name="ScreenMousePositionX">Позиция курсора по X</param>
+	/// <param name="ScreenMousePositionY">Позиция курсора по Y</param>
+	void Pick(int ScreenMousePositionX, int ScreenMousePositionY);
+	/// <summary>
+	/// TODO
+	/// </summary>
+	void UpdatePickingRay();
+	/// <summary>
+	/// Получает название последнего выбранного обьекта
+	/// </summary>
+	/// <returns>Имя выбранного обьекта</returns>
+	const char* GetPickedGameObjectName();
 	/// <summary>
 	/// Очищает буфер подкачки (задний буфер) и делает подготовку к рендерингу
 	/// </summary>
@@ -513,6 +531,11 @@ private:
 	/// Создание представления мини осей в углу экрана
 	/// </summary>
 	void CreateMiniAxes();
+	void CreatePickingRay();//TODO
+	void CreateBoundingSphere();
+	void CreatePickedTriangle();
+	void PickBoundingSphere();
+	void PickTriangle();
 #pragma endregion
 
 #pragma region ConstantBufferMethods
@@ -562,6 +585,9 @@ private:
 	static constexpr float KDefaultFOV{ XM_PIDIV2 };
 	static constexpr float KDefaultNearZ{ 0.1f };
 	static constexpr float KDefaultFarZ{ 1000.0f };
+	static constexpr float KSkyDistance{ 30.0f };
+	static constexpr float KSkyTimeFactorAbsolute{ 0.1f };
+	static constexpr float KPickingRayLength{ 1000.0f };
 private:
 	/// <summary>
 	/// Массив применяемых шейдеров
@@ -579,6 +605,21 @@ private:
 	/// Массив используемых игровых обьектов
 	/// </summary>
 	vector<unique_ptr<CGameObject>>	m_vGameObjects{};
+
+	/// <summary>
+	/// Луч трассировки Pick'инга
+	/// </summary>
+	unique_ptr<CObjectLine>			m_ObjectLinePickingRay{};
+	/// <summary>
+	/// Ограничивающая picking сфера
+	/// </summary>
+	unique_ptr<CObject3D>			m_Object3DBoundingSphere{};
+	/// <summary>
+	/// Выбранный полигон
+	/// </summary>
+	unique_ptr<CObject3D>			m_Object3DPickedTriangle{};
+
+	unordered_map<string, size_t>	m_mapGameObjectNameToIndex{};//TODO
 
 	/// <summary>
 	/// Массив 3D обьектов представления мини осей в углу экрана
@@ -646,6 +687,13 @@ private:
 	/// Вектор, направленный вверх
 	/// </summary>
 	XMVECTOR						m_BaseUp{};
+private:
+	XMVECTOR						m_PickingRayWorldSpaceOrigin{};//TODO
+	XMVECTOR						m_PickingRayWorldSpaceDirection{};
+	CGameObject* m_PtrPickedGameObject{};
+	XMVECTOR						m_PickedTriangleV0{};
+	XMVECTOR						m_PickedTriangleV1{};
+	XMVECTOR						m_PickedTriangleV2{};
 private:
 	/// <summary>
 	/// Текущее состояние растеризатора (указывает, какие грани отбраковыывать)

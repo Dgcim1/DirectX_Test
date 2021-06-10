@@ -95,7 +95,9 @@
     <ClInclude Include="Core\AssimpLoader.h" />
     <ClInclude Include="Core\GameObject.h" />
     <ClInclude Include="Core\GameWindow.h" />
+    <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\Object3D.h" />
+    <ClInclude Include="Core\ObjectLine.h" />
     <ClInclude Include="Core\PrimitiveGenerator.h" />
     <ClInclude Include="Core\Shader.h" />
     <ClInclude Include="Core\SharedHeader.h" />
@@ -145,6 +147,7 @@
     <ClCompile Include="Core\GameWindow.cpp" />
     <ClCompile Include="Core\main.cpp" />
     <ClCompile Include="Core\Object3D.cpp" />
+    <ClCompile Include="Core\ObjectLine.cpp" />
     <ClCompile Include="Core\Shader.cpp" />
     <ClCompile Include="Core\Texture.cpp" />
   </ItemGroup>

@@ -16,13 +16,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//создаем и устанавливаем камеру
 	SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
 	{
-		//MainCamera.EyePosition = XMVectorSet(0, +2.0f, 0, 0);
 		GameWindow.AddCamera(MainCamera);
 	}
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
-	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
-	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+	//GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.0f);
+	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::Red), 100.15f);
+	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
+	//GameWindow.SetDirectionalLight(XMVectorSet(0, 100, 0, 0), XMVectorSet(1, 1, 1, 1));
 	GameWindow.SetGameRenderingFlags(EFlagsGameRendering::UseLighting);
 	//загружаем текстуры
 	CTexture* TextureGround{ GameWindow.AddTexture() };
@@ -34,10 +36,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CObject3D* ObjectFarmhouse{ GameWindow.AddObject3D() };
 	{
-		SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
+		//SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
+		//SModel Model{ LoadModelFromFile("Asset/Underworld/AltarCandlet.obj") };
+		SModel Model{ LoadModelFromFile("Asset/Underworld/Dagger2.obj") };
+		//SModel Model{ LoadModelFromFile("Asset/Wooden-Crates_FBX.fbx") };
+		//SModel Model{ LoadModelFromFile("Asset/DarkCave_FBX.fbx") };
 		ObjectFarmhouse->Create(Model);
 	}
-	CGameObject* goFarmhouse{ GameWindow.AddGameObject() };
+	CGameObject* goFarmhouse{ GameWindow.AddGameObject("farmhouse")};
 	{
 		goFarmhouse->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
 		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
@@ -49,12 +55,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
 	{
-		SMaterial Material{ XMFLOAT3(Colors::Green) };
+		SMaterial Material{ XMFLOAT3(Colors::Orange) };
 		Material.SpecularExponent = 20.0f;
 		Material.SpecularIntensity = 0.8f;
 		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
 	}
-	CGameObject* SkyBoxObject{ GameWindow.AddGameObject() };
+	CGameObject* SkyBoxObject{ GameWindow.AddGameObject("skybox") };
 	{
 		SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
 		SkyBoxObject->UpdateWorldMatrix();
@@ -69,7 +75,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		Material.SpecularIntensity = 1.8f;
 		SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)), Material);
 	}
-	CGameObject* SphereObject{ GameWindow.AddGameObject() };
+	CGameObject* SphereObject{ GameWindow.AddGameObject("ball") };
 	{
 		SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
 		SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
@@ -81,7 +87,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		GroundObject3D->Create(GenerateSquareXZPlane());
 	}
-	CGameObject* GroundObject{ GameWindow.AddGameObject() };
+	CGameObject* GroundObject{ GameWindow.AddGameObject("ground") };
 	{
 		GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
 		GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 1.0f, 20.0f, 0);
@@ -99,7 +105,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		Material.SpecularIntensity = 0.51f;
 		SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
-	CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject() };
+	CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject("snowball1") };
 	SnowmanSphere1Object->ComponentTransform.Scaling = XMVectorSet(2.0f, 2.0f, 2.0f, 0);
 	SnowmanSphere1Object->ComponentTransform.Translation = XMVectorSet(-5.0f, -0.2f, +5.0f, 0);
 	SnowmanSphere1Object->UpdateWorldMatrix();
@@ -112,7 +118,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		Material.SpecularIntensity = 0.51f;
 		SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
-	CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject() };
+	CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject("snowball2") };
 	SnowmanSphere2Object->ComponentTransform.Scaling = XMVectorSet(1.6f, 1.6f, 1.6f, 0);
 	SnowmanSphere2Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 2.2f, +5.0f, 0);
 	SnowmanSphere2Object->UpdateWorldMatrix();
@@ -125,7 +131,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		Material.SpecularIntensity = 0.51f;
 		SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White), Material);
 	}
-	CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject() };
+	CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject("snowball3") };
 	SnowmanSphere3Object->ComponentTransform.Scaling = XMVectorSet(1.3f, 1.3f, 1.3f, 0);
 	SnowmanSphere3Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 4.2f, +5.0f, 0);
 	SnowmanSphere3Object->UpdateWorldMatrix();

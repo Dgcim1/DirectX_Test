@@ -5,6 +5,17 @@
 class CObject3D;
 class CTexture;
 
+static constexpr float KBoundingSphereRadiusDefault{ 1.0f };
+
+enum class EFlagsGameObjectRendering
+{
+	None = 0x00,//TODO
+	NoCulling = 0x01,
+	NoLighting = 0x02,
+	NoDepthComparison = 0x04,
+};
+ENUM_CLASS_FLAG(EFlagsGameObjectRendering)
+
 /// <summary>
 /// Набор векторов (перемещения, вращения, масштаба) и мировая матрица (матрица мировых координат)
 /// </summary>
@@ -47,8 +58,21 @@ struct SComponentRender
 	bool IsTransparent{ false };
 };
 
+struct SBoundingSphere
+{
+	float		Radius{ KBoundingSphereRadiusDefault };//TODO
+	XMVECTOR	CenterOffset{};
+};
+
+struct SComponentPhysics
+{
+	SBoundingSphere	BoundingSphere{};
+	bool			bIsPickable{ true };
+};
+
 class CGameObject
 {
+	friend class CGameWindow;
 public:
 	void* operator new(size_t Size)
 	{
@@ -61,12 +85,18 @@ public:
 	}
 
 public:
-	CGameObject() {}
+	CGameObject(const string& Name) : m_Name{ Name } {}
 	~CGameObject() {}
 	/// <summary>
 	/// Обновление матрицы мира (путем перемножения текущих матриц масштаба, вращения и перемещения)
 	/// </summary>
 	void UpdateWorldMatrix();
+
+private:
+	/// <summary>
+	/// Имя обьекта
+	/// </summary>
+	string							m_Name{};
 
 public:
 	/// <summary>
@@ -77,4 +107,6 @@ public:
 	/// Указатель на 3D-составляющую игрового обьекта для рендеринга
 	/// </summary>
 	SComponentRender	ComponentRender{};
+	SComponentPhysics				ComponentPhysics{};//TODO
+	EFlagsGameObjectRendering		eFlagsGameObjectRendering{};
 };

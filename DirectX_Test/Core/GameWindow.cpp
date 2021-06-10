@@ -490,9 +490,14 @@ CTexture* CGameWindow::GetTexture(size_t Index)
 	return m_vTextures[Index].get();
 }
 
-CGameObject* CGameWindow::AddGameObject()
+CGameObject* CGameWindow::AddGameObject(const string& Name)
 {
-	m_vGameObjects.emplace_back(make_unique<CGameObject>());
+	assert(m_mapGameObjectNameToIndex.find(Name) == m_mapGameObjectNameToIndex.end());
+
+	m_vGameObjects.emplace_back(make_unique<CGameObject>(Name));
+
+	m_mapGameObjectNameToIndex[Name] = m_vGameObjects.size() - 1;
+
 	return m_vGameObjects.back().get();
 }
 
@@ -505,6 +510,133 @@ CGameObject* CGameWindow::GetGameObject(size_t Index)
 void CGameWindow::SetRasterizerState(ERasterizerState State)
 {
 	m_eRasterizerState = State;
+}
+
+void CGameWindow::Pick(int ScreenMousePositionX, int ScreenMousePositionY)
+{
+	float ViewSpaceRayDirectionX{ (ScreenMousePositionX / (m_WindowSize.x / 2.0f) - 1.0f) / XMVectorGetX(m_MatrixProjection.r[0]) };
+	float ViewSpaceRayDirectionY{ (-(ScreenMousePositionY / (m_WindowSize.y / 2.0f) - 1.0f)) / XMVectorGetY(m_MatrixProjection.r[1]) };
+	float ViewSpaceRayDirectionZ{ 1.0f };
+
+	XMVECTOR ViewSpaceRayOrigin{ XMVectorSet(0, 0, 0, 1) };
+	XMVECTOR ViewSpaceRayDirection{ XMVectorSet(ViewSpaceRayDirectionX, ViewSpaceRayDirectionY, ViewSpaceRayDirectionZ, 0) };
+
+	XMMATRIX MatrixViewInverse{ XMMatrixInverse(nullptr, m_MatrixView) };
+	m_PickingRayWorldSpaceOrigin = XMVector3TransformCoord(ViewSpaceRayOrigin, MatrixViewInverse);
+	m_PickingRayWorldSpaceDirection = XMVector3TransformNormal(ViewSpaceRayDirection, MatrixViewInverse);
+
+	UpdatePickingRay();
+
+	PickBoundingSphere();
+
+	PickTriangle();
+}
+
+void CGameWindow::UpdatePickingRay()
+{
+	m_ObjectLinePickingRay->vVertices[0].Position = m_PickingRayWorldSpaceOrigin;
+	m_ObjectLinePickingRay->vVertices[1].Position = m_PickingRayWorldSpaceOrigin + m_PickingRayWorldSpaceDirection * KPickingRayLength;
+	m_ObjectLinePickingRay->Update();
+}
+
+const char* CGameWindow::GetPickedGameObjectName()
+{
+	if (m_PtrPickedGameObject)
+	{
+		return m_PtrPickedGameObject->m_Name.c_str();
+	}
+	return nullptr;
+}
+
+void CGameWindow::CreatePickingRay()
+{
+	m_ObjectLinePickingRay = make_unique<CObjectLine>(m_Device.Get(), m_DeviceContext.Get());
+
+	vector<SVertexLine> Vertices{};
+	Vertices.emplace_back(XMVectorSet(0, 0, 0, 1), XMVectorSet(1, 0, 0, 1));
+	Vertices.emplace_back(XMVectorSet(10.0f, 10.0f, 0, 1), XMVectorSet(0, 1, 0, 1));
+
+	m_ObjectLinePickingRay->Create(Vertices);
+}
+
+void CGameWindow::CreateBoundingSphere()
+{
+	m_Object3DBoundingSphere = make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this);
+
+	m_Object3DBoundingSphere->Create(GenerateSphere(16));
+}
+
+void CGameWindow::CreatePickedTriangle()
+{
+	m_Object3DPickedTriangle = make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this);
+
+	m_Object3DPickedTriangle->Create(GenerateTriangle(XMVectorSet(0, 0, 1.5f, 1), XMVectorSet(+1.0f, 0, 0, 1), XMVectorSet(-1.0f, 0, 0, 1),
+		XMVectorSet(1.0f, 1.0f, 0.0f, 1.0f)));
+}
+
+void CGameWindow::PickBoundingSphere()
+{
+	m_PtrPickedGameObject = nullptr;
+
+	XMVECTOR T{ KVectorGreatest };
+	for (auto& i : m_vGameObjects)
+	{
+		auto* GO{ i.get() };
+		if (GO->ComponentPhysics.bIsPickable)
+		{
+			XMVECTOR NewT{ KVectorGreatest };
+			if (IntersectRaySphere(m_PickingRayWorldSpaceOrigin, m_PickingRayWorldSpaceDirection,
+				GO->ComponentPhysics.BoundingSphere.Radius, GO->ComponentTransform.Translation + GO->ComponentPhysics.BoundingSphere.CenterOffset, &NewT))
+			{
+				if (XMVector3Less(NewT, T))
+				{
+					T = NewT;
+					m_PtrPickedGameObject = GO;
+				}
+			}
+		}
+	}
+}
+
+void CGameWindow::PickTriangle()
+{
+	XMVECTOR T{ KVectorGreatest };
+	if (m_PtrPickedGameObject)
+	{
+		assert(m_PtrPickedGameObject->ComponentRender.PtrObject3D);
+
+		// Pick only static models' triangle.
+		if (m_PtrPickedGameObject->ComponentRender.PtrObject3D->m_Model.bIsAnimated) return;
+
+		const XMMATRIX& World{ m_PtrPickedGameObject->ComponentTransform.MatrixWorld };
+		for (auto& Mesh : m_PtrPickedGameObject->ComponentRender.PtrObject3D->m_Model.vMeshes)
+		{
+			for (auto& Triangle : Mesh.vTriangles)
+			{
+				XMVECTOR V0{ Mesh.vVertices[Triangle.I0].Position };
+				XMVECTOR V1{ Mesh.vVertices[Triangle.I1].Position };
+				XMVECTOR V2{ Mesh.vVertices[Triangle.I2].Position };
+				V0 = XMVector3TransformCoord(V0, World);
+				V1 = XMVector3TransformCoord(V1, World);
+				V2 = XMVector3TransformCoord(V2, World);
+
+				XMVECTOR NewT{};
+				if (IntersectRayTriangle(m_PickingRayWorldSpaceOrigin, m_PickingRayWorldSpaceDirection, V0, V1, V2, &NewT))
+				{
+					if (XMVector3Less(NewT, T))
+					{
+						T = NewT;
+
+						XMVECTOR N{ CalculateTriangleNormal(V0, V1, V2) };
+
+						m_PickedTriangleV0 = V0 + N * 0.01f;
+						m_PickedTriangleV1 = V1 + N * 0.01f;
+						m_PickedTriangleV2 = V2 + N * 0.01f;
+					}
+				}
+			}
+		}
+	}
 }
 
 void CGameWindow::BeginRendering(const FLOAT* ClearColor)

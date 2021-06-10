@@ -333,6 +333,12 @@
     <ClInclude Include="Assimp\ZipArchiveIOSystem.h">
       <Filter>Assimp</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Math.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObjectLine.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="DirectXTK\DirectXTK.lib">
@@ -397,6 +403,9 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\Texture.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ObjectLine.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

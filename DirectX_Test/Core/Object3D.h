@@ -52,6 +52,53 @@ struct SMesh
 	size_t				MaterialID{};
 };
 
+struct SModelNode
+{
+	struct SBlendWeight
+	{
+		uint32_t	MeshIndex{};
+		uint32_t	VertexID{};
+		float		Weight{};
+	};
+
+	int32_t					Index{};
+	string					Name{};
+
+	int32_t					ParentNodeIndex{};
+	vector<int32_t>			vChildNodeIndices{};
+	XMMATRIX				MatrixTransformation{};
+
+	bool					bIsBone{ false };
+	uint32_t				BoneIndex{};
+	vector<SBlendWeight>	vBlendWeights{};
+	XMMATRIX				MatrixBoneOffset{};
+};
+
+struct SModelNodeAnimation
+{
+	struct SKey
+	{
+		float		Time{};
+		XMVECTOR	Value{};
+	};
+
+	uint32_t		Index{};
+	string			NodeName{};
+	vector<SKey>	vPositionKeys{};
+	vector<SKey>	vRotationKeys{};
+	vector<SKey>	vScalingKeys{};
+};
+
+struct SModelAnimation
+{
+	vector<SModelNodeAnimation>		vNodeAnimations{};
+
+	float							Duration{};
+	float							TicksPerSecond{};
+
+	unordered_map<string, size_t>	mapNodeAnimationNameToIndex{};
+};
+
 /// <summary>
 /// Информация о буферах отдельного меша (модели)
 /// </summary>
@@ -144,6 +191,13 @@ struct SModel
 	/// Массив материалов модели (коэффициенты отражения, блик и т п)
 	/// </summary>
 	vector<SMaterial>	vMaterials{};
+
+	vector<SModelNode>				vNodes{};//TODO
+	unordered_map<string, size_t>	mapNodeNameToIndex{};
+	uint32_t						ModelBoneCount{};
+
+	vector<SModelAnimation>			vAnimations{};
+	bool							bIsAnimated{};
 };
 
 /// <summary>
