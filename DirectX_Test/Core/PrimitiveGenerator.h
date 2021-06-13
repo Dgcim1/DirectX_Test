@@ -3,6 +3,8 @@
 #include "Object3D.h"
 #include <unordered_map>
 
+static const XMMATRIX KMatrixIdentity{ XMMatrixIdentity() };
+
 static bool operator==(const XMVECTOR& A, const XMVECTOR& B)
 {
 	return XMVector3Equal(A, B);

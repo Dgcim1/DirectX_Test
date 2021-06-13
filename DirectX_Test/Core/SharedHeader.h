@@ -13,6 +13,8 @@
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "DirectXTK.lib")
 
+#define EFLAG_HAS(Object, eFlag) (Object & eFlag) == eFlag
+
 using namespace Microsoft::WRL;
 using namespace DirectX;
 

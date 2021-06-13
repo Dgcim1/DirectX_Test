@@ -232,6 +232,11 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 	CreateMiniAxes();
 
+	CreatePickingRay();
+	CreatePickedTriangle();
+
+	CreateBoundingSphere();
+
 	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
 	m_CommonStates = make_unique<CommonStates>(m_Device.Get());
@@ -323,7 +328,8 @@ void CGameWindow::CreateInputDevices()
 	m_Mouse = make_unique<Mouse>();
 	m_Mouse->SetWindow(m_hWnd);
 
-	m_Mouse->SetMode(Mouse::Mode::MODE_RELATIVE);
+	m_Mouse->SetMode(Mouse::Mode::MODE_ABSOLUTE);
+	m_Mouse->SetVisible(false);
 }
 
 void CGameWindow::CreateBaseShaders()
@@ -367,9 +373,9 @@ void CGameWindow::CreateMiniAxes()
 	m_vMiniAxisObject3Ds[1]->Create(Cone, vMaterials[1]);
 	m_vMiniAxisObject3Ds[2]->Create(Cone, vMaterials[2]);
 
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>());
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesX"));
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesY"));
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesZ"));
 	m_vMiniAxisGameObjects[0]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[0].get();
 	m_vMiniAxisGameObjects[0]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
 	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
@@ -596,6 +602,7 @@ void CGameWindow::PickBoundingSphere()
 			}
 		}
 	}
+	;
 }
 
 void CGameWindow::PickTriangle()

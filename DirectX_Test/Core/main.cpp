@@ -2,6 +2,7 @@
 #include "GameWindow.h"
 #include "AssimpLoader.h"
 #include <ctime>
+#include <string>
 //IA (input-assembler) - первая часть граф конвейера
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
@@ -11,7 +12,9 @@ LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	//создаем окно
-	CGameWindow GameWindow{ hInstance, XMFLOAT2(1000, 600) };
+	int windowHeight = 600;
+	int windowWight = 1000;
+	CGameWindow GameWindow{ hInstance, XMFLOAT2(windowWight, windowHeight) };
 	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
 	//создаем и устанавливаем камеру
 	SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
@@ -20,10 +23,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
-	//GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.0f);
-	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::Red), 100.15f);
-	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
-	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
+	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
+	//GameWindow.SetAmbientlLight(XMFLOAT3(Colors::Red), 100.15f);
+	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
 	//GameWindow.SetDirectionalLight(XMVectorSet(0, 100, 0, 0), XMVectorSet(1, 1, 1, 1));
 	GameWindow.SetGameRenderingFlags(EFlagsGameRendering::UseLighting);
 	//загружаем текстуры
@@ -55,7 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
 	{
-		SMaterial Material{ XMFLOAT3(Colors::Orange) };
+		SMaterial Material{ XMFLOAT3(Colors::Green) };
 		Material.SpecularExponent = 20.0f;
 		Material.SpecularIntensity = 0.8f;
 		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
@@ -146,6 +149,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	//лог
 	bool isPrintLog = true;
+	bool isPicking = false;
 	std::string logInfo = "";
 	
 	clock_t oldTime = clock();
@@ -197,9 +201,24 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				helpF6 + "\n\t" +
 				"\n\n";
 			
-			//лог
-			logInfo = logFPS + logCameraPos + help;
+			
 
+			//лог
+			if (isPicking) {
+				std::string pickedObj = GameWindow.GetPickedGameObjectName();
+				if (!(pickedObj == std::string("ground"))) {
+					std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
+					logInfo = logFPS + logCameraPos + pickInfo + help;
+				}
+				else
+				{
+					std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
+					logInfo = logFPS + logCameraPos + pickInfo + help;
+				}
+			}
+			else {
+				logInfo = logFPS + logCameraPos + help;
+			}
 
 			//начало рендеринга
 			GameWindow.BeginRendering(Colors::DarkGray);
@@ -258,9 +277,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			//проверяем состояние мыши
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
-			if (MouseState.x || MouseState.y)
+			static int MouseX{ MouseState.x };
+			static int MouseY{ MouseState.y };
+			if (MouseState.leftButton)
 			{
-				GameWindow.RotateCamera(MouseState.x, MouseState.y, 0.01f);
+				isPicking = true;
+				GameWindow.Pick(windowWight / 2, windowHeight / 2);
+			}
+			if (MouseState.x != MouseX || MouseState.y != MouseY)
+			{
+				GameWindow.RotateCamera(MouseState.x - MouseX, MouseState.y - MouseY, 0.01f);
+				MouseX = MouseState.x;
+				MouseY = MouseState.y;
 			}
 			if (MouseState.scrollWheelValue)
 			{
