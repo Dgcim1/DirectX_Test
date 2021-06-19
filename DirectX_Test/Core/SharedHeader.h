@@ -29,6 +29,25 @@ using std::max;
 using std::unordered_map;
 
 /// <summary>
+/// Тип шейдера
+/// </summary>
+enum class EShaderType
+{
+	/// <summary>
+	/// Вертексный шейдер
+	/// </summary>
+	VertexShader,
+	/// <summary>
+	/// Пиксельный шейдер
+	/// </summary>
+	PixelShader,
+	/// <summary>
+	/// Геометрическийи шейдер
+	/// </summary>
+	GeometryShader,
+};
+
+/// <summary>
 /// Полигон, состоящий из трех точек вектора SVertex3D (порядковый номер)
 /// </summary>
 struct STriangle

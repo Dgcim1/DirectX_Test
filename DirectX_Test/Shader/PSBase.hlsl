@@ -48,7 +48,13 @@ float4 CalculateDirectional(float4 DiffuseColor, float4 SpecularColor, float4 To
 	float SpecularPower = pow(NDotH, SpecularExponent);
 	float4 BlinnSpecular = float4(SpecularColor.xyz * DirectionalLightColor.xyz * SpecularPower * SpecularIntensity, 1);
 
-	return PhongDiffuse + BlinnSpecular;
+	float4 Result = PhongDiffuse + BlinnSpecular;
+
+	// 해나 달의 위치가 지평선에 가까워질수록 빛의 세기를 약하게 한다.
+	float Dot = dot(DirectionalLightDirection, float4(0, 1, 0, 0));
+	Result.xyz *= pow(Dot, 0.6f);
+
+	return Result;
 }
 
 float4 main(VS_OUTPUT input) : SV_TARGET

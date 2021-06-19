@@ -26,9 +26,9 @@ struct SComponentTransform
 	/// </summary>
 	XMVECTOR Translation{};
 	/// <summary>
-	/// Вектор вращения
+	/// Вектор вращения по квантериону
 	/// </summary>
-	XMVECTOR Rotation{};
+	XMVECTOR	RotationQuaternion{};
 	/// <summary>
 	/// Вектор масштаба
 	/// </summary>

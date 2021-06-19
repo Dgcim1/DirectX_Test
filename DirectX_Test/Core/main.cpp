@@ -3,7 +3,19 @@
 #include "AssimpLoader.h"
 #include <ctime>
 #include <string>
+#include <chrono>
+#include <winuser.h>
 //IA (input-assembler) - первая часть граф конвейера
+
+/*
+
+	m_vMiniAxisGameObjects[0]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
+	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
+	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
+	m_vMiniAxisGameObjects[2]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
+
+
+*/
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
@@ -41,7 +53,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		//SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
 		//SModel Model{ LoadModelFromFile("Asset/Underworld/AltarCandlet.obj") };
-		SModel Model{ LoadModelFromFile("Asset/Underworld/Dagger2.obj") };
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger2.obj") };
 		//SModel Model{ LoadModelFromFile("Asset/Wooden-Crates_FBX.fbx") };
 		//SModel Model{ LoadModelFromFile("Asset/DarkCave_FBX.fbx") };
 		ObjectFarmhouse->Create(Model);
@@ -70,6 +82,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
 	}
 
+	// CObject3D* TestPolygonObject3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(1.0f, 0.5f, 1.0f) };
+	// 	Material.SpecularExponent = 20.0f;
+	// 	Material.SpecularIntensity = 0.8f;
+	// 	TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(1, 1, 8, 1), XMVectorSet(1, 0, 8, 1), XMVectorSet(0, 1, 8, 1), Colors::Green), Material);
+	// }
+	// CGameObject* TestPolygonObject{ GameWindow.AddGameObject("testPolygon") };
+	// {
+	// 	TestPolygonObject->UpdateWorldMatrix();
+	// 	TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
+	// }
+
 	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
 	{
 		SMaterial Material{ XMFLOAT3(Colors::Red) };
@@ -81,7 +106,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CGameObject* SphereObject{ GameWindow.AddGameObject("ball") };
 	{
 		SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
-		SphereObject->ComponentTransform.Rotation = XMQuaternionRotationAxis(XMVectorSet(0, 1, 0, 0), XM_PIDIV4);
 		SphereObject->UpdateWorldMatrix();
 		SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
 	}
@@ -97,6 +121,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		GroundObject->UpdateWorldMatrix();
 		GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
 		GroundObject->ComponentRender.PtrTexture = TextureGround;
+
+		GroundObject->ComponentPhysics.BoundingSphere.Radius = 43.0f;
 	}
 	
 	//снеговик
@@ -141,8 +167,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
 
 	int rotationDeg = 0;
-
-	bool isDrawMiniAxes = false;
+	bool isCaptureCursor = false;
+	POINT captureCursorPos;
 
 	//задержка для клавиш управления
 	int keyPressDelay = 0;
@@ -170,6 +196,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		else
 		{
+			static std::chrono::steady_clock Clock{};
+			long long TimeNow{ Clock.now().time_since_epoch().count() };
+			static long long TimePrev{ TimeNow };
+			long long DeltaTimeLL{ TimeNow - TimePrev };
+			float DeltaTimeF{ DeltaTimeLL * 0.000'000'001f };
+
 			deltaTime = clock() - oldTime;
 			int fps = (1.0 / deltaTime) * 1000;
 			oldTime = clock();
@@ -192,6 +224,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			std::string helpF4 = "F4: Toggle render light";
 			std::string helpF5 = "F5: Toggle mini axes visible";
 			std::string helpF6 = "F6: Toggle log visible";
+			std::string helpF7 = "F7: Toggle picking visible";
 			std::string help = "Help menu:\n\t" +
 				helpF1 + "\n\t" +
 				helpF2 + "\n\t" +
@@ -199,6 +232,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				helpF4 + "\n\t" +
 				helpF5 + "\n\t" +
 				helpF6 + "\n\t" +
+				helpF7 + "\n\t" +
 				"\n\n";
 			
 			
@@ -206,15 +240,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			//лог
 			if (isPicking) {
 				std::string pickedObj = GameWindow.GetPickedGameObjectName();
-				if (!(pickedObj == std::string("ground"))) {
-					std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
-					logInfo = logFPS + logCameraPos + pickInfo + help;
-				}
-				else
-				{
-					std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
-					logInfo = logFPS + logCameraPos + pickInfo + help;
-				}
+				std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
+				logInfo = logFPS + logCameraPos + pickInfo + help;
 			}
 			else {
 				logInfo = logFPS + logCameraPos + help;
@@ -265,10 +292,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				}
 				if (KeyState.F5)
 				{
-					isDrawMiniAxes = !isDrawMiniAxes;
+					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawMiniAxes);
 				}
-				if (KeyState.F6) {
+				if (KeyState.F6) 
+				{
 					isPrintLog = !isPrintLog;
+				}
+				if (KeyState.F7)
+				{
+					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawPickingData);
 				}
 			}
 			else
@@ -277,8 +309,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			//проверяем состояние мыши
 			Mouse::State MouseState{ GameWindow.GetMouseState() };
-			static int MouseX{ MouseState.x };
-			static int MouseY{ MouseState.y };
+			static int MouseX{ MouseState.x };//предыдущая позиция курсора по X
+			static int MouseY{ MouseState.y };//предыдущая позиция курсора по Y
 			if (MouseState.leftButton)
 			{
 				isPicking = true;
@@ -287,20 +319,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			if (MouseState.x != MouseX || MouseState.y != MouseY)
 			{
 				GameWindow.RotateCamera(MouseState.x - MouseX, MouseState.y - MouseY, 0.01f);
-				MouseX = MouseState.x;
-				MouseY = MouseState.y;
+				//привязка окна к курсору
+				if (isCaptureCursor) {
+					SetCursorPos(captureCursorPos.x, captureCursorPos.y);
+				}
+				else
+				{
+					GetCursorPos(&captureCursorPos);
+					isCaptureCursor = true;
+					//обновление координат
+					MouseX = MouseState.x;
+					MouseY = MouseState.y;
+				}
 			}
 			if (MouseState.scrollWheelValue)
 			{
 				GameWindow.ZoomCamera(MouseState.scrollWheelValue, 0.01f);
 			}
 			//рисуем обьекты
-			GameWindow.DrawGameObjects();
-			//отрисовка представления мини осей
-			if (isDrawMiniAxes)
-			{
-				GameWindow.DrawMiniAxes();
-			}
+			GameWindow.AnimateGameObjects();
+			GameWindow.DrawGameObjects(DeltaTimeF);
 			//получаем указатели на набор спрайтов и на спрайт шрифтов
 			SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
 			SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
@@ -314,6 +352,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			PtrSpriteBatch->End();
 			//окончание рендеринга
 			GameWindow.EndRendering();
+
+			TimePrev = TimeNow;
 		}
 	}
 	return 0;

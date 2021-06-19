@@ -27,6 +27,18 @@ enum class EFlagsGameRendering
 	/// Используется ли освещение
 	/// </summary>
 	UseLighting = 0x02,
+	/// <summary>
+	/// Отрисовка мини осей
+	/// </summary>
+	DrawMiniAxes = 0x04,
+	/// <summary>
+	/// Отрисовка инфо о picking'е (луч трассировки)
+	/// </summary>
+	DrawPickingData = 0x08,
+	/// <summary>
+	/// Отрисовка ограничивающей сферы
+	/// </summary>
+	DrawBoundingSphere = 0x10
 };
 ENUM_CLASS_FLAG(EFlagsGameRendering)
 
@@ -159,7 +171,7 @@ public:
 /// <summary>
 /// Структура привязки данных константного буфера для вертексного шейдера
 /// </summary>
-struct SCBVSBaseSpaceData
+struct SCBVSSpaceData
 {
 	/// <summary>
 	/// Матрица World-View-Projection
@@ -169,6 +181,14 @@ struct SCBVSBaseSpaceData
 	/// Мировая матрица
 	/// </summary>
 	XMMATRIX World{};
+};
+
+/// <summary>
+/// TODO структура анимации (не используется)
+/// </summary>
+struct SCBVSAnimationBonesData
+{
+	XMMATRIX	BoneMatrices[KMaxBoneMatrixCount]{};
 };
 
 /// <summary>
@@ -185,7 +205,7 @@ struct SCBPSBaseFlagsData
 	/// </summary>
 	BOOL bUseLighting{};
 	/// <summary>
-	/// Пока не используется (???)
+	/// Пока не используется (для выравнивания)
 	/// </summary>
 	BOOL Pad[2]{};
 };
@@ -239,9 +259,24 @@ struct SCBPSBaseMaterialData
 	/// </summary>
 	XMFLOAT3	MaterialSpecular{};
 	/// <summary>
-	/// Неиспользуемая переменная (???)
+	/// Неиспользуемая переменная (для выравнивания)  
 	/// </summary>
 	float		Pad{};
+};
+
+/// <summary>
+/// Структура текущего времени
+/// </summary>
+struct SCBPSSkyTimeData
+{
+	/// <summary>
+	/// Текущее время
+	/// </summary>
+	float	SkyTime{};
+	/// <summary>
+	/// Не используется
+	/// </summary>
+	float	Pads[3]{};
 };
 
 /// <summary>
@@ -258,7 +293,7 @@ struct SCBPSBaseEyeData
 class CGameWindow
 {
 	friend class CObject3D;
-	friend class CGameObject;
+	friend class CGameObject;// TODO возможно удалить за ненадобностью
 public:
 	/// <summary>
 	/// Конструктор экземпляра игрового окна
@@ -299,6 +334,11 @@ public:
 #pragma endregion
 
 #pragma region LightMethods
+	/// <summary>
+	/// Установка значений направленного света
+	/// </summary>
+	/// <param name="LightSourcePosition">Направление света, положение источника света</param>
+	void SetDirectionalLight(const XMVECTOR& LightSourcePosition);
 	/// <summary>
 	/// Установка значений направленного света
 	/// </summary>
@@ -399,6 +439,12 @@ public:
 	/// <returns>Созданный указатель на игровой обьект</returns>
 	CGameObject* AddGameObject(const string& Name);
 	/// <summary>
+	/// Получение указателя на игровой обьект с заданным именем
+	/// </summary>
+	/// <param name="Name">Имя обьекта</param>
+	/// <returns></returns>
+	CGameObject* GetGameObject(const string& Name);
+	/// <summary>
 	/// Получение указателя на игровой обьект с указанным индексом
 	/// </summary>
 	/// <param name="Index">Индекс указателя в массиве</param>
@@ -419,7 +465,7 @@ public:
 	/// <param name="ScreenMousePositionY">Позиция курсора по Y</param>
 	void Pick(int ScreenMousePositionX, int ScreenMousePositionY);
 	/// <summary>
-	/// TODO
+	/// Обновление отрисовываемого луча picking'а
 	/// </summary>
 	void UpdatePickingRay();
 	/// <summary>
@@ -433,13 +479,26 @@ public:
 	/// <param name="ClearColor">Цвет заливки области рендеринга</param>
 	void BeginRendering(const FLOAT* ClearColor);
 	/// <summary>
+	/// Обновление анимации анимированных обьектов
+	/// </summary>
+	void AnimateGameObjects();
+	/// <summary>
 	/// Обновляет мировую матрицу всех игровых обьектов и отображает их
 	/// </summary>
-	void DrawGameObjects();
+	/// <param name="DeltaTime">Время прошедшее между кадрами</param>
+	void DrawGameObjects(float DeltaTime);
 	/// <summary>
 	/// Рисует представление мини осей в углу экрана
 	/// </summary>
 	void DrawMiniAxes();
+	/// <summary>
+	/// Рисует представление луча трассировки
+	/// </summary>
+	void DrawPickingRay();
+	/// <summary>
+	/// Рисует треугольник выбранный picking'ом
+	/// </summary>
+	void DrawPickedTriangle();
 	/// <summary>
 	/// Обновляет изображение, swap буфера подкачки и буфера дисплея
 	/// </summary>
@@ -489,6 +548,13 @@ private:
 	/// <param name="FontFileName">Путь к файлу с используемым шрифтом</param>
 	/// <param name="bWindowed">Находится ли вывод в оконном режиме</param>
 	void InitializeDirectX(const wstring& FontFileName, bool bWindowed);
+
+	/// <summary>
+	/// Обновление игрового обьекта
+	/// </summary>
+	/// <param name="PtrGO">Обновляемый обьект</param>
+	/// <param name="DeltaTime">Время с последнего обновления обьекта</param>
+	void UpdateGameObject(CGameObject* PtrGO, float DeltaTime);
 	/// <summary>
 	/// Отрисовка отдельного игрового обьекта
 	/// </summary>
@@ -499,6 +565,20 @@ private:
 	/// </summary>
 	/// <param name="PtrGO">Указатель на игровой обьект</param>
 	void DrawGameObjectNormal(CGameObject* PtrGO);
+	/// <summary>
+	/// Отрисовка ограничивающей сферы
+	/// </summary>
+	/// <param name="PtrGO">Обьект, для которого формируется сфера</param>
+	void DrawGameObjectBoundingSphere(CGameObject* PtrGO);
+
+	/// <summary>
+	/// Обновление состояния растеризатора в соответствии с заданными флагами
+	/// </summary>
+	void SetGameWindowCullMode();
+	/// <summary>
+	/// Обновление состояния освещения в шейдерах
+	/// </summary>
+	void SetGameWindowUseLighiting();
 private:
 
 #pragma region InitD3D11ComponentMethods
@@ -522,63 +602,31 @@ private:
 	/// <summary>
 	/// Загрузка базовых шейдеров
 	/// </summary>
-	void CreateBaseShaders();
-	/// <summary>
-	/// Создание константных буферов
-	/// </summary>
-	void CreateCBs();
+	void CreateShaders();
 	/// <summary>
 	/// Создание представления мини осей в углу экрана
 	/// </summary>
 	void CreateMiniAxes();
-	void CreatePickingRay();//TODO
+	/// <summary>
+	/// Создание луча отрисовки при picking'е
+	/// </summary>
+	void CreatePickingRay();
+	/// <summary>
+	/// Создание ограничивающей сферы
+	/// </summary>
 	void CreateBoundingSphere();
+	/// <summary>
+	/// Создание отображения выбранного полигона
+	/// </summary>
 	void CreatePickedTriangle();
+	/// <summary>
+	/// Выбор ограничивающей сферы
+	/// </summary>
 	void PickBoundingSphere();
+	/// <summary>
+	/// Выбор полигона
+	/// </summary>
 	void PickTriangle();
-#pragma endregion
-
-#pragma region ConstantBufferMethods
-	/// <summary>
-	/// Обновляет константный буфер CBWVP (Constant Buffer World-View-Projection) для его обработки в вертексном шейдере
-	/// </summary>
-	/// <param name="MatrixWorld">Матрица мира</param>
-	void UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld);
-	/// <summary>
-	/// Обновляет константный буфер текстуры для его обработки в пиксельном шейдере
-	/// </summary>
-	void UpdateCBPSBaseFlags();
-	/// <summary>
-	/// Обновляет константный буфер света для его обработки в пиксельном шейдере
-	/// </summary>
-	void UpdateCBPSBaseLights();
-	/// <summary>
-	/// Обновляет константный буфер положения камеры для его обработки в пиксельном шейдере
-	/// </summary>
-	void UpdateCBPSBaseEye();
-
-public:
-	/// <summary>
-	/// Обновляет константный буфер материала для его обработки в пиксельном шейдере
-	/// </summary>
-	/// <param name="Material">Указатель на уставливаемый материал</param>
-	void UpdateCBPSBaseMaterial(const SMaterial& Material);
-#pragma endregion
-
-#pragma region BaseConstantBufferMethods
-	/// <summary>
-	/// Создание константного буфера
-	/// </summary>
-	/// <param name="ByteWidth">Размер создаваемого буфера в байтах</param>
-	/// <param name="ppBuffer">Адрес указателя на создаваемый буфер</param>
-	void CreateCB(size_t ByteWidth, ID3D11Buffer** ppBuffer);
-	/// <summary>
-	/// Обновляет указанный константный буфер заданным значением
-	/// </summary>
-	/// <param name="ByteWidth">Размер буфера в байтах</param>
-	/// <param name="pBuffer">Указатель на обновляемый ресурс (константный буфер)</param>
-	/// <param name="pValue">Указатель на область памяти, которую надо загрузить в константный буфер</param>
-	void UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, const void* pValue);
 #pragma endregion
 
 private:
@@ -619,7 +667,15 @@ private:
 	/// </summary>
 	unique_ptr<CObject3D>			m_Object3DPickedTriangle{};
 
-	unordered_map<string, size_t>	m_mapGameObjectNameToIndex{};//TODO
+	// CGameObject* m_PtrSky{};
+	// CGameObject* m_PtrCloud{};
+	// CGameObject* m_PtrSun{};
+	// CGameObject* m_PtrMoon{};
+
+	/// <summary>
+	/// Хешмеп хранения пары - имя обьекта - индекс обьекта
+	/// </summary>
+	unordered_map<string, size_t>	m_mapGameObjectNameToIndex{};
 
 	/// <summary>
 	/// Массив 3D обьектов представления мини осей в углу экрана
@@ -629,22 +685,48 @@ private:
 	/// Массив игровых обьектов представления мини осей в углу экрана
 	/// </summary>
 	vector<unique_ptr<CGameObject>>	m_vMiniAxisGameObjects{};
+
+#pragma region ShadersField
+
 	/// <summary>
 	/// Указатель на базовый вертекный шейдер
 	/// </summary>
 	unique_ptr<CShader>				m_VSBase{};
 	/// <summary>
-	/// Указатель на базовый пиксельный шейдер
+	/// Указатель на вертекный шейдер анимации
 	/// </summary>
-	unique_ptr<CShader>				m_PSBase{};
+	unique_ptr<CShader>				m_VSAnimation{};
+	
+	// unique_ptr<CShader>				m_VSSky{};
+	
+	/// <summary>
+	/// Указатель на вертексный шейдер линий
+	/// </summary>
+	unique_ptr<CShader>				m_VSLine{};
+
 	/// <summary>
 	/// Указатель на геометрический шейдер нормалей
 	/// </summary>
 	unique_ptr<CShader>				m_GSNormal{};
+
+	/// <summary>
+	/// Указатель на базовый пиксельный шейдер
+	/// </summary>
+	unique_ptr<CShader>				m_PSBase{};
 	/// <summary>
 	/// Указатель на пиксельный шейдер нормалей
 	/// </summary>
 	unique_ptr<CShader>				m_PSNormal{};
+	
+	// unique_ptr<CShader>				m_PSSky{};
+
+	/// <summary>
+	/// Указатель на пиксельный шейдер линий
+	/// </summary>
+	unique_ptr<CShader>				m_PSLine{};
+
+#pragma endregion
+
 	/// <summary>
 	/// Массив используемых вьюпортов
 	/// </summary>
@@ -668,6 +750,14 @@ private:
 	/// </summary>
 	XMMATRIX						m_MatrixProjection{};
 	/// <summary>
+	/// Расстояние до ближайшей плоскости отсечения левой перспективной проекции
+	/// </summary>
+	float							m_NearZ{};
+	/// <summary>
+	/// Расстояние до дальней плоскости отсечения левой перспективной проекции
+	/// </summary>
+	float							m_FarZ{};
+	/// <summary>
 	/// Матрица вида
 	/// </summary>
 	XMMATRIX						m_MatrixView{};
@@ -688,11 +778,23 @@ private:
 	/// </summary>
 	XMVECTOR						m_BaseUp{};
 private:
-	XMVECTOR						m_PickingRayWorldSpaceOrigin{};//TODO
-	XMVECTOR						m_PickingRayWorldSpaceDirection{};
-	CGameObject* m_PtrPickedGameObject{};
+	XMVECTOR						m_PickingRayWorldSpaceOrigin{};//TODO непонятная фигня
+	XMVECTOR						m_PickingRayWorldSpaceDirection{};//TODO непонятная фигня
+	/// <summary>
+	/// Указатель на выбранный игровой обьект
+	/// </summary>
+	CGameObject*					m_PtrPickedGameObject{};
+	/// <summary>
+	/// Точка выбранного треугольника 0
+	/// </summary>
 	XMVECTOR						m_PickedTriangleV0{};
+	/// <summary>
+	/// Точка выбранного треугольника 1
+	/// </summary>
 	XMVECTOR						m_PickedTriangleV1{};
+	/// <summary>
+	/// Точка выбранного треугольника 2
+	/// </summary>
 	XMVECTOR						m_PickedTriangleV2{};
 private:
 	/// <summary>
@@ -751,47 +853,35 @@ private:
 	
 #pragma region VSBaseResources
 	/// <summary>
-	/// Указатель на константный буфер CBWVP (Constant Buffer World-View-Projection), содержащий матрицу WVP
+	/// Загружаемая в вертексный шейдер структура с данными MVP и World
 	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbVSBaseSpace{};
+	SCBVSSpaceData					cbVSSpaceData{};
 	/// <summary>
-	/// Загружаемая в вертексный шейдер структура
+	/// Указатель на константный буфер с информацией об анимации
 	/// </summary>
-	SCBVSBaseSpaceData				m_cbVSBaseSpaceData{};
+	SCBVSAnimationBonesData			cbVSAnimationBonesData{};
 #pragma endregion
 
 #pragma region PSBaseResources
 	/// <summary>
-	/// Указатель на константный буфер с текущей информацией о текстуре
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbPSBaseFlags{};
-	/// <summary>
-	/// Указатель на константный буфер с текущей информацией о свете
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbPSBaseLights{};
-	/// <summary>
-	/// Указатель на константный буфер с текущей информацией о материале
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbPSBaseMaterial{};
-	/// <summary>
-	/// Указатель на константный буфер с текущей информацией о позиции камеры
-	/// </summary>
-	ComPtr<ID3D11Buffer>			m_cbPSBaseEye{};
-	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура флагов
 	/// </summary>
-	SCBPSBaseFlagsData				m_cbPSBaseFlagsData{};
+	SCBPSBaseFlagsData				cbPSBaseFlagsData{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура освещения
 	/// </summary>
-	SCBPSBaseLightsData				m_cbPSBaseLightsData{};
+	SCBPSBaseLightsData				cbPSBaseLightsData{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура материала
 	/// </summary>
-	SCBPSBaseMaterialData			m_cbPSBaseMaterialData{};
+	SCBPSBaseMaterialData			cbPSBaseMaterialData{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура позиции камеры
 	/// </summary>
-	SCBPSBaseEyeData				m_cbPSBaseEyeData{};
+	SCBPSBaseEyeData				cbPSBaseEyeData{};
+	/// <summary>
+	/// Загружаемая в вертексный шейдер структура с данными о игровом времени
+	/// </summary>
+	SCBPSSkyTimeData				cbPSSkyTimeData{};
 #pragma endregion
 };

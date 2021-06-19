@@ -3,10 +3,19 @@
 //структура доступа для вертексного шейдера (элемент ввода для этапа IA)
 constexpr D3D11_INPUT_ELEMENT_DESC KBaseInputElementDescs[]
 {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "COLOR"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "POSITION"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR"		, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TEXCOORD"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "NORMAL"		, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+	{ "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT	, 1,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "BLENDWEIGHT"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 1, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+//структура для вертексного шейдера линий
+constexpr D3D11_INPUT_ELEMENT_DESC KVSLineInputElementDescs[]
+{
+	{ "POSITION"	, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR"		, 0, DXGI_FORMAT_R32G32B32A32_FLOAT	, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 };
 
 void CGameWindow::CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring& FontFileName, bool bWindowed)
@@ -18,7 +27,10 @@ void CGameWindow::CreateWin32(WNDPROC WndProc, LPCTSTR WindowName, const wstring
 
 void CGameWindow::SetPerspective(float FOV, float NearZ, float FarZ)
 {
-	m_MatrixProjection = XMMatrixPerspectiveFovLH(FOV, m_WindowSize.x / m_WindowSize.y, NearZ, FarZ);
+	m_NearZ = NearZ;
+	m_FarZ = FarZ;
+
+	m_MatrixProjection = XMMatrixPerspectiveFovLH(FOV, m_WindowSize.x / m_WindowSize.y, m_NearZ, m_FarZ);
 }
 
 void CGameWindow::SetGameRenderingFlags(EFlagsGameRendering Flags)
@@ -31,20 +43,27 @@ void CGameWindow::ToggleGameRenderingFlags(EFlagsGameRendering Flags)
 	m_eFlagsGamerendering ^= Flags;
 }
 
+void CGameWindow::SetDirectionalLight(const XMVECTOR& LightSourcePosition)
+{
+	cbPSBaseLightsData.DirectionalLightDirection = XMVector3Normalize(LightSourcePosition);
+
+	m_PSBase->UpdateConstantBuffer(1);
+}
+
 void CGameWindow::SetDirectionalLight(const XMVECTOR& LightSourcePosition, const XMVECTOR& Color)
 {
-	m_cbPSBaseLightsData.DirectionalLightDirection = XMVector3Normalize(LightSourcePosition);
-	m_cbPSBaseLightsData.DirectionalColor = Color;
+	cbPSBaseLightsData.DirectionalLightDirection = XMVector3Normalize(LightSourcePosition);
+	cbPSBaseLightsData.DirectionalColor = Color;
 
-	UpdateCBPSBaseLights();
+	m_PSBase->UpdateConstantBuffer(1);
 }
 
 void CGameWindow::SetAmbientlLight(const XMFLOAT3& Color, float Intensity)
 {
-	m_cbPSBaseLightsData.AmbientLightColor = Color;
-	m_cbPSBaseLightsData.AmbientLightIntensity = Intensity;
+	cbPSBaseLightsData.AmbientLightColor = Color;
+	cbPSBaseLightsData.AmbientLightIntensity = Intensity;
 
-	UpdateCBPSBaseLights();
+	m_PSBase->UpdateConstantBuffer(1);
 }
 
 void CGameWindow::AddCamera(const SCameraData& CameraData)
@@ -226,9 +245,7 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 	CreateInputDevices();
 
-	CreateBaseShaders();
-
-	CreateCBs();
+	CreateShaders();
 
 	CreateMiniAxes();
 
@@ -332,33 +349,44 @@ void CGameWindow::CreateInputDevices()
 	m_Mouse->SetVisible(false);
 }
 
-void CGameWindow::CreateBaseShaders()
+void CGameWindow::CreateShaders()
 {
 	m_VSBase = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_VSBase->Create(EShaderType::VertexShader, L"Shader\\VSBase.hlsl", "main", KBaseInputElementDescs, ARRAYSIZE(KBaseInputElementDescs));
+	m_VSBase->AddConstantBuffer(&cbVSSpaceData, sizeof(SCBVSSpaceData));
 
-	m_PSBase = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
-	m_PSBase->Create(EShaderType::PixelShader, L"Shader\\PSBase.hlsl", "main");
+	// m_VSAnimation = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	// m_VSAnimation->Create(EShaderType::VertexShader, L"Shader\\VSAnimation.hlsl", "main", KBaseInputElementDescs, ARRAYSIZE(KBaseInputElementDescs));
+	// m_VSAnimation->AddConstantBuffer(&cbVSSpaceData, sizeof(SCBVSSpaceData));
+	// m_VSAnimation->AddConstantBuffer(&cbVSAnimationBonesData, sizeof(SCBVSAnimationBonesData));
+	// 
+	// m_VSSky = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	// m_VSSky->Create(EShaderType::VertexShader, L"Shader\\VSSky.hlsl", "main", KBaseInputElementDescs, ARRAYSIZE(KBaseInputElementDescs));
+	// m_VSSky->AddConstantBuffer(&cbVSSpaceData, sizeof(SCBVSSpaceData));
+
+	m_VSLine = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_VSLine->Create(EShaderType::VertexShader, L"Shader\\VSLine.hlsl", "main", KVSLineInputElementDescs, ARRAYSIZE(KVSLineInputElementDescs));
+	m_VSLine->AddConstantBuffer(&cbVSSpaceData, sizeof(SCBVSSpaceData));
 
 	m_GSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_GSNormal->Create(EShaderType::GeometryShader, L"Shader\\GSNormal.hlsl", "main");
 
+	m_PSBase = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSBase->Create(EShaderType::PixelShader, L"Shader\\PSBase.hlsl", "main");
+	m_PSBase->AddConstantBuffer(&cbPSBaseFlagsData, sizeof(SCBPSBaseFlagsData));
+	m_PSBase->AddConstantBuffer(&cbPSBaseLightsData, sizeof(SCBPSBaseLightsData));
+	m_PSBase->AddConstantBuffer(&cbPSBaseMaterialData, sizeof(SCBPSBaseMaterialData));
+	m_PSBase->AddConstantBuffer(&cbPSBaseEyeData, sizeof(SCBPSBaseEyeData));
+
 	m_PSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_PSNormal->Create(EShaderType::PixelShader, L"Shader\\PSNormal.hlsl", "main");
-}
 
-void CGameWindow::CreateCBs()
-{
-	CreateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.GetAddressOf());
+	// m_PSSky = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	// m_PSSky->Create(EShaderType::PixelShader, L"Shader\\PSSky.hlsl", "main");
+	// m_PSSky->AddConstantBuffer(&cbPSSkyTimeData, sizeof(SCBPSSkyTimeData));
 
-	CreateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.GetAddressOf());
-	CreateCB(sizeof(SCBPSBaseLightsData), m_cbPSBaseLights.GetAddressOf());
-	CreateCB(sizeof(SCBPSBaseMaterialData), m_cbPSBaseMaterial.GetAddressOf());
-	CreateCB(sizeof(SCBPSBaseEyeData), m_cbPSBaseEye.GetAddressOf());
-
-	UpdateCBPSBaseFlags();
-	UpdateCBPSBaseLights();
-	UpdateCBPSBaseEye();
+	m_PSLine = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSLine->Create(EShaderType::PixelShader, L"Shader\\PSLine.hlsl", "main");
 }
 
 void CGameWindow::CreateMiniAxes()
@@ -373,14 +401,14 @@ void CGameWindow::CreateMiniAxes()
 	m_vMiniAxisObject3Ds[1]->Create(Cone, vMaterials[1]);
 	m_vMiniAxisObject3Ds[2]->Create(Cone, vMaterials[2]);
 
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesX"));
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesY"));
-	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("MiniAxesZ"));
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("AxisX"));
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("AxisY"));
+	m_vMiniAxisGameObjects.emplace_back(make_unique<CGameObject>("AxisZ"));
 	m_vMiniAxisGameObjects[0]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[0].get();
-	m_vMiniAxisGameObjects[0]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
+	m_vMiniAxisGameObjects[0]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
 	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
 	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
-	m_vMiniAxisGameObjects[2]->ComponentTransform.Rotation = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
+	m_vMiniAxisGameObjects[2]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
 
 	m_vMiniAxisGameObjects[0]->ComponentTransform.Scaling =
 		m_vMiniAxisGameObjects[1]->ComponentTransform.Scaling =
@@ -389,169 +417,6 @@ void CGameWindow::CreateMiniAxes()
 	m_vMiniAxisGameObjects[0]->UpdateWorldMatrix();
 	m_vMiniAxisGameObjects[1]->UpdateWorldMatrix();
 	m_vMiniAxisGameObjects[2]->UpdateWorldMatrix();
-}
-
-void CGameWindow::CreateCB(size_t ByteWidth, ID3D11Buffer** ppBuffer)
-{
-	D3D11_BUFFER_DESC BufferDesc{};
-	BufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;//тип буфера (константный)
-	BufferDesc.ByteWidth = static_cast<UINT>(ByteWidth);//размер буфера
-	BufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;//доступ к буферу со стороны ЦПУ
-	BufferDesc.MiscFlags = 0;//прочие флаги
-	BufferDesc.StructureByteStride = 0;//размер структуры (0 для неструктурированных буферов)
-	BufferDesc.Usage = D3D11_USAGE_DYNAMIC;//режим доступа (сейчас ЦПУ - запись, ГПУ - чтение)
-
-	m_Device->CreateBuffer(&BufferDesc, nullptr, ppBuffer);
-}
-
-void CGameWindow::UpdateCBVSBaseSpace(const XMMATRIX& MatrixWorld)
-{
-	m_cbVSBaseSpaceData.WVP = XMMatrixTranspose(MatrixWorld * m_MatrixView * m_MatrixProjection);//считаем матрицу WVP
-	m_cbVSBaseSpaceData.World = XMMatrixTranspose(MatrixWorld);
-
-	UpdateCB(sizeof(SCBVSBaseSpaceData), m_cbVSBaseSpace.Get(), &m_cbVSBaseSpaceData);//обновляем буфер для гпу
-
-	m_DeviceContext->VSSetConstantBuffers(0, 1, m_cbVSBaseSpace.GetAddressOf());//устанавливает константный буфер для вертексного шейдера
-}
-
-void CGameWindow::UpdateCBPSBaseFlags()
-{
-	UpdateCB(sizeof(SCBPSBaseFlagsData), m_cbPSBaseFlags.Get(), &m_cbPSBaseFlagsData);
-
-	m_DeviceContext->PSSetConstantBuffers(0, 1, m_cbPSBaseFlags.GetAddressOf());//устанавливает константный буфер для пиксельного шейдера
-}
-
-void CGameWindow::UpdateCBPSBaseLights()
-{
-	UpdateCB(sizeof(SCBPSBaseLightsData), m_cbPSBaseLights.Get(), &m_cbPSBaseLightsData);
-
-	m_DeviceContext->PSSetConstantBuffers(1, 1, m_cbPSBaseLights.GetAddressOf());
-}
-
-void CGameWindow::UpdateCBPSBaseMaterial(const SMaterial& Material)
-{
-	m_cbPSBaseMaterialData.MaterialAmbient = Material.MaterialAmbient;
-	m_cbPSBaseMaterialData.MaterialDiffuse = Material.MaterialDiffuse;
-	m_cbPSBaseMaterialData.MaterialSpecular = Material.MaterialSpecular;
-
-	m_cbPSBaseMaterialData.SpecularExponent = Material.SpecularExponent;
-	m_cbPSBaseMaterialData.SpecularIntensity = Material.SpecularIntensity;
-
-	UpdateCB(sizeof(SCBPSBaseMaterialData), m_cbPSBaseMaterial.Get(), &m_cbPSBaseMaterialData);
-
-	m_DeviceContext->PSSetConstantBuffers(2, 1, m_cbPSBaseMaterial.GetAddressOf());
-}
-
-void CGameWindow::UpdateCBPSBaseEye()
-{
-	UpdateCB(sizeof(SCBPSBaseEyeData), m_cbPSBaseEye.Get(), &m_cbPSBaseEyeData);
-
-	m_DeviceContext->PSSetConstantBuffers(3, 1, m_cbPSBaseEye.GetAddressOf());
-}
-
-void CGameWindow::UpdateCB(size_t ByteWidth, ID3D11Buffer* pBuffer, const void* pValue)
-{
-	D3D11_MAPPED_SUBRESOURCE MappedSubresource{};
-	if (SUCCEEDED(m_DeviceContext->Map(pBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedSubresource)))//запрещаем доступ графическому процессору к константному буферу
-	{
-		memcpy(MappedSubresource.pData, pValue, ByteWidth);//копируем новое значение константного буфера
-
-		m_DeviceContext->Unmap(pBuffer, 0);//вновь разрешаем доступ графическому процессору к константному буферу
-	}
-}
-
-CShader* CGameWindow::AddShader()
-{
-	m_vShaders.emplace_back(make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get()));
-	return m_vShaders.back().get();
-}
-
-CShader* CGameWindow::GetShader(size_t Index)
-{
-	assert(Index < m_vShaders.size());
-	return m_vShaders[Index].get();
-}
-
-CObject3D* CGameWindow::AddObject3D()
-{
-	m_vObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
-	return m_vObject3Ds.back().get();
-}
-
-CObject3D* CGameWindow::GetObject3D(size_t Index)
-{
-	assert(Index < m_vObject3Ds.size());
-	return m_vObject3Ds[Index].get();
-}
-
-CTexture* CGameWindow::AddTexture()
-{
-	m_vTextures.emplace_back(make_unique<CTexture>(m_Device.Get(), m_DeviceContext.Get()));
-	return m_vTextures.back().get();
-}
-
-CTexture* CGameWindow::GetTexture(size_t Index)
-{
-	assert(Index < m_vTextures.size());
-	return m_vTextures[Index].get();
-}
-
-CGameObject* CGameWindow::AddGameObject(const string& Name)
-{
-	assert(m_mapGameObjectNameToIndex.find(Name) == m_mapGameObjectNameToIndex.end());
-
-	m_vGameObjects.emplace_back(make_unique<CGameObject>(Name));
-
-	m_mapGameObjectNameToIndex[Name] = m_vGameObjects.size() - 1;
-
-	return m_vGameObjects.back().get();
-}
-
-CGameObject* CGameWindow::GetGameObject(size_t Index)
-{
-	assert(Index < m_vGameObjects.size());
-	return m_vGameObjects[Index].get();
-}
-
-void CGameWindow::SetRasterizerState(ERasterizerState State)
-{
-	m_eRasterizerState = State;
-}
-
-void CGameWindow::Pick(int ScreenMousePositionX, int ScreenMousePositionY)
-{
-	float ViewSpaceRayDirectionX{ (ScreenMousePositionX / (m_WindowSize.x / 2.0f) - 1.0f) / XMVectorGetX(m_MatrixProjection.r[0]) };
-	float ViewSpaceRayDirectionY{ (-(ScreenMousePositionY / (m_WindowSize.y / 2.0f) - 1.0f)) / XMVectorGetY(m_MatrixProjection.r[1]) };
-	float ViewSpaceRayDirectionZ{ 1.0f };
-
-	XMVECTOR ViewSpaceRayOrigin{ XMVectorSet(0, 0, 0, 1) };
-	XMVECTOR ViewSpaceRayDirection{ XMVectorSet(ViewSpaceRayDirectionX, ViewSpaceRayDirectionY, ViewSpaceRayDirectionZ, 0) };
-
-	XMMATRIX MatrixViewInverse{ XMMatrixInverse(nullptr, m_MatrixView) };
-	m_PickingRayWorldSpaceOrigin = XMVector3TransformCoord(ViewSpaceRayOrigin, MatrixViewInverse);
-	m_PickingRayWorldSpaceDirection = XMVector3TransformNormal(ViewSpaceRayDirection, MatrixViewInverse);
-
-	UpdatePickingRay();
-
-	PickBoundingSphere();
-
-	PickTriangle();
-}
-
-void CGameWindow::UpdatePickingRay()
-{
-	m_ObjectLinePickingRay->vVertices[0].Position = m_PickingRayWorldSpaceOrigin;
-	m_ObjectLinePickingRay->vVertices[1].Position = m_PickingRayWorldSpaceOrigin + m_PickingRayWorldSpaceDirection * KPickingRayLength;
-	m_ObjectLinePickingRay->Update();
-}
-
-const char* CGameWindow::GetPickedGameObjectName()
-{
-	if (m_PtrPickedGameObject)
-	{
-		return m_PtrPickedGameObject->m_Name.c_str();
-	}
-	return nullptr;
 }
 
 void CGameWindow::CreatePickingRay()
@@ -602,7 +467,6 @@ void CGameWindow::PickBoundingSphere()
 			}
 		}
 	}
-	;
 }
 
 void CGameWindow::PickTriangle()
@@ -646,12 +510,103 @@ void CGameWindow::PickTriangle()
 	}
 }
 
+CShader* CGameWindow::AddShader()
+{
+	m_vShaders.emplace_back(make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get()));
+	return m_vShaders.back().get();
+}
+
+CShader* CGameWindow::GetShader(size_t Index)
+{
+	assert(Index < m_vShaders.size());
+	return m_vShaders[Index].get();
+}
+
+CObject3D* CGameWindow::AddObject3D()
+{
+	m_vObject3Ds.emplace_back(make_unique<CObject3D>(m_Device.Get(), m_DeviceContext.Get(), this));
+	return m_vObject3Ds.back().get();
+}
+
+CObject3D* CGameWindow::GetObject3D(size_t Index)
+{
+	assert(Index < m_vObject3Ds.size());
+	return m_vObject3Ds[Index].get();
+}
+
+CTexture* CGameWindow::AddTexture()
+{
+	m_vTextures.emplace_back(make_unique<CTexture>(m_Device.Get(), m_DeviceContext.Get()));
+	return m_vTextures.back().get();
+}
+
+CTexture* CGameWindow::GetTexture(size_t Index)
+{
+	assert(Index < m_vTextures.size());
+	return m_vTextures[Index].get();
+}
+
+CGameObject* CGameWindow::AddGameObject(const string& Name)
+{
+	assert(m_mapGameObjectNameToIndex.find(Name) == m_mapGameObjectNameToIndex.end());
+
+	m_vGameObjects.emplace_back(make_unique<CGameObject>(Name));
+
+	m_mapGameObjectNameToIndex[Name] = m_vGameObjects.size() - 1;
+
+	return m_vGameObjects.back().get();
+}
+
+CGameObject* CGameWindow::GetGameObject(const string& Name)
+{
+	assert(m_mapGameObjectNameToIndex.find(Name) != m_mapGameObjectNameToIndex.end());
+	return m_vGameObjects[m_mapGameObjectNameToIndex[Name]].get();
+}
+
+CGameObject* CGameWindow::GetGameObject(size_t Index)
+{
+	assert(Index < m_vGameObjects.size());
+	return m_vGameObjects[Index].get();
+}
+
+void CGameWindow::SetRasterizerState(ERasterizerState State)
+{
+	m_eRasterizerState = State;
+}
+
+void CGameWindow::Pick(int ScreenMousePositionX, int ScreenMousePositionY)
+{
+	float ViewSpaceRayDirectionX{ (ScreenMousePositionX / (m_WindowSize.x / 2.0f) - 1.0f) / XMVectorGetX(m_MatrixProjection.r[0]) };
+	float ViewSpaceRayDirectionY{ (-(ScreenMousePositionY / (m_WindowSize.y / 2.0f) - 1.0f)) / XMVectorGetY(m_MatrixProjection.r[1]) };
+	float ViewSpaceRayDirectionZ{ 1.0f };
+
+	XMVECTOR ViewSpaceRayOrigin{ XMVectorSet(0, 0, 0, 1) };
+	XMVECTOR ViewSpaceRayDirection{ XMVectorSet(ViewSpaceRayDirectionX, ViewSpaceRayDirectionY, ViewSpaceRayDirectionZ, 0) };
+
+	XMMATRIX MatrixViewInverse{ XMMatrixInverse(nullptr, m_MatrixView) };
+	m_PickingRayWorldSpaceOrigin = XMVector3TransformCoord(ViewSpaceRayOrigin, MatrixViewInverse);
+	m_PickingRayWorldSpaceDirection = XMVector3TransformNormal(ViewSpaceRayDirection, MatrixViewInverse);
+
+	UpdatePickingRay();
+
+	PickBoundingSphere();
+
+	PickTriangle();
+}
+
+const char* CGameWindow::GetPickedGameObjectName()
+{
+	if (m_PtrPickedGameObject)
+	{
+		return m_PtrPickedGameObject->m_Name.c_str();
+	}
+	return nullptr;
+}
+
 void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 {
 	m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), ClearColor);//делаем заливку всей области заданным цветом
 	m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
-	
-	m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
 
 	ID3D11SamplerState* SamplerState{ m_CommonStates->LinearWrap() };//состояние сэмплера
 	m_DeviceContext->PSSetSamplers(0, 1, &SamplerState);//установка состояния сэмплера наэтапе пиксельного шейдера
@@ -659,6 +614,333 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 	m_DeviceContext->OMSetBlendState(m_CommonStates->AlphaBlend(), nullptr, 0xFFFFFFFF);//установка состояния смешивателя (blender-а) наэтапе слияния вывода (смешивание - обьединение пикселей с учетом прозрачности)
 
 	//установка состояния растеризатора
+	SetGameWindowCullMode();
+	
+	m_MatrixView = XMMatrixLookAtLH(m_PtrCurrentCamera->EyePosition, m_PtrCurrentCamera->FocusPosition, m_PtrCurrentCamera->UpDirection);//создание матрицы вида на основе текущего состояния камеры
+}
+
+void CGameWindow::AnimateGameObjects()
+{
+	for (auto& go : m_vGameObjects)
+	{
+		if (go->ComponentRender.PtrObject3D) go->ComponentRender.PtrObject3D->Animate();
+	}
+}
+
+void CGameWindow::DrawGameObjects(float DeltaTime)
+{
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//устанавливаем основной вьюпорт
+
+	//если установлен флаг использования света, говорим об этом пиксельному шейдеру
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::UseLighting))
+	{
+		cbPSBaseFlagsData.bUseLighting = TRUE;
+	}
+	//обновление позиции камеры
+	cbPSBaseEyeData.EyePosition = m_PtrCurrentCamera->EyePosition;
+
+	// Update directional light source position //TODO day/week light intensity
+	// static float DirectionalLightRoll{};
+	// DirectionalLightRoll += XM_2PI * DeltaTime * KSkyTimeFactorAbsolute / 4.0f;
+	// if (DirectionalLightRoll >= XM_PIDIV2) DirectionalLightRoll = -XM_PIDIV2;
+	// XMVECTOR DirectionalLightSourcePosition{ XMVector3TransformCoord(XMVectorSet(0, 1, 0, 1), XMMatrixRotationRollPitchYaw(0, 0, DirectionalLightRoll)) };
+	// SetDirectionalLight(DirectionalLightSourcePosition);
+
+	//обработка обьектов с прозрачной текстурой
+	for (auto& go : m_vGameObjects)
+	{
+		if (go->ComponentRender.IsTransparent) continue;
+
+		UpdateGameObject(go.get(), DeltaTime);
+		DrawGameObject(go.get());
+		DrawGameObjectBoundingSphere(go.get());
+	}
+	//обработка обьектов с непрозрачной текстурой
+	for (auto& go : m_vGameObjects)
+	{
+		if (!go->ComponentRender.IsTransparent) continue;
+
+		UpdateGameObject(go.get(), DeltaTime);
+		DrawGameObject(go.get());
+		DrawGameObjectBoundingSphere(go.get());
+	}
+
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::DrawNormals))//если установлен флаг отрисовки нормалей
+	{
+		m_VSBase->Use();
+		m_GSNormal->Use();//применяем геометрический шейдер нормалей
+		m_PSNormal->Use();//применяем пиксельный шейдер нормалей
+		//рисуем нормали
+		for (auto& go : m_vGameObjects)
+		{
+			DrawGameObjectNormal(go.get());
+		}
+
+		m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сброс геометрического шейдера
+	}
+
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::DrawMiniAxes))
+	{
+		DrawMiniAxes();
+	}
+
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::DrawPickingData))
+	{
+		DrawPickingRay();
+
+		DrawPickedTriangle();
+	}
+}
+
+void CGameWindow::DrawMiniAxes()
+{
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[1]);//установка альтернативного вьюпорта
+
+	m_VSBase->Use();//применяем базовый вертексный шейдер
+	m_PSBase->Use();//применяем базовый пиксельный шейдер
+	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сбрасываем геометрический шейдер
+	//сбрасываем константный буфер пиксельного шейдера (не используем текстуры и свет)
+	cbPSBaseFlagsData.bUseTexture = FALSE;
+	cbPSBaseFlagsData.bUseLighting = FALSE;
+	m_PSBase->UpdateConstantBuffer(0);
+
+	for (auto& i : m_vMiniAxisGameObjects)//перебор всех осей представления
+	{
+		//обновляем мировую матрицу для отрисовки осей
+		cbVSSpaceData.World = XMMatrixTranspose(i->ComponentTransform.MatrixWorld);
+		cbVSSpaceData.WVP = XMMatrixTranspose(i->ComponentTransform.MatrixWorld * m_MatrixView * m_MatrixProjection);
+		m_VSBase->UpdateConstantBuffer(0);
+
+		i->ComponentRender.PtrObject3D->Draw();//отрисовка
+
+		i->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + m_PtrCurrentCamera->Forward;//смещение обьекта (следование за камерой)
+		i->UpdateWorldMatrix();//обновление мировой матрицы оси
+	}
+
+	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//установка основного вьюпорта
+}
+
+void CGameWindow::DrawPickingRay()
+{
+	m_DeviceContext->RSSetState(m_CommonStates->CullNone());
+
+	m_VSLine->Use();
+	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);
+	m_PSLine->Use();
+
+	cbVSSpaceData.World = XMMatrixTranspose(KMatrixIdentity);
+	cbVSSpaceData.WVP = XMMatrixTranspose(KMatrixIdentity * m_MatrixView * m_MatrixProjection);
+	m_VSLine->UpdateConstantBuffer(0);
+
+	m_ObjectLinePickingRay->Draw();
+}
+
+void CGameWindow::DrawPickedTriangle()
+{
+	m_VSBase->Use();
+	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);
+	m_PSNormal->Use();
+
+	cbVSSpaceData.World = XMMatrixTranspose(KMatrixIdentity);
+	cbVSSpaceData.WVP = XMMatrixTranspose(KMatrixIdentity * m_MatrixView * m_MatrixProjection);
+	m_VSBase->UpdateConstantBuffer(0);
+
+	m_Object3DPickedTriangle->m_Model.vMeshes[0].vVertices[0].Position = m_PickedTriangleV0;
+	m_Object3DPickedTriangle->m_Model.vMeshes[0].vVertices[1].Position = m_PickedTriangleV1;
+	m_Object3DPickedTriangle->m_Model.vMeshes[0].vVertices[2].Position = m_PickedTriangleV2;
+	m_Object3DPickedTriangle->UpdateMeshBuffer();
+
+	m_Object3DPickedTriangle->Draw();
+}
+
+void CGameWindow::UpdateGameObject(CGameObject* PtrGO, float DeltaTime)
+{
+	CShader* VS{ m_VSBase.get() };
+	CShader* PS{ m_PSBase.get() };
+
+	cbVSSpaceData.World = XMMatrixTranspose(PtrGO->ComponentTransform.MatrixWorld);
+	cbVSSpaceData.WVP = XMMatrixTranspose(PtrGO->ComponentTransform.MatrixWorld * m_MatrixView * m_MatrixProjection);
+
+	// Set VS
+	if (PtrGO->ComponentRender.PtrObject3D->m_Model.bIsAnimated)
+	{
+		VS = m_VSAnimation.get();
+	}
+	else
+	{
+		// if (PtrGO == m_PtrSky || PtrGO == m_PtrCloud || PtrGO == m_PtrSun || PtrGO == m_PtrMoon)
+		// {
+		// 	VS = m_VSSky.get();
+		// }
+	}
+
+	// Set PS
+	// if (PtrGO == m_PtrSky)
+	// {
+	// 	PS = m_PSSky.get();
+	// }
+	// 
+	// if (PtrGO == m_PtrSky)
+	// {
+	// 	static float SkyTime{ 1.0f };
+	// 	static float SkyTimeFactor{ KSkyTimeFactorAbsolute };
+	// 
+	// 	SkyTime -= DeltaTime * SkyTimeFactor;
+	// 	if (SkyTime < -1.0f) SkyTimeFactor = -SkyTimeFactor;
+	// 	if (SkyTime > +1.0f) SkyTimeFactor = -SkyTimeFactor;
+	// 
+	// 	PtrGO->ComponentTransform.Scaling = XMVectorSet(KSkyDistance, KSkyDistance, KSkyDistance, 0);
+	// 	PtrGO->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition;
+	// 	PtrGO->UpdateWorldMatrix();
+	// 
+	// 	cbPSSkyTimeData.SkyTime = SkyTime;
+	// }
+	// 
+	// if (PtrGO == m_PtrCloud)
+	// {
+	// 	static float Yaw{};
+	// 	Yaw -= XM_2PI * DeltaTime * 0.01f;
+	// 	if (Yaw <= -XM_2PI) Yaw = 0;
+	// 
+	// 	XMVECTOR Offset{ XMVector3TransformCoord(XMVectorSet(0, 0, KSkyDistance, 1), XMMatrixRotationRollPitchYaw(-XM_PIDIV4, Yaw, 0)) };
+	// 	PtrGO->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + Offset;
+	// 
+	// 	PtrGO->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 - XM_PIDIV4, Yaw, 0);
+	// 
+	// 	PtrGO->UpdateWorldMatrix();
+	// }
+	// 
+	// if (PtrGO == m_PtrSun)
+	// {
+	// 	static float SunRoll{};
+	// 	SunRoll += XM_2PI * DeltaTime * KSkyTimeFactorAbsolute / 4.0f;
+	// 	if (SunRoll >= XM_2PI) SunRoll = 0;
+	// 
+	// 	XMVECTOR Offset{ XMVector3TransformCoord(XMVectorSet(KSkyDistance, 0, 0, 1), XMMatrixRotationRollPitchYaw(0, 0, XM_PIDIV2 + SunRoll)) };
+	// 	PtrGO->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + Offset;
+	// 
+	// 	PtrGO->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, XM_PIDIV2 + SunRoll);
+	// 
+	// 	PtrGO->UpdateWorldMatrix();
+	// }
+	// 
+	// if (PtrGO == m_PtrMoon)
+	// {
+	// 	static float MoonRoll{};
+	// 	MoonRoll += XM_2PI * DeltaTime * KSkyTimeFactorAbsolute / 4.0f;
+	// 	if (MoonRoll >= XM_2PI) MoonRoll = 0;
+	// 
+	// 	XMVECTOR Offset{ XMVector3TransformCoord(XMVectorSet(KSkyDistance, 0, 0, 1), XMMatrixRotationRollPitchYaw(0, 0, -XM_PIDIV2 + MoonRoll)) };
+	// 	PtrGO->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + Offset;
+	// 
+	// 	PtrGO->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2 + MoonRoll);
+	// 
+	// 	PtrGO->UpdateWorldMatrix();
+	// }
+
+	if (EFLAG_HAS(PtrGO->eFlagsGameObjectRendering, EFlagsGameObjectRendering::NoLighting))
+	{
+		cbPSBaseFlagsData.bUseLighting = FALSE;
+	}
+	else
+	{
+		SetGameWindowUseLighiting();
+	}
+
+	if (PtrGO->ComponentRender.PtrTexture)
+	{
+		cbPSBaseFlagsData.bUseTexture = TRUE;
+		PtrGO->ComponentRender.PtrTexture->Use();
+	}
+	else
+	{
+		cbPSBaseFlagsData.bUseTexture = FALSE;
+	}
+
+	VS->UpdateAllConstantBuffers();
+	VS->Use();
+	VS->UpdateAllConstantBuffers();
+
+	PS->UpdateAllConstantBuffers();
+	PS->Use();
+	PS->UpdateAllConstantBuffers();
+}
+
+void CGameWindow::UpdatePickingRay()
+{
+	m_ObjectLinePickingRay->vVertices[0].Position = m_PickingRayWorldSpaceOrigin;
+	m_ObjectLinePickingRay->vVertices[1].Position = m_PickingRayWorldSpaceOrigin + m_PickingRayWorldSpaceDirection * KPickingRayLength;
+	m_ObjectLinePickingRay->Update();
+}
+
+void CGameWindow::DrawGameObject(CGameObject* PtrGO)
+{
+	assert(PtrGO->ComponentRender.PtrObject3D);
+	
+	if (EFLAG_HAS(PtrGO->eFlagsGameObjectRendering, EFlagsGameObjectRendering::NoCulling))
+	{
+		m_DeviceContext->RSSetState(m_CommonStates->CullNone());//отключение отрисовки
+	}
+	else
+	{
+		SetGameWindowCullMode();//отрисовка граней в соответствии с выбранными флагами растеризатора
+	}
+
+	if (EFLAG_HAS(PtrGO->eFlagsGameObjectRendering, EFlagsGameObjectRendering::NoDepthComparison))
+	{
+		m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthNone(), 0);//отключение буфера глубины
+	}
+	else
+	{
+		m_DeviceContext->OMSetDepthStencilState(m_CommonStates->DepthDefault(), 0);//обнуление значений трафарета глубины на этапе слияния-вывода OM
+	}
+
+	PtrGO->ComponentRender.PtrObject3D->Draw();
+}
+
+void CGameWindow::DrawGameObjectNormal(CGameObject* PtrGO)
+{
+	if (PtrGO->ComponentRender.PtrObject3D)
+	{
+		if (PtrGO->ComponentRender.PtrObject3D->m_Model.bIsAnimated)
+		{
+			m_VSAnimation->Use();
+		}
+		else
+		{
+			m_VSBase->Use();
+		}
+
+		PtrGO->ComponentRender.PtrObject3D->DrawNormals();
+	}
+}
+
+void CGameWindow::DrawGameObjectBoundingSphere(CGameObject* PtrGO)
+{
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::DrawBoundingSphere))
+	{
+		// if (PtrGO == m_PtrSky || PtrGO == m_PtrCloud || PtrGO == m_PtrSun || PtrGO == m_PtrMoon) return; // TODO sky
+
+		m_VSBase->Use();
+
+		XMMATRIX Translation{ XMMatrixTranslationFromVector(PtrGO->ComponentTransform.Translation + PtrGO->ComponentPhysics.BoundingSphere.CenterOffset) };
+		XMMATRIX Scaling{ XMMatrixScaling(PtrGO->ComponentPhysics.BoundingSphere.Radius,
+			PtrGO->ComponentPhysics.BoundingSphere.Radius, PtrGO->ComponentPhysics.BoundingSphere.Radius) };
+		XMMATRIX World{ Scaling * Translation };
+		cbVSSpaceData.World = XMMatrixTranspose(World);
+		cbVSSpaceData.WVP = XMMatrixTranspose(World * m_MatrixView * m_MatrixProjection);
+		m_VSBase->UpdateConstantBuffer(0);
+
+		m_DeviceContext->RSSetState(m_CommonStates->Wireframe());
+
+		m_Object3DBoundingSphere->Draw();
+
+		SetGameWindowCullMode();
+	}
+}
+
+void CGameWindow::SetGameWindowCullMode()
+{
 	switch (m_eRasterizerState)
 	{
 	case ERasterizerState::CullNone:
@@ -676,106 +958,13 @@ void CGameWindow::BeginRendering(const FLOAT* ClearColor)
 	default:
 		break;
 	}
-	
-	m_MatrixView = XMMatrixLookAtLH(m_PtrCurrentCamera->EyePosition, m_PtrCurrentCamera->FocusPosition, m_PtrCurrentCamera->UpDirection);//создание матрицы вида на основе текущего состояния камеры
 }
 
-void CGameWindow::DrawGameObjects()
+void CGameWindow::SetGameWindowUseLighiting()
 {
-	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//устанавливаем основной вьюпорт
-
-	m_VSBase->Use();//применяем базовый вертексный шейдер
-	m_PSBase->Use();//применяем базовый пиксельный шейдер
-	//если установлен флаг использования света, говорим об этом пиксельному шейдеру
-	if ((m_eFlagsGamerendering & EFlagsGameRendering::UseLighting) == EFlagsGameRendering::UseLighting)
+	if (EFLAG_HAS(m_eFlagsGamerendering, EFlagsGameRendering::UseLighting))
 	{
-		m_cbPSBaseFlagsData.bUseLighting = TRUE;
-	}
-	//обновление позиции камеры
-	m_cbPSBaseEyeData.EyePosition = m_PtrCurrentCamera->EyePosition;
-	UpdateCBPSBaseEye();
-	//обработка обьектов с прозрачной текстурой
-	for (auto& go : m_vGameObjects)
-	{
-		if (go->ComponentRender.IsTransparent) continue;
-
-		DrawGameObject(go.get());
-	}
-	//обработка обьектов с непрозрачной текстурой
-	for (auto& go : m_vGameObjects)
-	{
-		if (!go->ComponentRender.IsTransparent) continue;
-
-		DrawGameObject(go.get());
-	}
-
-	if ((m_eFlagsGamerendering & EFlagsGameRendering::DrawNormals) == EFlagsGameRendering::DrawNormals)//если установлен флаг отрисовки нормалей
-	{
-		m_GSNormal->Use();//применяем геометрический шейдер нормалей
-		m_PSNormal->Use();//применяем пиксельный шейдер нормалей
-		//рисуем нормали
-		for (auto& go : m_vGameObjects)
-		{
-			DrawGameObjectNormal(go.get());
-		}
-
-		m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сброс геометрического шейдера
-	}
-}
-
-void CGameWindow::DrawMiniAxes()
-{
-	m_DeviceContext->RSSetViewports(1, &m_vViewports[1]);//установка альтернативного вьюпорта
-
-	m_VSBase->Use();//применяем базовый вертексный шейдер
-	m_PSBase->Use();//применяем базовый пиксельный шейдер
-	m_DeviceContext->GSSetShader(nullptr, nullptr, 0);//сбрасываем геометрический шейдер
-
-	m_cbPSBaseFlagsData.bUseTexture = FALSE;
-	m_cbPSBaseFlagsData.bUseLighting = FALSE;
-	UpdateCBPSBaseFlags();//сбрасываем константный буфер пиксельного шейдера (не используем текстуры и свет)
-
-	for (auto& i : m_vMiniAxisGameObjects)//перебор всех осей представления
-	{
-		UpdateCBVSBaseSpace(i->ComponentTransform.MatrixWorld);//обновляем мировую матрицу у всех обьектов
-
-		i->ComponentRender.PtrObject3D->Draw();//отрисовка
-
-		i->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition + m_PtrCurrentCamera->Forward;//смещение обьекта (следование за камерой)
-		i->UpdateWorldMatrix();//обновление мировой матрицы оси
-	}
-
-	m_DeviceContext->RSSetViewports(1, &m_vViewports[0]);//установка основного вьюпорта
-}
-
-void CGameWindow::DrawGameObject(CGameObject* PtrGO)
-{
-	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);//обновляем константный буфер WVP вертексного шейдера
-
-	if (PtrGO->ComponentRender.PtrTexture)//если есть указатель на текстуру
-	{
-		m_cbPSBaseFlagsData.bUseTexture = TRUE;//обновляем константный буфер пиксельного шейдера (текстуры), указываем что она есть
-		PtrGO->ComponentRender.PtrTexture->Use();//привязываем шейдер и текстуру к эт
-	}
-	else
-	{
-		m_cbPSBaseFlagsData.bUseTexture = FALSE;//обновляем константный буфер пиксельного шейдера (текстуры), указываем что ее нет
-	}
-	UpdateCBPSBaseFlags();
-
-	if (PtrGO->ComponentRender.PtrObject3D)
-	{
-		PtrGO->ComponentRender.PtrObject3D->Draw();//отрисовываем полигоны
-	}
-}
-
-void CGameWindow::DrawGameObjectNormal(CGameObject* PtrGO)
-{
-	UpdateCBVSBaseSpace(PtrGO->ComponentTransform.MatrixWorld);
-
-	if (PtrGO->ComponentRender.PtrObject3D)
-	{
-		PtrGO->ComponentRender.PtrObject3D->DrawNormals();
+		cbPSBaseFlagsData.bUseLighting = TRUE;
 	}
 }
 

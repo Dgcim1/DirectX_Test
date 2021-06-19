@@ -3,6 +3,9 @@
 #include "SharedHeader.h"
 #include "Texture.h"
 
+static constexpr uint32_t KMaxWeightCount{ 4 };
+static constexpr uint32_t KMaxBoneMatrixCount{ 60 };
+
 class CGameWindow;
 
 /// <summary>
@@ -33,6 +36,15 @@ struct SVertex3D
 };
 
 /// <summary>
+/// TODO анимации
+/// </summary>
+struct SVertexAnimation
+{
+	uint32_t	BoneIDs[KMaxWeightCount]{};
+	float		Weights[KMaxWeightCount]{};
+};
+
+/// <summary>
 /// Информация о 3D обьекте, состоящая из вершин, полигонов и идентификатора материала
 /// </summary>
 struct SMesh
@@ -41,7 +53,10 @@ struct SMesh
 	/// Набор вершин
 	/// </summary>
 	vector<SVertex3D>	vVertices{};
-
+	/// <summary>
+	/// Набор анимируемых вершин
+	/// </summary>
+	vector<SVertexAnimation>	vVerticesAnimation{};
 	/// <summary>
 	/// Набор полигонов (3 точки - порядковые номера массива вершин)
 	/// </summary>
@@ -52,6 +67,7 @@ struct SMesh
 	size_t				MaterialID{};
 };
 
+// TODO
 struct SModelNode
 {
 	struct SBlendWeight
@@ -74,6 +90,7 @@ struct SModelNode
 	XMMATRIX				MatrixBoneOffset{};
 };
 
+// TODO
 struct SModelNodeAnimation
 {
 	struct SKey
@@ -89,6 +106,7 @@ struct SModelNodeAnimation
 	vector<SKey>	vScalingKeys{};
 };
 
+// TODO
 struct SModelAnimation
 {
 	vector<SModelNodeAnimation>		vNodeAnimations{};
@@ -116,6 +134,12 @@ struct SMeshBuffers
 	/// Значение смещения. Каждое смещение - это количество байтов между первым элементом буфера вершин и первым элементом, который будет использоваться.
 	/// </summary>
 	UINT					VertexBufferOffset{};
+
+	//TODO то же для анимации
+	ComPtr<ID3D11Buffer>	VertexBufferAnimation{};
+	UINT					VertexBufferAnimationStride{ sizeof(SVertexAnimation) };
+	UINT					VertexBufferAnimationOffset{};
+
 	/// <summary>
 	/// Указатель на буфер индексов
 	/// </summary>
@@ -168,10 +192,6 @@ struct SMaterial
 	/// Путь к файлу с текстурой
 	/// </summary>
 	string		TextureFileName{};
-	/// <summary>
-	/// Идентификатор текстуры
-	/// </summary>
-	size_t		TextureID{};
 	/// <summary>
 	/// WIC текстуры (условно говоря сама текстура)
 	/// </summary>
@@ -239,12 +259,28 @@ public:
 	/// </summary>
 	/// <param name="Model">Модель 3D обьекта</param>
 	void Create(const SModel& Model);
+
+	void UpdateQuadUV(const XMFLOAT2& UVOffset, const XMFLOAT2& UVSize);
+
+	void Animate();
 private:
 	/// <summary>
 	/// Создает вертексный и индексный буферы заданного меша данного 3D обьекта и привязывает их к устройству
 	/// </summary>
 	/// <param name="MeshIndex">Индекс меша в массиве</param>
-	void CreateMeshBuffers(size_t MeshIndex);
+	/// <param name="IsAnimated">Является ли обьект анимированным</param>
+	void CreateMeshBuffers(size_t MeshIndex, bool IsAnimated);
+	/// <summary>
+	/// Загрузка меша в Vertex Buffer
+	/// </summary>
+	/// <param name="MeshIndex">Индекс загружаемого меша</param>
+	void UpdateMeshBuffer(size_t MeshIndex = 0);
+	/// <summary>
+	/// TODO animation
+	/// </summary>
+	/// <param name="Node"></param>
+	/// <param name="ParentTransform"></param>
+	void CalculateAnimatedBoneMatrices(const SModelNode& Node, XMMATRIX ParentTransform);
 	/// <summary>
 	/// Привязываем вертексный и индексный буферы (полигоны) к конвейеру и рисуем их
 	/// </summary>
@@ -278,5 +314,10 @@ private:
 	/// <summary>
 	/// Массив указателей на текстуру модели
 	/// </summary>
-	vector<unique_ptr<CTexture>>	m_vTextures{};
+	vector<unique_ptr<CTexture>>	m_vEmbeddedTextures{};
+
+	// TODO animation
+	XMMATRIX						m_AnimatedBoneMatrices[KMaxBoneMatrixCount]{};
+	size_t							m_CurrentAnimationIndex{};
+	float							m_CurrentAnimationTick{};
 };
