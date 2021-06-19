@@ -46,6 +46,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		TextureGround->CreateFromFile(L"Asset\\ground.png");
 	}
+	CTexture* TextureGlass{ GameWindow.AddTexture() };
+	{
+		TextureGlass->CreateFromFile(L"Asset\\test.png");
+	}
 	//создаем 3D обьекты
 
 
@@ -82,18 +86,22 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
 	}
 
-	// CObject3D* TestPolygonObject3D{ GameWindow.AddObject3D() };
-	// {
-	// 	SMaterial Material{ XMFLOAT3(1.0f, 0.5f, 1.0f) };
-	// 	Material.SpecularExponent = 20.0f;
-	// 	Material.SpecularIntensity = 0.8f;
-	// 	TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(1, 1, 8, 1), XMVectorSet(1, 0, 8, 1), XMVectorSet(0, 1, 8, 1), Colors::Green), Material);
-	// }
-	// CGameObject* TestPolygonObject{ GameWindow.AddGameObject("testPolygon") };
-	// {
-	// 	TestPolygonObject->UpdateWorldMatrix();
-	// 	TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
-	// }
+	CObject3D* TestPolygonObject3D{ GameWindow.AddObject3D() };
+	{
+		SMaterial Material{ XMFLOAT3(1.0f, 0.5f, 1.0f) };
+		Material.SpecularExponent = 20.0f;
+		Material.SpecularIntensity = 0.8f;
+		//TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(1, 1, 8, 1), XMVectorSet(1, 0, 8, 1), XMVectorSet(0, 1, 8, 1), Colors::Green), Material);
+		TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(4, 4, -4, 1), XMVectorSet(4, 0, -4, 1), XMVectorSet(0, 4, -4, 1), XMVectorSet(1, 0, 0, 0.4f)), Material);
+	}
+	CGameObject* TestPolygonObject{ GameWindow.AddGameObject("testPolygon") };
+	{
+		TestPolygonObject->UpdateWorldMatrix();
+		TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
+		TestPolygonObject->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoLighting;
+		TestPolygonObject->ComponentRender.PtrTexture = TextureGlass;
+		TestPolygonObject->ComponentRender.IsTransparent = true;
+	}
 
 	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
 	{
