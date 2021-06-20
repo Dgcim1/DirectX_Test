@@ -48,7 +48,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	CTexture* TextureGlass{ GameWindow.AddTexture() };
 	{
-		TextureGlass->CreateFromFile(L"Asset\\test.png");
+		TextureGlass->CreateFromFile(L"Asset\\ghost-color.png");
 	}
 	//создаем 3D обьекты
 
@@ -57,7 +57,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		//SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
 		//SModel Model{ LoadModelFromFile("Asset/Underworld/AltarCandlet.obj") };
-		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger2.obj") };
+		//SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger2.obj") };
+		SModel Model{ LoadStaticModelFromFile("Asset/Floating+Cape+2.obj") };
 		//SModel Model{ LoadModelFromFile("Asset/Wooden-Crates_FBX.fbx") };
 		//SModel Model{ LoadModelFromFile("Asset/DarkCave_FBX.fbx") };
 		ObjectFarmhouse->Create(Model);
@@ -65,10 +66,14 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CGameObject* goFarmhouse{ GameWindow.AddGameObject("farmhouse")};
 	{
 		goFarmhouse->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
-		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
+		//goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
+		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
 		goFarmhouse->UpdateWorldMatrix();
 
 		goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
+		goFarmhouse->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
+		goFarmhouse->ComponentRender.PtrTexture = TextureGlass;
+		goFarmhouse->ComponentRender.IsTransparent = true;
 	}
 
 
@@ -98,7 +103,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		TestPolygonObject->UpdateWorldMatrix();
 		TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
-		TestPolygonObject->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoLighting;
+		TestPolygonObject->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
 		TestPolygonObject->ComponentRender.PtrTexture = TextureGlass;
 		TestPolygonObject->ComponentRender.IsTransparent = true;
 	}

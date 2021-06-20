@@ -33,6 +33,22 @@ cbuffer cbEye : register(b3)
 	float4	EyePosition;
 }
 
+// cbuffer cbSpotlights : register(b4)
+// {
+// 	float4	SpotlightColor;
+// 	float3	SpotlightPosition;
+// 	float3	SpotlightDirection;
+// 	float2	SpotlightAngles;
+// }
+// 
+// cbuffer cbPointlights : register(b5)
+// {
+// 	float4	PointlightColor;
+// 	float4	PointlightPosition;
+// 	float3	PointlightAtt;
+// 	float	PointlightRange;
+// }
+
 float4 CalculateAmbient(float4 AmbientColor)
 {
 	return float4(AmbientColor.xyz * AmbientLightColor * AmbientLightIntensity, 1);
@@ -50,11 +66,65 @@ float4 CalculateDirectional(float4 DiffuseColor, float4 SpecularColor, float4 To
 
 	float4 Result = PhongDiffuse + BlinnSpecular;
 
-	// ЗШіЄ ґЮАЗ А§ДЎ°Ў БцЖтј±їЎ °Ў±оїцБъјц·П єыАЗ јј±вё¦ ѕаЗП°Ф ЗСґЩ.
+	// По мере приближения солнца или луны к горизонту интенсивность света уменьшается.
 	float Dot = dot(DirectionalLightDirection, float4(0, 1, 0, 0));
 	Result.xyz *= pow(Dot, 0.6f);
 
 	return Result;
+}
+
+float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float PointlightRange,
+	float4 pos, float4 normal, float4 toEye)
+{
+	// Инициализируем вывод
+	float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.1f);
+	float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.01f);
+	float4 spec = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// вектор от поверхности к источнику света
+	float4 lightVec = PointlightPosition - pos;// pos - world position
+
+	// расстояние от поверхности до источника света
+	float d = length(lightVec);
+
+	// Тест светового диапазона
+	if (d > PointlightRange)
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Нормализованный световой вектор
+	lightVec /= d;
+
+	// Расчет окружающего освещения
+	ambient = float4(MaterialAmbient, 1) * PointlightColor;
+
+	// Расчет диффузного отражения и зеркального отражения
+	float diffuseFactor = saturate(dot(lightVec, normal));
+
+	// Расширяем, чтобы избежать динамических ветвей
+	if(diffuseFactor > 0.0f)
+	{
+		float4 v = reflect(-lightVec, normal);
+
+		float4 H = normalize(toEye + lightVec);
+		float NDotH = saturate(dot(H, normal));
+		float SpecularPower = pow(NDotH, SpecularExponent);
+
+		float specFactor = pow(max(dot(v, toEye), 0.0f), SpecularPower);
+		
+		diffuse = float4(MaterialDiffuse, 1) * PointlightColor * diffuseFactor; //PhongDiffuse
+		spec = float4(MaterialSpecular * PointlightColor.xyz * SpecularPower * SpecularIntensity, 1);
+	}
+
+	// угасание света
+	float att = (PointlightRange - d) / PointlightRange;
+	// att = max(att, 0.1f);
+	// att = min(att, 1.0f);
+	spec *= att;
+	diffuse *= att;
+	ambient *= AmbientLightIntensity;
+	//ambient *= 0;
+
+	return ambient + diffuse + spec;
 }
 
 float4 main(VS_OUTPUT input) : SV_TARGET
@@ -74,6 +144,14 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	{
 		Result = CalculateAmbient(AmbientColor);
 		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
+		Result += CalculatePoint(
+			float4(1.0f, 1.0f, 1.0f, 0.5f),//PointlightColor
+			float4(0.0f, 0.0f, 0.0f, 1.0f),//PointlightPosition
+			10.5f,//PointlightRange
+			input.WorldPosition,//pos
+			normalize(input.WorldNormal),//normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
 	}
 
 	return Result;
