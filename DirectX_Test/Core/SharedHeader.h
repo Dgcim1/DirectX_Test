@@ -8,6 +8,7 @@
 #include <wrl.h>
 #include <algorithm>
 #include <unordered_map>
+#include <ppltasks.h>
 #include "../DirectXTK/DirectXTK.h"
 
 #pragma comment(lib, "d3d11.lib")

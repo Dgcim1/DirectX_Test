@@ -66,6 +66,17 @@ void CGameWindow::SetAmbientlLight(const XMFLOAT3& Color, float Intensity)
 	m_PSBase->UpdateConstantBuffer(1);
 }
 
+void CGameWindow::SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, const XMFLOAT3& Direction, float Angle, float Range)
+{
+	cbPSSpotLightsData.SpotlightColor_1 = Color;
+	cbPSSpotLightsData.SpotlightPosition_1 = Position;
+	cbPSSpotLightsData.SpotlightDirection_1 = Direction;
+	cbPSSpotLightsData.SpotlightAngle_1 = Angle;
+	cbPSSpotLightsData.SpotlightRange_1 = Range;
+
+	m_PSBase->UpdateConstantBuffer(4);
+}
+
 void CGameWindow::AddCamera(const SCameraData& CameraData)
 {
 	m_vCameras.emplace_back(CameraData);
@@ -377,6 +388,7 @@ void CGameWindow::CreateShaders()
 	m_PSBase->AddConstantBuffer(&cbPSBaseLightsData, sizeof(SCBPSBaseLightsData));
 	m_PSBase->AddConstantBuffer(&cbPSBaseMaterialData, sizeof(SCBPSBaseMaterialData));
 	m_PSBase->AddConstantBuffer(&cbPSBaseEyeData, sizeof(SCBPSBaseEyeData));
+	m_PSBase->AddConstantBuffer(&cbPSSpotLightsData, sizeof(SCBPSSpotLightsData));
 
 	m_PSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_PSNormal->Create(EShaderType::PixelShader, L"Shader\\PSNormal.hlsl", "main");

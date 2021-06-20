@@ -73,7 +73,6 @@ void CShader::Create(EShaderType Type, const wstring& FileName, const string& En
 		m_PtrDevice->CreateInputLayout(InputElementDescs, NumElements,
 			m_Blob->GetBufferPointer(), m_Blob->GetBufferSize(), &m_InputLayout);
 		break;
-
 	case EShaderType::PixelShader://если тип шейдера - пиксельный
 		//компилиируем код HLSL в в байт-код
 		D3DCompileFromFile(FileName.c_str(), nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, EntryPoint.c_str(),

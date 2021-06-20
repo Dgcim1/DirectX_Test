@@ -211,7 +211,7 @@ struct SCBPSBaseFlagsData
 };
 
 /// <summary>
-/// Структура привязки данных константного буфера (освещение) для пиксельного шейдера
+/// Структура привязки данных константного буфера (базовое освещение) для пиксельного шейдера
 /// </summary>
 struct SCBPSBaseLightsData
 {
@@ -231,6 +231,33 @@ struct SCBPSBaseLightsData
 	/// Интенсивность света минимальной яркости мира
 	/// </summary>
 	float		AmbientLightIntensity{ 0.5f };
+};
+
+/// <summary>
+/// Структура привязки данных константного буфера (прожекторное освещение, фонарик) для пиксельного шейдера
+/// </summary>
+struct SCBPSSpotLightsData
+{
+	/// <summary>
+	/// Цвет источника света
+	/// </summary>
+	XMVECTOR	SpotlightColor_1{ XMVectorSet(1, 1, 1, 0.5) };
+	/// <summary>
+	/// Позиция источника света
+	/// </summary>
+	XMFLOAT3	SpotlightPosition_1{ 0, 0, 0 };
+	/// <summary>
+	/// Вектор направления света (единичный, из 0)
+	/// </summary>
+	XMFLOAT3	SpotlightDirection_1{ 1, 0, 0 };
+	/// <summary>
+	/// Угол освещения (чем больше значение, чем меньше освещ участок)
+	/// </summary>
+	float		SpotlightAngle_1{ 10.0f };
+	/// <summary>
+	/// Максимальная дистанция освещения (в world координатах)
+	/// </summary>
+	float		SpotlightRange_1{ 50.0f };
 };
 
 /// <summary>
@@ -351,6 +378,15 @@ public:
 	/// <param name="Color">Цвет света</param>
 	/// <param name="Intensity">Интенсивность света минимальной яркости мира</param>
 	void SetAmbientlLight(const XMFLOAT3& Color, float Intensity);
+	/// <summary>
+	/// Установка значений света фонарика
+	/// </summary>
+	/// <param name="Color">Цвет фонарика</param>
+	/// <param name="Position">Позиция фонарика</param>
+	/// <param name="Direction">Направление фонарика (единичный вектор из нуля)</param>
+	/// <param name="Angle">Угол освещения фонарика (чем больше значение, тем меньше угол)</param>
+	/// <param name="Range">Дальность освещения (в мировых координатах)</param>
+	void SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, const XMFLOAT3& Direction, float Angle, float Range);
 #pragma endregion
 
 #pragma region CameraMethods
@@ -871,6 +907,10 @@ private:
 	/// Загружаемая в пиксельный шейдер структура освещения
 	/// </summary>
 	SCBPSBaseLightsData				cbPSBaseLightsData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура освещения фонарика
+	/// </summary>
+	SCBPSSpotLightsData				cbPSSpotLightsData{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура материала
 	/// </summary>

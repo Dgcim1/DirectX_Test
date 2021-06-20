@@ -38,6 +38,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
 	//GameWindow.SetAmbientlLight(XMFLOAT3(Colors::Red), 100.15f);
 	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+
+	XMFLOAT3 SpotlightPosition{ 0, 0, 0 };
+	XMFLOAT3 SpotlightDirection{ 1, 0, 0 };
+	float SpotlightRange = 100.0f;
+	const float SpotlightAngle = 10.0f;
+	GameWindow.SetSpotLight(XMVectorSet(1, 1, 1, 0.5f), SpotlightPosition, SpotlightDirection, SpotlightAngle, SpotlightRange);
 	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
 	//GameWindow.SetDirectionalLight(XMVectorSet(0, 100, 0, 0), XMVectorSet(1, 1, 1, 1));
 	GameWindow.SetGameRenderingFlags(EFlagsGameRendering::UseLighting);
@@ -189,6 +195,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	//лог
 	bool isPrintLog = true;
 	bool isPicking = false;
+	bool isSpotlight = true;
 	std::string logInfo = "";
 	
 	clock_t oldTime = clock();
@@ -238,6 +245,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			std::string helpF5 = "F5: Toggle mini axes visible";
 			std::string helpF6 = "F6: Toggle log visible";
 			std::string helpF7 = "F7: Toggle picking visible";
+			std::string helpH = "H: Enable/disable flashlight";
 			std::string help = "Help menu:\n\t" +
 				helpF1 + "\n\t" +
 				helpF2 + "\n\t" +
@@ -246,6 +254,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				helpF5 + "\n\t" +
 				helpF6 + "\n\t" +
 				helpF7 + "\n\t" +
+				helpH + "\n\t" +
 				"\n\n";
 			
 			
@@ -258,6 +267,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			else {
 				logInfo = logFPS + logCameraPos + help;
+			}
+
+			//обновление позиции фонарика
+			SpotlightPosition.x = cameraPos.x;
+			SpotlightPosition.y = cameraPos.y;
+			SpotlightPosition.z = cameraPos.z;
+			if (isSpotlight) {
+				GameWindow.SetSpotLight(XMVectorSet(1, 1, 1, 0.5f), SpotlightPosition, SpotlightDirection, SpotlightAngle, SpotlightRange);
+			}
+			else
+			{
+				GameWindow.SetSpotLight(XMVectorSet(1, 1, 1, 0.5f), SpotlightPosition, SpotlightDirection, SpotlightAngle, 0.0f);
 			}
 
 			//начало рендеринга
@@ -314,6 +335,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				if (KeyState.F7)
 				{
 					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawPickingData);
+				}
+				if (KeyState.H)
+				{
+					isSpotlight = !isSpotlight;
 				}
 			}
 			else
