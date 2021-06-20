@@ -38,15 +38,16 @@ cbuffer cbEye : register(b3)
 // 	float4	SpotlightColor;
 // 	float3	SpotlightPosition;
 // 	float3	SpotlightDirection;
-// 	float2	SpotlightAngles;
+// 	float	SpotlightAngle;
+// 	float	SpotlightRange;
 // }
 // 
 // cbuffer cbPointlights : register(b5)
 // {
 // 	float4	PointlightColor;
 // 	float4	PointlightPosition;
-// 	float3	PointlightAtt;
 // 	float	PointlightRange;
+// 	float3	Pads_5;
 // }
 
 float4 CalculateAmbient(float4 AmbientColor)
@@ -108,8 +109,6 @@ float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float P
 		float4 H = normalize(toEye + lightVec);
 		float NDotH = saturate(dot(H, normal));
 		float SpecularPower = pow(NDotH, SpecularExponent);
-
-		float specFactor = pow(max(dot(v, toEye), 0.0f), SpecularPower);
 		
 		diffuse = float4(MaterialDiffuse, 1) * PointlightColor * diffuseFactor; //PhongDiffuse
 		spec = float4(MaterialSpecular * PointlightColor.xyz * SpecularPower * SpecularIntensity, 1);
@@ -117,13 +116,64 @@ float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float P
 
 	// угасание света
 	float att = (PointlightRange - d) / PointlightRange;
-	// att = max(att, 0.1f);
-	// att = min(att, 1.0f);
 	spec *= att;
 	diffuse *= att;
-	ambient *= AmbientLightIntensity;
-	//ambient *= 0;
+	ambient *= min(AmbientLightIntensity, att);
 
+	return ambient + diffuse + spec;
+}
+
+float4 CalculateSpot(float4 SpotlightColor, float4 SpotlightPosition, float SpotlightRange,
+	float3 SpotlightDirection, float SpotlightAngle,
+	float4 pos, float4 normal, float4 toEye)
+{
+	// Инициализируем вывод
+	float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.1f);
+	float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.01f);
+	float4 spec = float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// Вектор от поверхности к источнику света
+	float4 lightVec = SpotlightPosition - pos; // pos - world position
+
+    // Расстояние от поверхности до источника света
+	float d = length(lightVec);
+
+	// Тест дальности
+	if (d > SpotlightRange)
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	// Нормализованный световой вектор
+	lightVec /= d;
+
+	// Рассчитываем часть рассеянного света
+	ambient = float4(MaterialAmbient, 1) * SpotlightColor;
+
+
+	// Расчет диффузного отражения и зеркального отражения
+	float diffuseFactor = saturate(dot(lightVec, normal));
+
+	// Расширяем, чтобы избежать динамических ветвей
+	if (diffuseFactor > 0.0f)
+	{
+		float4 v = reflect(-lightVec, normal);
+
+		float4 H = normalize(toEye + lightVec);
+		float NDotH = saturate(dot(H, normal));
+		float SpecularPower = pow(NDotH, SpecularExponent);
+
+		float specFactor = pow(max(dot(v, toEye), 0.0f), SpecularPower);
+		
+		diffuse = float4(MaterialDiffuse, 1) * SpotlightColor * diffuseFactor; //PhongDiffuse
+		spec = float4(MaterialSpecular * SpotlightColor.xyz * SpecularPower * SpecularIntensity, 1);
+	}
+
+	// угасание света
+	float spot = pow(max(dot(-lightVec, float4(SpotlightDirection, 1)), 0.0f), SpotlightAngle);
+	float att = (SpotlightRange - d) / SpotlightRange;
+	spec *= spot / att;
+	diffuse *= spot / att;
+	ambient *= min(AmbientLightIntensity, spot / att);
+	
 	return ambient + diffuse + spec;
 }
 
@@ -146,10 +196,28 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
 		Result += CalculatePoint(
 			float4(1.0f, 1.0f, 1.0f, 0.5f),//PointlightColor
-			float4(0.0f, 0.0f, 0.0f, 1.0f),//PointlightPosition
+			float4(-4.0f, 0.0f, 0.0f, 1.0f),//PointlightPosition
 			10.5f,//PointlightRange
 			input.WorldPosition,//pos
 			normalize(input.WorldNormal),//normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
+		Result += CalculatePoint(
+			float4(1.0f, 1.0f, 1.0f, 0.5f), //PointlightColor
+			float4(8.0f, 0.0f, 0.0f, 1.0f), //PointlightPosition
+			10.5f, //PointlightRange
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
+		Result += CalculateSpot(
+			float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
+			float4(-10.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
+			100.5f, //SpotlightRange
+			float3(1.0f, 0.0f, 0.0f), //SpotlightDirection
+			10.01f, //SpotlightAngle
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
 			normalize(EyePosition - input.WorldPosition) //ToEye
 			);
 	}
