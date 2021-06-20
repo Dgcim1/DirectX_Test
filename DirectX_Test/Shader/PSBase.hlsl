@@ -193,10 +193,10 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	if (UseLighting == true)
 	{
 		Result = CalculateAmbient(AmbientColor);
-		//Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
+		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
 		//Result += CalculatePoint(
 		//	float4(1.0f, 1.0f, 1.0f, 0.5f),//PointlightColor
-		//	float4(-4.0f, 0.0f, 0.0f, 1.0f),//PointlightPosition
+		//	float4(-4.0f, 5.0f, 0.0f, 1.0f),//PointlightPosition
 		//	10.5f,//PointlightRange
 		//	input.WorldPosition,//pos
 		//	normalize(input.WorldNormal),//normal
@@ -204,7 +204,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 		//	);
 		//Result += CalculatePoint(
 		//	float4(1.0f, 1.0f, 1.0f, 0.5f), //PointlightColor
-		//	float4(8.0f, 0.0f, 0.0f, 1.0f), //PointlightPosition
+		//	float4(8.0f, 5.0f, 0.0f, 1.0f), //PointlightPosition
 		//	10.5f, //PointlightRange
 		//	input.WorldPosition, //pos
 		//	normalize(input.WorldNormal), //normal
@@ -220,16 +220,16 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 		//	normalize(input.WorldNormal), //normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
 		//	);
-		Result += CalculateSpot(
-			SpotlightColor_1, //SpotlightColor
-			float4(SpotlightPosition_1, 0.0f), //SpotlightPosition
-			SpotlightRange_1, //SpotlightRange
-			SpotlightDirection_1, //SpotlightDirection
-			SpotlightAngle_1, //SpotlightAngle
-			input.WorldPosition, //pos
-			normalize(input.WorldNormal), //normal
-			normalize(EyePosition - input.WorldPosition) //ToEye
-			);
+		//Result += CalculateSpot(
+		//	SpotlightColor_1, //SpotlightColor
+		//	float4(SpotlightPosition_1, 0.0f), //SpotlightPosition
+		//	SpotlightRange_1, //SpotlightRange
+		//	SpotlightDirection_1, //SpotlightDirection
+		//	SpotlightAngle_1, //SpotlightAngle
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
 	}
 
 	return Result;

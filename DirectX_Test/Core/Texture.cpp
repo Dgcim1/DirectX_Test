@@ -16,8 +16,11 @@ void CTexture::CreateFromFile(const wstring& TextureFileName)
 	}
 	else
 	{
-		assert(SUCCEEDED(CreateWICTextureFromFile(m_PtrDevice, TextureFileName.c_str(), 
-			(ID3D11Resource**)m_Texture2D.GetAddressOf(), &m_ShaderResourceView)));
+		//TODO: hotfix
+		//assert(SUCCEEDED(CreateWICTextureFromFile(m_PtrDevice, TextureFileName.c_str(),
+		//	(ID3D11Resource**)m_Texture2D.GetAddressOf(), &m_ShaderResourceView)));
+		CreateWICTextureFromFile(m_PtrDevice, TextureFileName.c_str(),
+			(ID3D11Resource**)m_Texture2D.GetAddressOf(), &m_ShaderResourceView);
 	}
 
 }

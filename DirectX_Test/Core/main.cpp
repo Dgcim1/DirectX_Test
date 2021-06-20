@@ -17,6 +17,12 @@
 
 */
 
+/*
+	СТРОКА 116 AssimpLoader.h ИСПРАВИТЬ!!!!!!!!!
+
+	3d object cpp line 61 !!!!!!!!!!!!!!!!!!!
+*/
+
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
 LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -52,82 +58,160 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		TextureGround->CreateFromFile(L"Asset\\ground.png");
 	}
-	CTexture* TextureGlass{ GameWindow.AddTexture() };
+	CTexture* TextureGhostColor{ GameWindow.AddTexture() };
 	{
-		TextureGlass->CreateFromFile(L"Asset\\ghost-color.png");
+		TextureGhostColor->CreateFromFile(L"Asset\\ghost-color.png");
 	}
 	//создаем 3D обьекты
 
 
-	CObject3D* ObjectFarmhouse{ GameWindow.AddObject3D() };
+	CObject3D* ObjectGhost{ GameWindow.AddObject3D() };
 	{
-		//SModel Model{ LoadModelFromFile("Asset/farmhouse.fbx") };
-		//SModel Model{ LoadModelFromFile("Asset/Underworld/AltarCandlet.obj") };
-		//SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger2.obj") };
 		SModel Model{ LoadStaticModelFromFile("Asset/Floating+Cape+2.obj") };
-		//SModel Model{ LoadModelFromFile("Asset/Wooden-Crates_FBX.fbx") };
-		//SModel Model{ LoadModelFromFile("Asset/DarkCave_FBX.fbx") };
-		ObjectFarmhouse->Create(Model);
+		ObjectGhost->Create(Model);
 	}
-	CGameObject* goFarmhouse{ GameWindow.AddGameObject("farmhouse")};
+	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost")};
 	{
-		goFarmhouse->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
-		//goFarmhouse->ComponentTransform.Scaling = XMVectorSet(0.2f, 0.2f, 0.2f, 0);
-		goFarmhouse->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
-		goFarmhouse->UpdateWorldMatrix();
+		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
+		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
+		CGameObjectGhost->UpdateWorldMatrix();
+	
+		CGameObjectGhost->ComponentRender.PtrObject3D = ObjectGhost;
+		CGameObjectGhost->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
+		CGameObjectGhost->ComponentRender.PtrTexture = TextureGhostColor;
+		CGameObjectGhost->ComponentRender.IsTransparent = true;
+		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
+		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
+		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
+	}
+	
+	CObject3D* ObjectDagger3{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger3.obj") };
+		ObjectDagger3->Create(Model);
+	}
+	CObject3D* ObjectDagger2{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Dagger2.obj") };
+		ObjectDagger2->Create(Model);
+	}
+	CGameObject* CGameObjectDagger_1{ GameWindow.AddGameObject("Dagger_1") };
+	{
+		CGameObjectDagger_1->ComponentTransform.Translation = XMVectorSet(0.0f, -1.5f, 0.0f, 0);
+		CGameObjectDagger_1->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectDagger_1->UpdateWorldMatrix();
+		CGameObjectDagger_1->ComponentRender.PtrObject3D = ObjectDagger3;
+		CGameObjectDagger_1->ComponentRender.IsTransparent = false;
+		CGameObjectDagger_1->ComponentPhysics.bIsPickable = false;
+		CGameObjectDagger_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectDagger_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+	}
+	CGameObject* CGameObjectDagger_2{ GameWindow.AddGameObject("Dagger_2") };
+	{
+		CGameObjectDagger_2->ComponentTransform.Translation = XMVectorSet(0.2f, -0.7f, 0.2f, 0);
+		CGameObjectDagger_2->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2, XM_PIDIV2 / 5, -XM_PIDIV2);
+		CGameObjectDagger_2->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectDagger_2->UpdateWorldMatrix();
+		CGameObjectDagger_2->ComponentRender.PtrObject3D = ObjectDagger2;
+		CGameObjectDagger_2->ComponentRender.IsTransparent = false;
+		CGameObjectDagger_2->ComponentPhysics.bIsPickable = false;
+		CGameObjectDagger_2->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectDagger_2->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+	}
+	CGameObject* CGameObjectDagger_3{ GameWindow.AddGameObject("Dagger_3") };
+	{
+		CGameObjectDagger_3->ComponentTransform.Translation = XMVectorSet(0.2f, -1.5f, 0.0f, 0);
+		CGameObjectDagger_3->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 / 8, 0, -XM_PIDIV2 / 6);
+		CGameObjectDagger_3->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectDagger_3->UpdateWorldMatrix();
+		CGameObjectDagger_3->ComponentRender.PtrObject3D = ObjectDagger3;
+		CGameObjectDagger_3->ComponentRender.IsTransparent = false;
+		CGameObjectDagger_3->ComponentPhysics.bIsPickable = false;
+		CGameObjectDagger_3->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectDagger_3->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+	}
 
-		goFarmhouse->ComponentRender.PtrObject3D = ObjectFarmhouse;
-		goFarmhouse->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
-		goFarmhouse->ComponentRender.PtrTexture = TextureGlass;
-		goFarmhouse->ComponentRender.IsTransparent = true;
+	CObject3D* ObjectAltarCandlet{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/AltarCandlet.obj") };
+		ObjectAltarCandlet->Create(Model);
+	}
+	CGameObject* CGameObjectAltarCandlet_1{ GameWindow.AddGameObject("AltarCandlet_1") };
+	{
+		CGameObjectAltarCandlet_1->ComponentTransform.Translation = XMVectorSet(8.0f, 0.0f, 0.0f, 0);
+		//CGameObjectAltarCandlet_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 / 8, 0, -XM_PIDIV2 / 6);
+		//CGameObjectAltarCandlet_1->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectAltarCandlet_1->UpdateWorldMatrix();
+		CGameObjectAltarCandlet_1->ComponentRender.PtrObject3D = ObjectAltarCandlet;
+		CGameObjectAltarCandlet_1->ComponentRender.IsTransparent = false;
+		CGameObjectAltarCandlet_1->ComponentPhysics.bIsPickable = false;
+		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
 	}
 
-
-	CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
+	CObject3D* ObjectWallOrnament{ GameWindow.AddObject3D() };
 	{
-		SMaterial Material{ XMFLOAT3(Colors::Green) };
-		Material.SpecularExponent = 20.0f;
-		Material.SpecularIntensity = 0.8f;
-		SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/WallOrnament.obj") };
+		ObjectWallOrnament->Create(Model);
 	}
-	CGameObject* SkyBoxObject{ GameWindow.AddGameObject("skybox") };
+	CGameObject* CGameObjectWallOrnament_1{ GameWindow.AddGameObject("WallOrnament_1") };
 	{
-		SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
-		SkyBoxObject->UpdateWorldMatrix();
-		SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
-	}
-
-	CObject3D* TestPolygonObject3D{ GameWindow.AddObject3D() };
-	{
-		SMaterial Material{ XMFLOAT3(1.0f, 0.5f, 1.0f) };
-		Material.SpecularExponent = 20.0f;
-		Material.SpecularIntensity = 0.8f;
-		//TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(1, 1, 8, 1), XMVectorSet(1, 0, 8, 1), XMVectorSet(0, 1, 8, 1), Colors::Green), Material);
-		TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(4, 4, -4, 1), XMVectorSet(4, 0, -4, 1), XMVectorSet(0, 4, -4, 1), XMVectorSet(1, 0, 0, 0.4f)), Material);
-	}
-	CGameObject* TestPolygonObject{ GameWindow.AddGameObject("testPolygon") };
-	{
-		TestPolygonObject->UpdateWorldMatrix();
-		TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
-		TestPolygonObject->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
-		TestPolygonObject->ComponentRender.PtrTexture = TextureGlass;
-		TestPolygonObject->ComponentRender.IsTransparent = true;
+		CGameObjectWallOrnament_1->ComponentTransform.Translation = XMVectorSet(8.0f, 0.0f, 0.0f, 0);
+		//CGameObjectWallOrnament_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 / 8, 0, -XM_PIDIV2 / 6);
+		//CGameObjectWallOrnament_1->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectWallOrnament_1->UpdateWorldMatrix();
+		CGameObjectWallOrnament_1->ComponentRender.PtrObject3D = ObjectWallOrnament;
+		CGameObjectWallOrnament_1->ComponentRender.IsTransparent = false;
+		CGameObjectWallOrnament_1->ComponentPhysics.bIsPickable = false;
+		CGameObjectWallOrnament_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectWallOrnament_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
 	}
 
-	CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
-	{
-		SMaterial Material{ XMFLOAT3(Colors::Red) };
-		Material.MaterialSpecular = XMFLOAT3(Colors::White);
-		Material.SpecularExponent = 200.0f;
-		Material.SpecularIntensity = 1.8f;
-		SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)), Material);
-	}
-	CGameObject* SphereObject{ GameWindow.AddGameObject("ball") };
-	{
-		SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
-		SphereObject->UpdateWorldMatrix();
-		SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
-	}
+	// CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(Colors::Green) };
+	// 	Material.SpecularExponent = 20.0f;
+	// 	Material.SpecularIntensity = 0.8f;
+	// 	SkyBoxObject3D->Create(GenerateCubeReverse(Colors::Green), Material);
+	// }
+	// CGameObject* SkyBoxObject{ GameWindow.AddGameObject("skybox") };
+	// {
+	// 	SkyBoxObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 20.0f, 20.0f, 0);
+	// 	SkyBoxObject->UpdateWorldMatrix();
+	// 	SkyBoxObject->ComponentRender.PtrObject3D = SkyBoxObject3D;
+	// }
+
+	// CObject3D* TestPolygonObject3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(1.0f, 0.5f, 1.0f) };
+	// 	Material.SpecularExponent = 20.0f;
+	// 	Material.SpecularIntensity = 0.8f;
+	// 	//TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(1, 1, 8, 1), XMVectorSet(1, 0, 8, 1), XMVectorSet(0, 1, 8, 1), Colors::Green), Material);
+	// 	TestPolygonObject3D->Create(GenerateTriangle(XMVectorSet(4, 4, -4, 1), XMVectorSet(4, 0, -4, 1), XMVectorSet(0, 4, -4, 1), XMVectorSet(1, 0, 0, 0.4f)), Material);
+	// }
+	// CGameObject* TestPolygonObject{ GameWindow.AddGameObject("testPolygon") };
+	// {
+	// 	TestPolygonObject->UpdateWorldMatrix();
+	// 	TestPolygonObject->ComponentRender.PtrObject3D = TestPolygonObject3D;
+	// 	TestPolygonObject->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
+	// 	TestPolygonObject->ComponentRender.PtrTexture = TextureGlass;
+	// 	TestPolygonObject->ComponentRender.IsTransparent = true;
+	// }
+
+	// CObject3D* SphereObject3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(Colors::Red) };
+	// 	Material.MaterialSpecular = XMFLOAT3(Colors::White);
+	// 	Material.SpecularExponent = 200.0f;
+	// 	Material.SpecularIntensity = 1.8f;
+	// 	SphereObject3D->Create(GenerateSphere(64, XMVectorSet(1.0f, 0.5f, 1.0f, 1)), Material);
+	// }
+	// CGameObject* SphereObject{ GameWindow.AddGameObject("ball") };
+	// {
+	// 	SphereObject->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, +3.0f, 0);
+	// 	SphereObject->UpdateWorldMatrix();
+	// 	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
+	// }
 
 	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
 	{
@@ -136,54 +220,54 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CGameObject* GroundObject{ GameWindow.AddGameObject("ground") };
 	{
 		GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
-		GroundObject->ComponentTransform.Scaling = XMVectorSet(20.0f, 1.0f, 20.0f, 0);
+		GroundObject->ComponentTransform.Scaling = XMVectorSet(30.0f, 1.0f, 30.0f, 0);
 		GroundObject->UpdateWorldMatrix();
 		GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
 		GroundObject->ComponentRender.PtrTexture = TextureGround;
 
-		GroundObject->ComponentPhysics.BoundingSphere.Radius = 43.0f;
+		GroundObject->ComponentPhysics.BoundingSphere.Radius = 50.0f;
 	}
 	
 	//снеговик
 
-	CObject3D* SnowmanSphere1Object3D{ GameWindow.AddObject3D() };
-	{
-		SMaterial Material{ XMFLOAT3(Colors::White) };
-		Material.SpecularExponent = 2.0f;
-		Material.SpecularIntensity = 0.51f;
-		SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	}
-	CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject("snowball1") };
-	SnowmanSphere1Object->ComponentTransform.Scaling = XMVectorSet(2.0f, 2.0f, 2.0f, 0);
-	SnowmanSphere1Object->ComponentTransform.Translation = XMVectorSet(-5.0f, -0.2f, +5.0f, 0);
-	SnowmanSphere1Object->UpdateWorldMatrix();
-	SnowmanSphere1Object->ComponentRender.PtrObject3D = SnowmanSphere1Object3D;
-
-	CObject3D* SnowmanSphere2Object3D{ GameWindow.AddObject3D() };
-	{
-		SMaterial Material{ XMFLOAT3(Colors::White) };
-		Material.SpecularExponent = 2.0f;
-		Material.SpecularIntensity = 0.51f;
-		SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	}
-	CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject("snowball2") };
-	SnowmanSphere2Object->ComponentTransform.Scaling = XMVectorSet(1.6f, 1.6f, 1.6f, 0);
-	SnowmanSphere2Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 2.2f, +5.0f, 0);
-	SnowmanSphere2Object->UpdateWorldMatrix();
-	SnowmanSphere2Object->ComponentRender.PtrObject3D = SnowmanSphere2Object3D;
-
-	CObject3D* SnowmanSphere3Object3D{ GameWindow.AddObject3D() };
-	{
-		SMaterial Material{ XMFLOAT3(Colors::White) };
-		Material.SpecularExponent = 2.0f;
-		Material.SpecularIntensity = 0.51f;
-		SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	}
-	CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject("snowball3") };
-	SnowmanSphere3Object->ComponentTransform.Scaling = XMVectorSet(1.3f, 1.3f, 1.3f, 0);
-	SnowmanSphere3Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 4.2f, +5.0f, 0);
-	SnowmanSphere3Object->UpdateWorldMatrix();
-	SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
+	// CObject3D* SnowmanSphere1Object3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
+	// 	Material.SpecularExponent = 2.0f;
+	// 	Material.SpecularIntensity = 0.51f;
+	// 	SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White), Material);
+	// }
+	// CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject("snowball1") };
+	// SnowmanSphere1Object->ComponentTransform.Scaling = XMVectorSet(2.0f, 2.0f, 2.0f, 0);
+	// SnowmanSphere1Object->ComponentTransform.Translation = XMVectorSet(-5.0f, -0.2f, +5.0f, 0);
+	// SnowmanSphere1Object->UpdateWorldMatrix();
+	// SnowmanSphere1Object->ComponentRender.PtrObject3D = SnowmanSphere1Object3D;
+	// 
+	// CObject3D* SnowmanSphere2Object3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
+	// 	Material.SpecularExponent = 2.0f;
+	// 	Material.SpecularIntensity = 0.51f;
+	// 	SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White), Material);
+	// }
+	// CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject("snowball2") };
+	// SnowmanSphere2Object->ComponentTransform.Scaling = XMVectorSet(1.6f, 1.6f, 1.6f, 0);
+	// SnowmanSphere2Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 2.2f, +5.0f, 0);
+	// SnowmanSphere2Object->UpdateWorldMatrix();
+	// SnowmanSphere2Object->ComponentRender.PtrObject3D = SnowmanSphere2Object3D;
+	// 
+	// CObject3D* SnowmanSphere3Object3D{ GameWindow.AddObject3D() };
+	// {
+	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
+	// 	Material.SpecularExponent = 2.0f;
+	// 	Material.SpecularIntensity = 0.51f;
+	// 	SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White), Material);
+	// }
+	// CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject("snowball3") };
+	// SnowmanSphere3Object->ComponentTransform.Scaling = XMVectorSet(1.3f, 1.3f, 1.3f, 0);
+	// SnowmanSphere3Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 4.2f, +5.0f, 0);
+	// SnowmanSphere3Object->UpdateWorldMatrix();
+	// SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
 
 	int rotationDeg = 0;
 	bool isCaptureCursor = false;
@@ -245,6 +329,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			std::string helpF5 = "F5: Toggle mini axes visible";
 			std::string helpF6 = "F6: Toggle log visible";
 			std::string helpF7 = "F7: Toggle picking visible";
+			std::string helpF8 = "F8: Toggle visible bounding-sphere";
 			std::string helpH = "H: Enable/disable flashlight";
 			std::string help = "Help menu:\n\t" +
 				helpF1 + "\n\t" +
@@ -254,6 +339,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				helpF5 + "\n\t" +
 				helpF6 + "\n\t" +
 				helpF7 + "\n\t" +
+				helpF8 + "\n\t" +
 				helpH + "\n\t" +
 				"\n\n";
 			
@@ -335,6 +421,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				if (KeyState.F7)
 				{
 					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawPickingData);
+				}
+				if (KeyState.F8)
+				{
+					GameWindow.ToggleGameRenderingFlags(EFlagsGameRendering::DrawBoundingSphere);
 				}
 				if (KeyState.H)
 				{

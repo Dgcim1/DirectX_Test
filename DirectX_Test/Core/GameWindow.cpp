@@ -893,11 +893,6 @@ void CGameWindow::DrawGameObject(CGameObject* PtrGO)
 	{
 		m_DeviceContext->RSSetState(m_CommonStates->CullNone());//отключение отрисовки
 	}
-	//else if (EFLAG_HAS(PtrGO->eFlagsGameObjectRendering, EFlagsGameObjectRendering::CullA))
-	//{
-	//	m_DeviceContext->RSSetState(m_CommonStates->);
-	//	m_DeviceContext->RSSetState(m_CommonStates->CullNone());//отключение отрисовки
-	//}
 	else
 	{
 		SetGameWindowCullMode();//отрисовка граней в соответствии с выбранными флагами растеризатора

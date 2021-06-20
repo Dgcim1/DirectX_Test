@@ -7,13 +7,15 @@
 #include <Assimp/scene.h>
 #include <Assimp/postprocess.h>
 
+#include <fstream>
+
 #pragma comment(lib, "assimp-vc142-mtd.lib")
 
 static XMVECTOR ConvertaiVector3DToXMVECTOR(const aiVector3D& Vector, float w);
 static XMVECTOR ConvertaiQuaternionToXMVECTOR(const aiQuaternion& Quaternion);
 static XMMATRIX ConvertaiMatrix4x4ToXMMATRIX(const aiMatrix4x4& Matrix);
 
-static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene);
+static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene, const string& FileName);
 static vector<SMesh> LoadMeshesFromFile(const aiScene* Scene);
 
 static SModel LoadStaticModelFromFile(const string& FileName);
@@ -46,7 +48,7 @@ static XMMATRIX ConvertaiMatrix4x4ToXMMATRIX(const aiMatrix4x4& Matrix)
 	));
 }
 
-static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene)
+static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene, const string& FileName)
 {
 	vector<SMaterial> vMaterials{};
 	unsigned int MaterialCount{ Scene->mNumMaterials };
@@ -89,6 +91,51 @@ static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene)
 					CurrentMaterial.vEmbeddedTextureRawData.emplace_back((uint8_t)Texel.a);
 				}
 			}
+		}
+		else
+		{
+			std::string mtlfile = FileName; 
+			int index = mtlfile.find(".obj", 0);
+			if (index == std::string::npos) break;
+			mtlfile.replace(index, 4, ".mtl");
+
+			string s; // сюда будем класть считанные строки
+			std::ifstream file(mtlfile); // файл из которого читаем (для линукс путь будет выглядеть по другому)
+
+			while (getline(file, s)) { // пока не достигнут конец файла класть очередную строку в переменную (s)
+				if (s.find("map_kd", 0) != std::string::npos) {
+					std::string str = s.substr(7, std::string::npos);
+					aiString TextureFileName{ str };
+					//aiGetMaterialTexture(aiCurrentMaterial, aiTextureType_DIFFUSE, 0, &TextureFileName);
+
+					CurrentMaterial.bHasTexture = true;
+
+					//TODO: hotfix
+					//CurrentMaterial.TextureFileName = str;
+					//CurrentMaterial.TextureFileName = "Asset\\Underworld\\" + str;
+					CurrentMaterial.TextureFileName = "C:\\Users\\gindr\\source\\repos\\DirectX_Test\\DirectX_Test\\Asset\\Underworld\\" + str;
+
+					auto aiTexture{ Scene->GetEmbeddedTexture(CurrentMaterial.TextureFileName.c_str()) };
+					if (aiTexture)
+					{
+						unsigned int TexelCount{ aiTexture->mWidth / 4 };
+						if (aiTexture->mHeight) TexelCount *= aiTexture->mHeight;
+
+						CurrentMaterial.bHasEmbeddedTexture = true;
+						CurrentMaterial.vEmbeddedTextureRawData.reserve(aiTexture->mWidth);
+						for (unsigned int iTexel = 0; iTexel < TexelCount; ++iTexel)
+						{
+							aiTexel& Texel{ aiTexture->pcData[iTexel] };
+							CurrentMaterial.vEmbeddedTextureRawData.emplace_back((uint8_t)Texel.b);
+							CurrentMaterial.vEmbeddedTextureRawData.emplace_back((uint8_t)Texel.g);
+							CurrentMaterial.vEmbeddedTextureRawData.emplace_back((uint8_t)Texel.r);
+							CurrentMaterial.vEmbeddedTextureRawData.emplace_back((uint8_t)Texel.a);
+						}
+					}
+				}
+			}
+
+			file.close(); // обязательно закрываем файл что бы не повредить его
 		}
 
 		CurrentMaterial.MaterialAmbient.x = aiAmbient.r;
@@ -183,7 +230,7 @@ static SModel LoadStaticModelFromFile(const string& FileName)
 	assert(Scene->mRootNode);
 
 	StaticModel.vMeshes = LoadMeshesFromFile(Scene);
-	StaticModel.vMaterials = LoadMaterialsFromFile(Scene);
+	StaticModel.vMaterials = LoadMaterialsFromFile(Scene, FileName);
 
 	return StaticModel;
 }
@@ -210,7 +257,7 @@ static SModel LoadAnimatedModelFromFile(const string& FileName)
 		Mesh.vVerticesAnimation.resize(Mesh.vVertices.size());
 	}
 
-	AnimatedModel.vMaterials = LoadMaterialsFromFile(Scene);
+	AnimatedModel.vMaterials = LoadMaterialsFromFile(Scene, FileName);
 
 	// SceneїЎј­ Аз±НАыАё·О NodeАЗ Treeё¦ ёёµзґЩ.
 	LoadNodes(Scene, Scene->mRootNode, -1, AnimatedModel);

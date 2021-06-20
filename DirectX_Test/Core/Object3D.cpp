@@ -55,6 +55,17 @@ void CObject3D::Create(const SModel& Model)
 
 			Material.vEmbeddedTextureRawData.clear();
 		}
+		else if (Material.bHasTexture) 
+		{
+			//TODO: hotfix
+			if (Material.TextureFileName.find("ghost-color.png", 0) != std::string::npos) return;
+
+			m_vEmbeddedTextures.emplace_back(make_unique<CTexture>(m_PtrDevice, m_PtrDeviceContext));
+
+			m_vEmbeddedTextures.back()->CreateFromFile(std::wstring(Material.TextureFileName.begin(), Material.TextureFileName.end()));
+
+			Material.bHasEmbeddedTexture = true;
+		}
 	}
 }
 
@@ -241,7 +252,7 @@ void CObject3D::Draw() const
 		const SMesh& Mesh{ m_Model.vMeshes[iMesh] };
 		const SMaterial& Material{ m_Model.vMaterials[Mesh.MaterialID] };
 
-		// обновляем константный бкфер пиксельного шейдера материала
+		// обновляем константный буфер пиксельного шейдера материала
 		m_PtrGameWindow->cbPSBaseMaterialData.MaterialAmbient = Material.MaterialAmbient;
 		m_PtrGameWindow->cbPSBaseMaterialData.MaterialDiffuse = Material.MaterialDiffuse;
 		m_PtrGameWindow->cbPSBaseMaterialData.MaterialSpecular = Material.MaterialSpecular;
