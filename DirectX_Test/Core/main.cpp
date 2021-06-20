@@ -25,6 +25,29 @@
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
+
+static int ghostCounterMain = 0;
+static int ghostCounterCurrent = 0;
+
+void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
+	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost" + ghostCounterMain) };
+	{
+		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
+		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
+		CGameObjectGhost->UpdateWorldMatrix();
+
+		CGameObjectGhost->ComponentRender.PtrObject3D = ObjectGhost;
+		CGameObjectGhost->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
+		CGameObjectGhost->ComponentRender.PtrTexture = TextureGhostColor;
+		CGameObjectGhost->ComponentRender.IsTransparent = true;
+		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
+		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
+		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
+	}
+	ghostCounterMain++;
+	ghostCounterCurrent++;
+}
+
 LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
@@ -42,7 +65,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
 	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
-	//GameWindow.SetAmbientlLight(XMFLOAT3(Colors::Red), 100.15f);
 	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
 
 	XMFLOAT3 SpotlightPosition{ 0, 0, 0 };
@@ -50,6 +72,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	float SpotlightRange = 100.0f;
 	const float SpotlightAngle = 10.0f;
 	GameWindow.SetSpotLight(XMVectorSet(1, 1, 1, 0.5f), SpotlightPosition, SpotlightDirection, SpotlightAngle, SpotlightRange);
+	
 	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
 	//GameWindow.SetDirectionalLight(XMVectorSet(0, 100, 0, 0), XMVectorSet(1, 1, 1, 1));
 	GameWindow.SetGameRenderingFlags(EFlagsGameRendering::UseLighting);
@@ -70,20 +93,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		SModel Model{ LoadStaticModelFromFile("Asset/Floating+Cape+2.obj") };
 		ObjectGhost->Create(Model);
 	}
-	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost")};
-	{
-		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
-		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
-		CGameObjectGhost->UpdateWorldMatrix();
-	
-		CGameObjectGhost->ComponentRender.PtrObject3D = ObjectGhost;
-		CGameObjectGhost->eFlagsGameObjectRendering = EFlagsGameObjectRendering::NoCulling | EFlagsGameObjectRendering::NoLighting;
-		CGameObjectGhost->ComponentRender.PtrTexture = TextureGhostColor;
-		CGameObjectGhost->ComponentRender.IsTransparent = true;
-		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
-		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
-		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
-	}
+	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
 	
 	CObject3D* ObjectDagger3{ GameWindow.AddObject3D() };
 	{
@@ -138,7 +148,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	CGameObject* CGameObjectAltarCandlet_1{ GameWindow.AddGameObject("AltarCandlet_1") };
 	{
-		CGameObjectAltarCandlet_1->ComponentTransform.Translation = XMVectorSet(8.0f, 0.0f, 0.0f, 0);
+		CGameObjectAltarCandlet_1->ComponentTransform.Translation = XMVectorSet(8.0f, -1.0f, 0.0f, 0);
 		//CGameObjectAltarCandlet_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 / 8, 0, -XM_PIDIV2 / 6);
 		//CGameObjectAltarCandlet_1->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
 		CGameObjectAltarCandlet_1->UpdateWorldMatrix();
@@ -149,6 +159,111 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
 	}
 
+	CObject3D* ObjectWall{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/wall.obj") };
+		ObjectWall->Create(Model);
+	}
+	{
+		CGameObject* CGameObjectWall_1{ GameWindow.AddGameObject("Wall_1") };
+		{
+			CGameObjectWall_1->ComponentTransform.Translation = XMVectorSet(15.0f, 0.0f, 12.0f, 0);
+			CGameObjectWall_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PIDIV2, 0);
+			CGameObjectWall_1->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_1->UpdateWorldMatrix();
+			CGameObjectWall_1->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_1->ComponentRender.IsTransparent = false;
+			CGameObjectWall_1->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_2{ GameWindow.AddGameObject("Wall_2") };
+		{
+			CGameObjectWall_2->ComponentTransform.Translation = XMVectorSet(15.0f, 0.0f, -4.0f, 0);
+			CGameObjectWall_2->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PIDIV2, 0);
+			CGameObjectWall_2->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_2->UpdateWorldMatrix();
+			CGameObjectWall_2->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_2->ComponentRender.IsTransparent = false;
+			CGameObjectWall_2->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_2->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_2->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_3{ GameWindow.AddGameObject("Wall_3") };
+		{
+			CGameObjectWall_3->ComponentTransform.Translation = XMVectorSet(12.0f, 0.0f, -15.0f, 0);
+			CGameObjectWall_3->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PI, 0);
+			CGameObjectWall_3->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_3->UpdateWorldMatrix();
+			CGameObjectWall_3->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_3->ComponentRender.IsTransparent = false;
+			CGameObjectWall_3->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_3->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_3->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_4{ GameWindow.AddGameObject("Wall_4") };
+		{
+			CGameObjectWall_4->ComponentTransform.Translation = XMVectorSet(-4.0f, 0.0f, -15.0f, 0);
+			CGameObjectWall_4->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PI, 0);
+			CGameObjectWall_4->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_4->UpdateWorldMatrix();
+			CGameObjectWall_4->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_4->ComponentRender.IsTransparent = false;
+			CGameObjectWall_4->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_4->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_4->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_5{ GameWindow.AddGameObject("Wall_5") };
+		{
+			CGameObjectWall_5->ComponentTransform.Translation = XMVectorSet(-15.0f, 0.0f, -12.0f, 0);
+			CGameObjectWall_5->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, 0);
+			CGameObjectWall_5->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_5->UpdateWorldMatrix();
+			CGameObjectWall_5->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_5->ComponentRender.IsTransparent = false;
+			CGameObjectWall_5->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_5->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_5->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_6{ GameWindow.AddGameObject("Wall_6") };
+		{
+			CGameObjectWall_6->ComponentTransform.Translation = XMVectorSet(-15.0f, 0.0f, 4.0f, 0);
+			CGameObjectWall_6->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, 0);
+			CGameObjectWall_6->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_6->UpdateWorldMatrix();
+			CGameObjectWall_6->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_6->ComponentRender.IsTransparent = false;
+			CGameObjectWall_6->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_6->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_6->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_7{ GameWindow.AddGameObject("Wall_7") };
+		{
+			CGameObjectWall_7->ComponentTransform.Translation = XMVectorSet(-12.0f, 0.0f, 15.0f, 0);
+			CGameObjectWall_7->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, 0);
+			CGameObjectWall_7->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_7->UpdateWorldMatrix();
+			CGameObjectWall_7->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_7->ComponentRender.IsTransparent = false;
+			CGameObjectWall_7->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_7->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_7->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+		CGameObject* CGameObjectWall_8{ GameWindow.AddGameObject("Wall_8") };
+		{
+			CGameObjectWall_8->ComponentTransform.Translation = XMVectorSet(4.0f, 0.0f, 15.0f, 0);
+			CGameObjectWall_8->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, 0);
+			CGameObjectWall_8->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
+			CGameObjectWall_8->UpdateWorldMatrix();
+			CGameObjectWall_8->ComponentRender.PtrObject3D = ObjectWall;
+			CGameObjectWall_8->ComponentRender.IsTransparent = false;
+			CGameObjectWall_8->ComponentPhysics.bIsPickable = true;
+			CGameObjectWall_8->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+			CGameObjectWall_8->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		}
+	}
+
+
 	CObject3D* ObjectWallOrnament{ GameWindow.AddObject3D() };
 	{
 		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/WallOrnament.obj") };
@@ -156,9 +271,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 	CGameObject* CGameObjectWallOrnament_1{ GameWindow.AddGameObject("WallOrnament_1") };
 	{
-		CGameObjectWallOrnament_1->ComponentTransform.Translation = XMVectorSet(8.0f, 0.0f, 0.0f, 0);
+		CGameObjectWallOrnament_1->ComponentTransform.Translation = XMVectorSet(15.0f, -1.0f, 0.0f, 0);
 		//CGameObjectWallOrnament_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2 / 8, 0, -XM_PIDIV2 / 6);
-		//CGameObjectWallOrnament_1->ComponentTransform.Scaling = XMVectorSet(0.15f, 0.15f, 0.15f, 0);
+		CGameObjectWallOrnament_1->ComponentTransform.Scaling = XMVectorSet(1.0f, 0.95f, 1.0f, 0);
 		CGameObjectWallOrnament_1->UpdateWorldMatrix();
 		CGameObjectWallOrnament_1->ComponentRender.PtrObject3D = ObjectWallOrnament;
 		CGameObjectWallOrnament_1->ComponentRender.IsTransparent = false;

@@ -202,14 +202,14 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 		//	normalize(input.WorldNormal),//normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
 		//	);
-		//Result += CalculatePoint(
-		//	float4(1.0f, 1.0f, 1.0f, 0.5f), //PointlightColor
-		//	float4(8.0f, 5.0f, 0.0f, 1.0f), //PointlightPosition
-		//	10.5f, //PointlightRange
-		//	input.WorldPosition, //pos
-		//	normalize(input.WorldNormal), //normal
-		//	normalize(EyePosition - input.WorldPosition) //ToEye
-		//	);
+		Result += CalculatePoint(
+			float4(1.0f, 1.0f, 1.0f, 0.5f), //PointlightColor
+			float4(8.0f, 2.7f, 0.0f, 1.0f), //PointlightPosition
+			13.0f, //PointlightRange
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
 		//Result += CalculateSpot(
 		//	float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
 		//	float4(0.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
