@@ -261,6 +261,30 @@ struct SCBPSSpotLightsData
 };
 
 /// <summary>
+/// Структура привязки данных константного буфера (точечное освещение) для пиксельного шейдера
+/// </summary>
+struct SCBPSPointLightsData
+{
+	/// <summary>
+	/// Цвет источника света
+	/// </summary>
+	XMVECTOR	PointlightColor{ XMVectorSet(1, 1, 1, 0.5) };
+	/// <summary>
+	/// Позиция источника света
+	/// </summary>
+	XMVECTOR	PointlightPosition{ XMVectorSet(0, 0, 0, 1.0f) };
+	/// <summary>
+	/// Максимальная дистанция освещения (в world координатах)
+	/// </summary>
+	float		PointlightRange{ 50.0f };
+	/// <summary>
+	/// Не используется
+	/// </summary>
+	XMFLOAT3	Pads{ 0, 0, 0 };
+};
+
+
+/// <summary>
 /// Структура привязки данных константного буфера (материал) для пиксельного шейдера
 /// </summary>
 struct SCBPSBaseMaterialData
@@ -387,6 +411,14 @@ public:
 	/// <param name="Angle">Угол освещения фонарика (чем больше значение, тем меньше угол)</param>
 	/// <param name="Range">Дальность освещения (в мировых координатах)</param>
 	void SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, const XMFLOAT3& Direction, float Angle, float Range);
+	/// <summary>
+	/// Установка значений точечного света
+	/// </summary>
+	/// <param name="index">Индекс источника света</param>
+	/// <param name="Color">Цвет источника света</param>
+	/// <param name="Position">Позиция источника света</param>
+	/// <param name="Range">Дальность освещения</param>
+	void SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, float Range);
 #pragma endregion
 
 #pragma region CameraMethods
@@ -911,6 +943,22 @@ private:
 	/// Загружаемая в пиксельный шейдер структура освещения фонарика
 	/// </summary>
 	SCBPSSpotLightsData				cbPSSpotLightsData{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура точечного освещения 1
+	/// </summary>
+	SCBPSPointLightsData			cbPSPointLightsData_1{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура точечного освещения 2
+	/// </summary>
+	SCBPSPointLightsData			cbPSPointLightsData_2{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура точечного освещения 3
+	/// </summary>
+	SCBPSPointLightsData			cbPSPointLightsData_3{};
+	/// <summary>
+	/// Загружаемая в пиксельный шейдер структура точечного освещения 4
+	/// </summary>
+	SCBPSPointLightsData			cbPSPointLightsData_4{};
 	/// <summary>
 	/// Загружаемая в пиксельный шейдер структура материала
 	/// </summary>

@@ -42,13 +42,37 @@ cbuffer cbSpotlights : register(b4)
 	float	SpotlightRange_1;
 }
 
-// cbuffer cbPointlights : register(b5)
-// {
-// 	float4	PointlightColor;
-// 	float4	PointlightPosition;
-// 	float	PointlightRange;
-// 	float3	Pads_5;
-// }
+cbuffer cbPointlights1 : register(b5)
+{
+	float4	PointlightColor_1;
+	float4	PointlightPosition_1;
+	float	PointlightRange_1;
+	float3	Pads_5;
+}
+
+cbuffer cbPointlights2 : register(b6)
+{
+    float4 PointlightColor_2;
+    float4 PointlightPosition_2;
+    float PointlightRange_2;
+    float3 Pads_6;
+}
+
+cbuffer cbPointlights3 : register(b7)
+{
+    float4 PointlightColor_3;
+    float4 PointlightPosition_3;
+    float PointlightRange_3;
+    float3 Pads_7;
+}
+
+cbuffer cbPointlights4 : register(b8)
+{
+    float4 PointlightColor_4;
+    float4 PointlightPosition_4;
+    float PointlightRange_4;
+    float3 Pads_8;
+}
 
 float4 CalculateAmbient(float4 AmbientColor)
 {
@@ -168,13 +192,35 @@ float4 CalculateSpot(float4 SpotlightColor, float4 SpotlightPosition, float Spot
 	}
 
 	// угасание света
-	float spot = pow(max(dot(-lightVec, float4(SpotlightDirection, 1)), 0.0f), SpotlightAngle);
+	
+    float constantAtt = 0.01f;
+    float linearAtt = 0.01f;
+    float QuadraticAtt = 0.201f;
+    float attenuation = 1.0 / (constantAtt + linearAtt * d + QuadraticAtt * d * d);
+	
+	// cos 45deg = 0.7
+	// cos 55deg = 0.57
+	// cos 60deg = 0.5
+	
+	
+    float lightCutOffCosin = 0.57f;//внутри 100% свет 
+    float lightOuterCutOffCosin = 0.5f;//за углом ничего 
+	
+    // Ќаходим косинус угла между направлением фонар€ и направлением от объекта к свету
+    float cosinBetweenLightAndVertex = dot(lightVec, normalize(-float4(SpotlightDirection, 1))); //theta
+    float difference = lightCutOffCosin - lightOuterCutOffCosin; //epsilon
+    float intensity_angle = clamp((cosinBetweenLightAndVertex - lightOuterCutOffCosin) / difference, 0.0, 1.0); //intensity
+	
+	
+	//float spot = pow(max(dot(-lightVec, float4(SpotlightDirection, 1)), 0.0f), SpotlightAngle);
 	float att = (SpotlightRange - d) / SpotlightRange;
-	spec *= spot / att;
-	diffuse *= spot / att;
-	ambient *= min(AmbientLightIntensity, spot / att);
+	//float att = attenuation;
+    spec *= intensity_angle * att;
+    diffuse *= intensity_angle * att;
+    ambient *= min(AmbientLightIntensity, intensity_angle * att);
 	
 	return ambient + diffuse + spec;
+	//return ambient;
 }
 
 float4 main(VS_OUTPUT input) : SV_TARGET
@@ -193,33 +239,49 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	if (UseLighting == true)
 	{
 		Result = CalculateAmbient(AmbientColor);
-		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
-		//Result += CalculatePoint(
-		//	float4(1.0f, 1.0f, 1.0f, 0.5f),//PointlightColor
-		//	float4(-4.0f, 5.0f, 0.0f, 1.0f),//PointlightPosition
-		//	10.5f,//PointlightRange
-		//	input.WorldPosition,//pos
-		//	normalize(input.WorldNormal),//normal
-		//	normalize(EyePosition - input.WorldPosition) //ToEye
-		//	);
-		Result += CalculatePoint(
-			float4(1.0f, 1.0f, 1.0f, 0.5f), //PointlightColor
-			float4(8.0f, 2.7f, 0.0f, 1.0f), //PointlightPosition
-			13.0f, //PointlightRange
-			input.WorldPosition, //pos
-			normalize(input.WorldNormal), //normal
-			normalize(EyePosition - input.WorldPosition) //ToEye
-			);
-		//Result += CalculateSpot(
-		//	float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
-		//	float4(0.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
-		//	100.0f, //SpotlightRange
-		//	float3(1.0f, 0.0f, 0.0f), //SpotlightDirection
-		//	10.0f, //SpotlightAngle
+		//Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
+        //Result += CalculatePoint(
+		//	PointlightColor_1, //PointlightColor
+		//	PointlightPosition_1, //PointlightPosition
+		//	PointlightRange_1, //PointlightRange
 		//	input.WorldPosition, //pos
 		//	normalize(input.WorldNormal), //normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
 		//	);
+        //Result += CalculatePoint(
+		//	PointlightColor_2, //PointlightColor
+		//	PointlightPosition_2, //PointlightPosition
+		//	PointlightRange_2, //PointlightRange
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
+        //Result += CalculatePoint(
+		//	PointlightColor_3, //PointlightColor
+		//	PointlightPosition_3, //PointlightPosition
+		//	PointlightRange_3, //PointlightRange
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
+        //Result += CalculatePoint(
+		//	PointlightColor_4, //PointlightColor
+		//	PointlightPosition_4, //PointlightPosition
+		//	PointlightRange_4, //PointlightRange
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
+		Result += CalculateSpot(
+			float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
+			float4(0.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
+			18.0f, //SpotlightRange
+			float3(0.0f, 0.0f, 1.0f), //SpotlightDirection
+			18.0f, //SpotlightAngle
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
 		//Result += CalculateSpot(
 		//	SpotlightColor_1, //SpotlightColor
 		//	float4(SpotlightPosition_1, 0.0f), //SpotlightPosition

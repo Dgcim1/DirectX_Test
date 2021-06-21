@@ -77,6 +77,39 @@ void CGameWindow::SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, 
 	m_PSBase->UpdateConstantBuffer(4);
 }
 
+void CGameWindow::SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, float Range)
+{
+	switch (index)
+	{
+	case 0:
+		cbPSPointLightsData_1.PointlightColor = Color;
+		cbPSPointLightsData_1.PointlightPosition = Position;
+		cbPSPointLightsData_1.PointlightRange = Range;
+		m_PSBase->UpdateConstantBuffer(5);
+		break;
+	case 1:
+		cbPSPointLightsData_2.PointlightColor = Color;
+		cbPSPointLightsData_2.PointlightPosition = Position;
+		cbPSPointLightsData_2.PointlightRange = Range;
+		m_PSBase->UpdateConstantBuffer(6);
+		break;
+	case 2:
+		cbPSPointLightsData_3.PointlightColor = Color;
+		cbPSPointLightsData_3.PointlightPosition = Position;
+		cbPSPointLightsData_3.PointlightRange = Range;
+		m_PSBase->UpdateConstantBuffer(7);
+		break;
+	case 3:
+		cbPSPointLightsData_4.PointlightColor = Color;
+		cbPSPointLightsData_4.PointlightPosition = Position;
+		cbPSPointLightsData_4.PointlightRange = Range;
+		m_PSBase->UpdateConstantBuffer(8);
+		break;
+	default:
+		break;
+	}
+}
+
 void CGameWindow::AddCamera(const SCameraData& CameraData)
 {
 	m_vCameras.emplace_back(CameraData);
@@ -389,6 +422,10 @@ void CGameWindow::CreateShaders()
 	m_PSBase->AddConstantBuffer(&cbPSBaseMaterialData, sizeof(SCBPSBaseMaterialData));
 	m_PSBase->AddConstantBuffer(&cbPSBaseEyeData, sizeof(SCBPSBaseEyeData));
 	m_PSBase->AddConstantBuffer(&cbPSSpotLightsData, sizeof(SCBPSSpotLightsData));
+	m_PSBase->AddConstantBuffer(&cbPSPointLightsData_1, sizeof(SCBPSPointLightsData));
+	m_PSBase->AddConstantBuffer(&cbPSPointLightsData_2, sizeof(SCBPSPointLightsData));
+	m_PSBase->AddConstantBuffer(&cbPSPointLightsData_3, sizeof(SCBPSPointLightsData));
+	m_PSBase->AddConstantBuffer(&cbPSPointLightsData_4, sizeof(SCBPSPointLightsData));
 
 	m_PSNormal = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_PSNormal->Create(EShaderType::PixelShader, L"Shader\\PSNormal.hlsl", "main");

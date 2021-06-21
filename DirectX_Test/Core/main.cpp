@@ -23,6 +23,21 @@
 	3d object cpp line 61 !!!!!!!!!!!!!!!!!!!
 */
 
+/*
+	ТУДУ
+
+	сделать обводку призракам
+	сделать генерацию и уничтожение призраков
+	сделать движение призраков в сторону камеры
+	сделать механику смерти
+	настроить ограничивающие сферы для стен
+	добавить систему тройного затухания в точечное и обычное освещение
+	исправить прожекторный свет
+	система частиц огня
+	сделать боксы для физики столкновений стен и камеры
+
+*/
+
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
 
@@ -65,12 +80,17 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
 	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
-	GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(1, 1, 1, 1));
+	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.25f, 0.25f, 0.25f, 0.25f));
+
+	GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), 13.0f);
+	GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), 13.0f);
+	GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), 0.0f);
+	GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), 18.0f);
 
 	XMFLOAT3 SpotlightPosition{ 0, 0, 0 };
-	XMFLOAT3 SpotlightDirection{ 1, 0, 0 };
-	float SpotlightRange = 100.0f;
-	const float SpotlightAngle = 10.0f;
+	XMFLOAT3 SpotlightDirection{ 0, 0, 1 };
+	float SpotlightRange = 18.0f;
+	const float SpotlightAngle = 18.0f;
 	GameWindow.SetSpotLight(XMVectorSet(1, 1, 1, 0.5f), SpotlightPosition, SpotlightDirection, SpotlightAngle, SpotlightRange);
 	
 	//GameWindow.SetDirectionalLight(XMVectorSet(1, 1, 0, 0), XMVectorSet(0, 0, 0, 1));
