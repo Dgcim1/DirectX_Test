@@ -241,23 +241,27 @@ struct SCBPSSpotLightsData
 	/// <summary>
 	/// Цвет источника света
 	/// </summary>
-	XMVECTOR	SpotlightColor_1{ XMVectorSet(1, 1, 1, 0.5) };
+	XMVECTOR	SpotlightColor{ XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f) };
 	/// <summary>
 	/// Позиция источника света
 	/// </summary>
-	XMFLOAT3	SpotlightPosition_1{ 0, 0, 0 };
+	XMVECTOR	SpotlightPosition{ XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f) };
 	/// <summary>
 	/// Вектор направления света (единичный, из 0)
 	/// </summary>
-	XMFLOAT3	SpotlightDirection_1{ 1, 0, 0 };
+	XMFLOAT3	SpotlightDirection{ 0.0f, 0.0f, 1.0f };
 	/// <summary>
-	/// Угол освещения (чем больше значение, чем меньше освещ участок)
+	/// Вектор угасания света с расстоянием
 	/// </summary>
-	float		SpotlightAngle_1{ 10.0f };
+	XMFLOAT3	SpotlightAttenuation{ 1.0f, 0.14f, 0.07f };
 	/// <summary>
-	/// Максимальная дистанция освещения (в world координатах)
+	/// Зона 100% освещенности (угол в виде косинуса)
 	/// </summary>
-	float		SpotlightRange_1{ 50.0f };
+	float		SpotlightCutOffCosin{ 0.57f };
+	/// <summary>
+	/// Зона, за пределами которого нет освещенности (угол в виде косинуса)
+	/// </summary>
+	float		SpotlightOuterCutOffCosin{ 0.5f };
 };
 
 /// <summary>
@@ -408,16 +412,17 @@ public:
 	/// <param name="Color">Цвет фонарика</param>
 	/// <param name="Position">Позиция фонарика</param>
 	/// <param name="Direction">Направление фонарика (единичный вектор из нуля)</param>
-	/// <param name="Angle">Угол освещения фонарика (чем больше значение, тем меньше угол)</param>
-	/// <param name="Range">Дальность освещения (в мировых координатах)</param>
-	void SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, const XMFLOAT3& Direction, float Angle, float Range);
+	/// <param name="Attenuation">Угасание света</param>
+	/// <param name="CutOffCosin">Угол, в пределах которого свет есть</param>
+	/// <param name="OuterCutOffCosin">Угол, за пределами которого света нет</param>
+	void SetSpotLight(const XMVECTOR& Color, const XMVECTOR& Position, const XMFLOAT3& Direction, const XMFLOAT3& Attenuation, float CutOffCosin, float OuterCutOffCosin);
 	/// <summary>
 	/// Установка значений точечного света
 	/// </summary>
 	/// <param name="index">Индекс источника света</param>
 	/// <param name="Color">Цвет источника света</param>
 	/// <param name="Position">Позиция источника света</param>
-	/// <param name="Range">Дальность освещения</param>
+	/// <param name="Att">Угасание света</param>
 	void SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, const XMFLOAT3& Att);
 #pragma endregion
 

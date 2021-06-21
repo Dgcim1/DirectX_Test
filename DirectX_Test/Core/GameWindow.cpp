@@ -66,13 +66,14 @@ void CGameWindow::SetAmbientlLight(const XMFLOAT3& Color, float Intensity)
 	m_PSBase->UpdateConstantBuffer(1);
 }
 
-void CGameWindow::SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, const XMFLOAT3& Direction, float Angle, float Range)
+void CGameWindow::SetSpotLight(const XMVECTOR& Color, const XMVECTOR& Position, const XMFLOAT3& Direction, const XMFLOAT3& Attenuation, float CutOffCosin, float OuterCutOffCosin)
 {
-	cbPSSpotLightsData.SpotlightColor_1 = Color;
-	cbPSSpotLightsData.SpotlightPosition_1 = Position;
-	cbPSSpotLightsData.SpotlightDirection_1 = Direction;
-	cbPSSpotLightsData.SpotlightAngle_1 = Angle;
-	cbPSSpotLightsData.SpotlightRange_1 = Range;
+	cbPSSpotLightsData.SpotlightColor = Color;
+	cbPSSpotLightsData.SpotlightPosition = Position;
+	cbPSSpotLightsData.SpotlightDirection = Direction;
+	cbPSSpotLightsData.SpotlightAttenuation = Attenuation;
+	cbPSSpotLightsData.SpotlightCutOffCosin = CutOffCosin;
+	cbPSSpotLightsData.SpotlightOuterCutOffCosin = OuterCutOffCosin;
 
 	m_PSBase->UpdateConstantBuffer(4);
 }
