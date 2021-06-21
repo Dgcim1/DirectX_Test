@@ -193,6 +193,11 @@ float4 CalculateSpot(float4 SpotlightColor, float4 SpotlightPosition,
     float intensity_angle = clamp((cosinBetweenLightAndVertex - SpotlightOuterCutOffCosin) / difference, 0.0, 1.0); //intensity
 	
     float att = 1.0 / (SpotlightAtt.x + SpotlightAtt.y * d + SpotlightAtt.z * d * d);
+    //float SpotlightAngle = 20.0f;
+    //float SpotlightRange = 30.0f;
+    //float spot = pow(max(dot(-lightVec, float4(SpotlightDirection, 1)), 0.0f), SpotlightAngle);
+    //float att = (SpotlightRange - d) / SpotlightRange;
+    //att = spot / att;
     spec *= intensity_angle * att;
     diffuse *= intensity_angle * att;
     ambient *= min(AmbientLightIntensity, intensity_angle * att);
@@ -262,17 +267,39 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 		//	normalize(input.WorldNormal), //normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
 		//	);
-        Result += CalculateSpot(
+		Result += CalculateSpot(
 			SpotlightColor_1, //SpotlightColor
 			SpotlightPosition_1, //SpotlightPosition
 			SpotlightDirection_1, //SpotlightDirection
-			SpotlightAtt_1, //SpotlightAtt
+			float3(1.0f, 0.09f, 0.032f), //SpotlightAtt
 			SpotlightCutOffCosin_1, //SpotlightCutOffCosin
 			SpotlightOuterCutOffCosin_1, //SpotlightOuterCutOffCosin
 			input.WorldPosition, //pos
 			normalize(input.WorldNormal), //normal
 			normalize(EyePosition - input.WorldPosition) //ToEye
 			);
+        //Result += CalculateSpot(
+		//	SpotlightColor_1, //SpotlightColor
+		//	SpotlightPosition_1, //SpotlightPosition
+		//	float3(1,0,0), //SpotlightDirection
+		//	float3(1.0f, 0.09f, 0.032f), //SpotlightAtt
+		//	SpotlightCutOffCosin_1, //SpotlightCutOffCosin
+		//	SpotlightOuterCutOffCosin_1, //SpotlightOuterCutOffCosin
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
+        //Result += CalculateSpot(
+		//	SpotlightColor_1, //SpotlightColor
+		//	SpotlightPosition_1, //SpotlightPosition
+		//	SpotlightDirection_1, //SpotlightDirection
+		//	SpotlightAtt_1, //SpotlightAtt
+		//	SpotlightCutOffCosin_1, //SpotlightCutOffCosin
+		//	SpotlightOuterCutOffCosin_1, //SpotlightOuterCutOffCosin
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
 	}
 
 	return Result;

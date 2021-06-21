@@ -89,9 +89,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	XMFLOAT3 LightAttenuationRange_32{ 1.0f, 0.14f, 0.07f };
 	XMFLOAT3 LightAttenuationRange_50{ 1.0f, 0.09f, 0.032f };
 	XMFLOAT3 LightAttenuationRange_65{ 1.0f, 0.07f, 0.017f };
+	XMFLOAT3 LightAttenuationRange_200{ 1.0f, 0.022f, 0.0019f };
+	XMFLOAT3 LightAttenuationRange_3250{ 1.0f, 0.0014f, 0.000007f };
 
-	const float CosSpotLightCutOff = 0.57f;
-	const float outerCosSpotLightCutOff = 0.5f;
+	//const float CosSpotLightCutOff = 0.57f;
+	//const float outerCosSpotLightCutOff = 0.5f;
+	const float CosSpotLightCutOff = 0.94f;
+	const float outerCosSpotLightCutOff = 0.87f;
 	const float cameraW = 0.0f;
 
 	GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
@@ -110,7 +114,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		XMVectorSet(1, 1, 1, 0.0f), //Цвет
 		SpotlightPosition, //Позиция
 		SpotlightDirection, //Направление света
-		LightAttenuationRange_32, //Угасание света
+		LightAttenuationRange_3250, //Угасание света
 		CosSpotLightCutOff, //Угол, в пределах которого свет есть
 		outerCosSpotLightCutOff //Угол, за пределами которого света нет
 	);
@@ -470,8 +474,26 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		 	SCameraData* CurCamera = GameWindow.GetCurrentCamera();
 
 			std::string logFPS = "FPS: " + std::to_string(fps) + "\n\n";
+			//XMFLOAT4 cameraFocus;
+			
 			XMFLOAT4 cameraPos;
 			DirectX::XMStoreFloat4(&cameraPos, CurCamera->EyePosition);
+
+
+			//XMFLOAT4 cameraFocus4;
+			//XMVECTOR cameraFocus{ XMVector4Transform(XMVectorSet(0, 0, 1, 1), XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYaw(0, CurCamera->Yaw, CurCamera->Pitch))) };
+			
+			//DirectX::XMStoreFloat4(&cameraFocus, XMQuaternionRotationRollPitchYaw(0, CurCamera->Yaw, CurCamera->Pitch));
+			//DirectX::XMStoreFloat4(&cameraFocus4, cameraFocus);
+			//XMFLOAT3 cameraFocus3{cameraFocus4.x, cameraFocus4.y, cameraFocus4.z};
+
+			XMFLOAT3 cameraFocus{sin(CurCamera->Yaw), -sin(CurCamera->Pitch), cos(CurCamera->Yaw) };
+			//XMFLOAT3 cameraFocus2{ XMVector3Normalize(cameraFocus) };
+			//cameraFocus2.x = cameraFocus.x * cos(CurCamera->Yaw) - cameraFocus.z * sin(CurCamera->Yaw);
+			//cameraFocus2.z = cameraFocus.x * sin(CurCamera->Yaw) + cameraFocus.z * cos(CurCamera->Yaw);
+
+			
+
 			std::string logCameraPos = "Camera pos:\n\tx: " + std::to_string(cameraPos.x) + 
 				"\n\ty: " + std::to_string(cameraPos.y) +
 				"\n\tz: " + std::to_string(cameraPos.z) +
@@ -512,14 +534,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				logInfo = logFPS + logCameraPos + help;
 			}
 
+			//SpotlightDirection
+			//cameraFocus
+
+
 			//обновление позиции фонарика
 			SpotlightPosition = XMVectorSet(cameraPos.x, cameraPos.y, cameraPos.z, cameraW);
 			if (isSpotlight) {
 				GameWindow.SetSpotLight(
 					XMVectorSet(1, 1, 1, 0.0f), //Цвет
 					SpotlightPosition, //Позиция
-					SpotlightDirection, //Направление света
-					LightAttenuationRange_32, //Угасание света
+					cameraFocus, //Направление света
+					LightAttenuationRange_3250, //Угасание света
 					CosSpotLightCutOff, //Угол, в пределах которого свет есть
 					outerCosSpotLightCutOff //Угол, за пределами которого света нет
 				);
@@ -529,7 +555,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				GameWindow.SetSpotLight(
 					XMVectorSet(1, 1, 1, 0.0f), //Цвет
 					SpotlightPosition, //Позиция
-					SpotlightDirection, //Направление света
+					cameraFocus, //Направление света
 					LightAttenuationRange_0, //Угасание света
 					CosSpotLightCutOff, //Угол, в пределах которого свет есть
 					outerCosSpotLightCutOff //Угол, за пределами которого света нет
