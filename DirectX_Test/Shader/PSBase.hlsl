@@ -46,32 +46,32 @@ cbuffer cbPointlights1 : register(b5)
 {
 	float4	PointlightColor_1;
 	float4	PointlightPosition_1;
-	float	PointlightRange_1;
-	float3	Pads_5;
+	float3	PointlightAtt_1;
+	float	Pads_5;
 }
 
 cbuffer cbPointlights2 : register(b6)
 {
-    float4 PointlightColor_2;
-    float4 PointlightPosition_2;
-    float PointlightRange_2;
-    float3 Pads_6;
+    float4	PointlightColor_2;
+    float4	PointlightPosition_2;
+    float3	PointlightAtt_2;
+    float	Pads_6;
 }
 
 cbuffer cbPointlights3 : register(b7)
 {
-    float4 PointlightColor_3;
-    float4 PointlightPosition_3;
-    float PointlightRange_3;
-    float3 Pads_7;
+    float4	PointlightColor_3;
+    float4	PointlightPosition_3;
+    float3	PointlightAtt_3;
+    float	Pads_7;
 }
 
 cbuffer cbPointlights4 : register(b8)
 {
-    float4 PointlightColor_4;
-    float4 PointlightPosition_4;
-    float PointlightRange_4;
-    float3 Pads_8;
+    float4	PointlightColor_4;
+    float4	PointlightPosition_4;
+    float3	PointlightAtt_4;
+    float	Pads_8;
 }
 
 float4 CalculateAmbient(float4 AmbientColor)
@@ -98,7 +98,7 @@ float4 CalculateDirectional(float4 DiffuseColor, float4 SpecularColor, float4 To
 	return Result;
 }
 
-float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float PointlightRange,
+float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float3 PointlightAtt,
 	float4 pos, float4 normal, float4 toEye)
 {
 	// »нициализируем вывод
@@ -111,10 +111,6 @@ float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float P
 
 	// рассто€ние от поверхности до источника света
 	float d = length(lightVec);
-
-	// “ест светового диапазона
-	if (d > PointlightRange)
-		return float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// Ќормализованный световой вектор
 	lightVec /= d;
@@ -139,7 +135,7 @@ float4 CalculatePoint(float4 PointlightColor, float4 PointlightPosition, float P
 	}
 
 	// угасание света
-	float att = (PointlightRange - d) / PointlightRange;
+    float att = 1.0 / (PointlightAtt.x + PointlightAtt.y * d + PointlightAtt.z * d * d);
 	spec *= att;
 	diffuse *= att;
 	ambient *= min(AmbientLightIntensity, att);
@@ -239,27 +235,27 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 	if (UseLighting == true)
 	{
 		Result = CalculateAmbient(AmbientColor);
-		//Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
-        //Result += CalculatePoint(
-		//	PointlightColor_1, //PointlightColor
-		//	PointlightPosition_1, //PointlightPosition
-		//	PointlightRange_1, //PointlightRange
-		//	input.WorldPosition, //pos
-		//	normalize(input.WorldNormal), //normal
-		//	normalize(EyePosition - input.WorldPosition) //ToEye
-		//	);
-        //Result += CalculatePoint(
-		//	PointlightColor_2, //PointlightColor
-		//	PointlightPosition_2, //PointlightPosition
-		//	PointlightRange_2, //PointlightRange
-		//	input.WorldPosition, //pos
-		//	normalize(input.WorldNormal), //normal
-		//	normalize(EyePosition - input.WorldPosition) //ToEye
-		//	);
+		Result += CalculateDirectional(DiffuseColor, SpecularColor, normalize(EyePosition - input.WorldPosition), normalize(input.WorldNormal));
+        Result += CalculatePoint(
+			PointlightColor_1, //PointlightColor
+			PointlightPosition_1, //PointlightPosition
+			PointlightAtt_1, //PointlightAtt
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
+        Result += CalculatePoint(
+			PointlightColor_2, //PointlightColor
+			PointlightPosition_2, //PointlightPosition
+			PointlightAtt_2, //PointlightAtt
+			input.WorldPosition, //pos
+			normalize(input.WorldNormal), //normal
+			normalize(EyePosition - input.WorldPosition) //ToEye
+			);
         //Result += CalculatePoint(
 		//	PointlightColor_3, //PointlightColor
 		//	PointlightPosition_3, //PointlightPosition
-		//	PointlightRange_3, //PointlightRange
+		//	PointlightAtt_3, //PointlightAtt
 		//	input.WorldPosition, //pos
 		//	normalize(input.WorldNormal), //normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
@@ -267,21 +263,24 @@ float4 main(VS_OUTPUT input) : SV_TARGET
         //Result += CalculatePoint(
 		//	PointlightColor_4, //PointlightColor
 		//	PointlightPosition_4, //PointlightPosition
-		//	PointlightRange_4, //PointlightRange
+		//	PointlightAtt_4, //PointlightAtt
 		//	input.WorldPosition, //pos
 		//	normalize(input.WorldNormal), //normal
 		//	normalize(EyePosition - input.WorldPosition) //ToEye
 		//	);
-		Result += CalculateSpot(
-			float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
-			float4(0.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
-			18.0f, //SpotlightRange
-			float3(0.0f, 0.0f, 1.0f), //SpotlightDirection
-			18.0f, //SpotlightAngle
-			input.WorldPosition, //pos
-			normalize(input.WorldNormal), //normal
-			normalize(EyePosition - input.WorldPosition) //ToEye
-			);
+		
+		
+		
+		//Result += CalculateSpot(
+		//	float4(1.0f, 1.0f, 1.0f, 0.5f), //SpotlightColor
+		//	float4(0.0f, 0.0f, 0.0f, 0.0f), //SpotlightPosition
+		//	18.0f, //SpotlightRange
+		//	float3(0.0f, 0.0f, 1.0f), //SpotlightDirection
+		//	18.0f, //SpotlightAngle
+		//	input.WorldPosition, //pos
+		//	normalize(input.WorldNormal), //normal
+		//	normalize(EyePosition - input.WorldPosition) //ToEye
+		//	);
 		//Result += CalculateSpot(
 		//	SpotlightColor_1, //SpotlightColor
 		//	float4(SpotlightPosition_1, 0.0f), //SpotlightPosition

@@ -274,13 +274,13 @@ struct SCBPSPointLightsData
 	/// </summary>
 	XMVECTOR	PointlightPosition{ XMVectorSet(0, 0, 0, 1.0f) };
 	/// <summary>
-	/// Максимальная дистанция освещения (в world координатах)
+	/// Вектор угасания света с расстоянием
 	/// </summary>
-	float		PointlightRange{ 50.0f };
+	XMFLOAT3		PointlightAttenuation{ 0, 0, 0 };
 	/// <summary>
 	/// Не используется
 	/// </summary>
-	XMFLOAT3	Pads{ 0, 0, 0 };
+	float	Pads{ 0 };
 };
 
 
@@ -418,7 +418,7 @@ public:
 	/// <param name="Color">Цвет источника света</param>
 	/// <param name="Position">Позиция источника света</param>
 	/// <param name="Range">Дальность освещения</param>
-	void SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, float Range);
+	void SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, const XMFLOAT3& Att);
 #pragma endregion
 
 #pragma region CameraMethods

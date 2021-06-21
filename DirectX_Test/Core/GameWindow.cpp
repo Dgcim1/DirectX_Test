@@ -77,32 +77,32 @@ void CGameWindow::SetSpotLight(const XMVECTOR& Color, const XMFLOAT3& Position, 
 	m_PSBase->UpdateConstantBuffer(4);
 }
 
-void CGameWindow::SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, float Range)
+void CGameWindow::SetPointLight(int index, const XMVECTOR& Color, const XMVECTOR& Position, const XMFLOAT3& Att)
 {
 	switch (index)
 	{
 	case 0:
 		cbPSPointLightsData_1.PointlightColor = Color;
 		cbPSPointLightsData_1.PointlightPosition = Position;
-		cbPSPointLightsData_1.PointlightRange = Range;
+		cbPSPointLightsData_1.PointlightAttenuation = Att;
 		m_PSBase->UpdateConstantBuffer(5);
 		break;
 	case 1:
 		cbPSPointLightsData_2.PointlightColor = Color;
 		cbPSPointLightsData_2.PointlightPosition = Position;
-		cbPSPointLightsData_2.PointlightRange = Range;
+		cbPSPointLightsData_2.PointlightAttenuation = Att;
 		m_PSBase->UpdateConstantBuffer(6);
 		break;
 	case 2:
 		cbPSPointLightsData_3.PointlightColor = Color;
 		cbPSPointLightsData_3.PointlightPosition = Position;
-		cbPSPointLightsData_3.PointlightRange = Range;
+		cbPSPointLightsData_3.PointlightAttenuation = Att;
 		m_PSBase->UpdateConstantBuffer(7);
 		break;
 	case 3:
 		cbPSPointLightsData_4.PointlightColor = Color;
 		cbPSPointLightsData_4.PointlightPosition = Position;
-		cbPSPointLightsData_4.PointlightRange = Range;
+		cbPSPointLightsData_4.PointlightAttenuation = Att;
 		m_PSBase->UpdateConstantBuffer(8);
 		break;
 	default:

@@ -80,12 +80,23 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
 	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
-	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.25f, 0.25f, 0.25f, 0.25f));
+	//GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.25f, 0.25f, 0.25f, 0.25f));
+	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f));
 
-	GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), 13.0f);
-	GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), 13.0f);
-	GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), 0.0f);
-	GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), 18.0f);
+	XMFLOAT3 LightAttenuationRange_0{ 10.0f, 10.0f, 10.0f };
+	XMFLOAT3 LightAttenuationRange_13{ 1.0f, 0.35f, 0.44f };
+	XMFLOAT3 LightAttenuationRange_20{ 1.0f, 0.22f, 0.20f };
+	XMFLOAT3 LightAttenuationRange_32{ 1.0f, 0.14f, 0.07f };
+
+	//GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+
+	GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
+	GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
+	GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
 
 	XMFLOAT3 SpotlightPosition{ 0, 0, 0 };
 	XMFLOAT3 SpotlightDirection{ 0, 0, 1 };
