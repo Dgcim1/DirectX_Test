@@ -226,6 +226,7 @@ struct SModel
 class CObject3D
 {
 	friend class CGameWindow;
+	friend class CGameObject;
 public:
 	/// <summary>
 	/// Конструктор 3D обьекта
@@ -263,6 +264,8 @@ public:
 	void UpdateQuadUV(const XMFLOAT2& UVOffset, const XMFLOAT2& UVSize);
 
 	void Animate();
+
+	std::tuple<XMFLOAT3, XMFLOAT3> GetBoxObject();
 private:
 	/// <summary>
 	/// Создает вертексный и индексный буферы заданного меша данного 3D обьекта и привязывает их к устройству

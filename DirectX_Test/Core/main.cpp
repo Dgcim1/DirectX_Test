@@ -25,13 +25,11 @@
 	ТУДУ
 
 	сделать обводку призракам
-	сделать генерацию и уничтожение призраков
-	сделать движение призраков в сторону камеры
+	сделать уничтожение призраков
 	сделать механику смерти
 	настроить ограничивающие сферы для стен
 	исправить прожекторный свет
 	система частиц огня
-	сделать боксы для физики столкновений стен и камеры
 
 */
 
@@ -95,6 +93,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		{
 			MainCamera.EyePosition = { 0.0f, 3.0f, 0.0f };
 			MainCamera.FocusPosition = { 0.0f, 3.0f, 1.0f };
+			MainCamera.isCollision = true;
+			MainCamera.Extents = {0.5f, 1.0f, 0.5f};
 			GameWindow.AddCamera(MainCamera);
 		}
 	}
@@ -165,7 +165,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		//SModel Model{ LoadStaticModelFromFile("Asset/succube.obj") };
 		ObjectGhost->Create(Model);
 	}
-	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	//CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
 	
 	CObject3D* ObjectDagger3{ GameWindow.AddObject3D() };
 	{
@@ -229,6 +229,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		CGameObjectAltarCandlet_1->ComponentPhysics.bIsPickable = false;
 		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		CGameObjectAltarCandlet_1->CreateCollision();
 	}
 
 	CObject3D* ObjectWall{ GameWindow.AddObject3D() };
@@ -248,6 +249,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_1->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_1->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_2{ GameWindow.AddGameObject("Wall_2") };
 		{
@@ -260,6 +262,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_2->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_2->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_2->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_2->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_3{ GameWindow.AddGameObject("Wall_3") };
 		{
@@ -272,6 +275,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_3->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_3->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_3->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_3->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_4{ GameWindow.AddGameObject("Wall_4") };
 		{
@@ -284,6 +288,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_4->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_4->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_4->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_4->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_5{ GameWindow.AddGameObject("Wall_5") };
 		{
@@ -296,6 +301,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_5->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_5->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_5->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_5->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_6{ GameWindow.AddGameObject("Wall_6") };
 		{
@@ -308,6 +314,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_6->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_6->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_6->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_6->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_7{ GameWindow.AddGameObject("Wall_7") };
 		{
@@ -320,6 +327,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_7->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_7->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_7->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_7->CreateCollision();
 		}
 		CGameObject* CGameObjectWall_8{ GameWindow.AddGameObject("Wall_8") };
 		{
@@ -332,6 +340,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			CGameObjectWall_8->ComponentPhysics.bIsPickable = true;
 			CGameObjectWall_8->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 			CGameObjectWall_8->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+			CGameObjectWall_8->CreateCollision();
 		}
 	}
 
@@ -352,6 +361,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		CGameObjectWallOrnament_1->ComponentPhysics.bIsPickable = false;
 		CGameObjectWallOrnament_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 		CGameObjectWallOrnament_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		CGameObjectWallOrnament_1->CreateCollision();
 	}
 
 	// CObject3D* SkyBoxObject3D{ GameWindow.AddObject3D() };

@@ -1,5 +1,7 @@
 #include "Object3D.h"
 #include "GameWindow.h"
+#include <limits>
+#include <tuple>
 
 static string SerializeXMMATRIX(const XMMATRIX& Matrix)
 {
@@ -138,6 +140,27 @@ void CObject3D::UpdateMeshBuffer(size_t MeshIndex)
 
 		m_PtrDeviceContext->Unmap(m_vMeshBuffers[MeshIndex].VertexBuffer.Get(), 0);
 	}
+}
+
+std::tuple<XMFLOAT3, XMFLOAT3> CObject3D::GetBoxObject()
+{
+	XMFLOAT3 Point1{ -FLT_MAX , -FLT_MAX , -FLT_MAX };// 1 < 2
+	XMFLOAT3 Point2{ FLT_MAX , FLT_MAX , FLT_MAX };
+	for (auto& Mesh : m_Model.vMeshes)
+	{
+		for (auto& Vertex : Mesh.vVertices)
+		{
+			XMFLOAT4 vertex;
+			XMStoreFloat4(&vertex, Vertex.Position);
+			if (Point1.x < vertex.x) Point1.x = vertex.x;
+			if (Point2.x > vertex.x) Point2.x = vertex.x;
+			if (Point1.y < vertex.y) Point1.y = vertex.y;
+			if (Point2.y > vertex.y) Point2.y = vertex.y;
+			if (Point1.z < vertex.z) Point1.z = vertex.z;
+			if (Point2.z > vertex.z) Point2.z = vertex.z;
+		}
+	}
+	return std::make_tuple(Point1, Point2);
 }
 
 void CObject3D::Animate()

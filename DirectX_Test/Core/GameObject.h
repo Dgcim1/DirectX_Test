@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SharedHeader.h"
+#include "Object3D.h"
+#include <DirectXCollision.h>
 
 class CObject3D;
 class CTexture;
@@ -64,15 +66,35 @@ struct SBoundingSphere
 	XMVECTOR	CenterOffset{};
 };
 
+/// <summary>
+/// Физическая компонента обьекта
+/// </summary>
 struct SComponentPhysics
 {
+	/// <summary>
+	/// Ограничивающая picking сфера
+	/// </summary>
 	SBoundingSphere	BoundingSphere{};
+	/// <summary>
+	/// Может ли обьект быть подвергнут picking'у
+	/// </summary>
 	bool			bIsPickable{ true };
+	/// <summary>
+	/// Прямоугольник для проверки коллизий (задается через CGameObject::CreateCollision)
+	/// </summary>
+	BoundingBox		collisionBox;
+	/// <summary>
+	/// Учитывать ли коллизии с обьектом (задается через CGameObject::CreateCollision)
+	/// </summary>
+	bool			isCollide{ false };
+	XMFLOAT3 Point1;//TODO
+	XMFLOAT3 Point2;
 };
 
 class CGameObject
 {
 	friend class CGameWindow;
+	friend class CObject3D;
 public:
 	void* operator new(size_t Size)
 	{
@@ -91,7 +113,10 @@ public:
 	/// Обновление матрицы мира (путем перемножения текущих матриц масштаба, вращения и перемещения)
 	/// </summary>
 	void UpdateWorldMatrix();
-
+	/// <summary>
+	/// Создает квадрат коллизии для модели
+	/// </summary>
+	void CreateCollision();
 private:
 	/// <summary>
 	/// Имя обьекта

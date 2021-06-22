@@ -187,7 +187,19 @@ void CGameWindow::MoveCamera(ECameraMovementDirection Direction, float StrideFac
 			break;
 		}
 	}
-
+	if (m_PtrCurrentCamera->isCollision) {
+		BoundingBox collisionBox;
+		XMFLOAT3 cameraPos;
+		XMStoreFloat3(&cameraPos, m_PtrCurrentCamera->EyePosition + dPosition);
+		collisionBox.Center = cameraPos;
+		collisionBox.Extents = m_PtrCurrentCamera->Extents;
+		for (auto& gameObject : m_vGameObjects) {
+			if (gameObject->ComponentPhysics.isCollide) {
+				if (gameObject->ComponentPhysics.collisionBox.Contains(collisionBox) != DISJOINT)
+					return;
+			}
+		}
+	}
 	m_PtrCurrentCamera->EyePosition += dPosition;
 	m_PtrCurrentCamera->FocusPosition += dPosition;
 }

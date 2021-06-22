@@ -9,6 +9,7 @@
 #include "GameObject.h"
 #include "Math.h"
 #include "ObjectLine.h"
+#include <DirectXCollision.h>
 
 /// <summary>
 /// Флаги отрисовки
@@ -189,6 +190,14 @@ public:
 	/// Вектор, направленный вперед
 	/// </summary>
 	XMVECTOR Forward{};
+	/// <summary>
+	/// Проверять ли коллизии с камерой
+	/// </summary>
+	bool isCollision{ false };
+	/// <summary>
+	/// Отступ от центра камеры до края блока коллизии
+	/// </summary>
+	XMFLOAT3 Extents{ 0.1f, 0.1f, 0.1f };
 };
 
 /// <summary>
