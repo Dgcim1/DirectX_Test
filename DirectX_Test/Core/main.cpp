@@ -18,9 +18,7 @@
 */
 
 /*
-	СТРОКА 116 AssimpLoader.h ИСПРАВИТЬ!!!!!!!!!
-
-	3d object cpp line 61 !!!!!!!!!!!!!!!!!!!
+	СТРОКА 116 и 98 AssimpLoader.h ИСПРАВИТЬ!!!!!!!!!
 */
 
 /*
@@ -43,11 +41,17 @@
 static int ghostCounterMain = 0;
 static int ghostCounterCurrent = 0;
 
+static float speedCamera = 0.05f;
+
+static EGameState startGameState = EGameState::Playing;
+//static EGameState startGameState = EGameState::DebugMode;
+
 void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
-	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost" + ghostCounterMain) };
+	float seed = rand() / (2 * XM_PI);
+	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost" + std::to_string(ghostCounterMain)) };
 	{
-		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(-6.0f, 0.0f, 0.0f, 0);
-		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0);
+		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(cos(seed) * 25.0f, 0.0f, sin(seed) * 25.0f, 0.0f);
+		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0.0f);
 		CGameObjectGhost->UpdateWorldMatrix();
 
 		CGameObjectGhost->ComponentRender.PtrObject3D = ObjectGhost;
@@ -66,21 +70,42 @@ LRESULT CALLBACK WndProc(_In_ HWND hWnd, _In_ UINT Msg, _In_ WPARAM wParam, _In_
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
+
+	srand(time(NULL));
+
 	//создаем окно
 	int windowHeight = 600;
 	int windowWight = 1000;
 	CGameWindow GameWindow{ hInstance, XMFLOAT2(windowWight, windowHeight) };
 	GameWindow.CreateWin32(WndProc, TEXT("Game"), L"Asset\\dotumche_10_korean.spritefont", true);
+	GameWindow.SetGameState(startGameState);
 	//создаем и устанавливаем камеру
-	SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
+	if (startGameState == EGameState::DebugMode)
 	{
-		GameWindow.AddCamera(MainCamera);
+		SCameraData MainCamera{ SCameraData(ECameraType::FreeLook) };
+		{
+			MainCamera.EyePosition = { 0.0f, 3.0f, 0.0f };
+			MainCamera.FocusPosition = { 0.0f, 3.0f, 1.0f };
+			GameWindow.AddCamera(MainCamera);
+		}
+	}
+	if (startGameState == EGameState::Playing)
+	{
+		SCameraData MainCamera{ SCameraData(ECameraType::FirstPerson) };
+		{
+			MainCamera.EyePosition = { 0.0f, 3.0f, 0.0f };
+			MainCamera.FocusPosition = { 0.0f, 3.0f, 1.0f };
+			GameWindow.AddCamera(MainCamera);
+		}
 	}
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
-	GameWindow.SetAmbientlLight(XMFLOAT3(Colors::White), 0.15f);
-	//GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.25f, 0.25f, 0.25f, 0.25f));
-	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f));
+	XMVECTORF32 clightColor = Colors::White;
+	XMVECTOR vlightColor = { clightColor.v };
+
+	GameWindow.SetAmbientlLight(XMFLOAT3(clightColor), 0.15f);
+	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), vlightColor * 0.38f);
+	//GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f));
 
 	XMFLOAT3 LightAttenuationRange_0{ 10.0f, 10.0f, 10.0f };
 	XMFLOAT3 LightAttenuationRange_7{ 1.0f, 0.7f, 1.8f };
@@ -98,15 +123,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	const float outerCosSpotLightCutOff = 0.87f;
 	const float cameraW = 0.0f;
 
-	GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
 
-	//GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
-	//GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
-	//GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	//GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.0f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	GameWindow.SetPointLight(0, vlightColor, XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
+	GameWindow.SetPointLight(1, vlightColor, XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
+	GameWindow.SetPointLight(2, vlightColor, XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	GameWindow.SetPointLight(3, vlightColor, XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
 
 	XMVECTOR SpotlightPosition{ XMVectorSet(0, 0, 0, cameraW) };
 	XMFLOAT3 SpotlightDirection{ 0, 0, 1 };
@@ -137,6 +162,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	CObject3D* ObjectGhost{ GameWindow.AddObject3D() };
 	{
 		SModel Model{ LoadStaticModelFromFile("Asset/Floating+Cape+2.obj") };
+		//SModel Model{ LoadStaticModelFromFile("Asset/succube.obj") };
 		ObjectGhost->Create(Model);
 	}
 	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
@@ -213,7 +239,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		CGameObject* CGameObjectWall_1{ GameWindow.AddGameObject("Wall_1") };
 		{
-			CGameObjectWall_1->ComponentTransform.Translation = XMVectorSet(15.0f, 0.0f, 12.0f, 0);
+			CGameObjectWall_1->ComponentTransform.Translation = XMVectorSet(15.0f, 5.0f, 12.0f, 0);
 			CGameObjectWall_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PIDIV2, 0);
 			CGameObjectWall_1->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_1->UpdateWorldMatrix();
@@ -225,7 +251,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_2{ GameWindow.AddGameObject("Wall_2") };
 		{
-			CGameObjectWall_2->ComponentTransform.Translation = XMVectorSet(15.0f, 0.0f, -4.0f, 0);
+			CGameObjectWall_2->ComponentTransform.Translation = XMVectorSet(15.0f, 5.0f, -4.0f, 0);
 			CGameObjectWall_2->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PIDIV2, 0);
 			CGameObjectWall_2->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_2->UpdateWorldMatrix();
@@ -237,7 +263,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_3{ GameWindow.AddGameObject("Wall_3") };
 		{
-			CGameObjectWall_3->ComponentTransform.Translation = XMVectorSet(12.0f, 0.0f, -15.0f, 0);
+			CGameObjectWall_3->ComponentTransform.Translation = XMVectorSet(12.0f, 5.0f, -15.0f, 0);
 			CGameObjectWall_3->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PI, 0);
 			CGameObjectWall_3->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_3->UpdateWorldMatrix();
@@ -249,7 +275,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_4{ GameWindow.AddGameObject("Wall_4") };
 		{
-			CGameObjectWall_4->ComponentTransform.Translation = XMVectorSet(-4.0f, 0.0f, -15.0f, 0);
+			CGameObjectWall_4->ComponentTransform.Translation = XMVectorSet(-4.0f, 5.0f, -15.0f, 0);
 			CGameObjectWall_4->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, XM_PI, 0);
 			CGameObjectWall_4->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_4->UpdateWorldMatrix();
@@ -261,7 +287,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_5{ GameWindow.AddGameObject("Wall_5") };
 		{
-			CGameObjectWall_5->ComponentTransform.Translation = XMVectorSet(-15.0f, 0.0f, -12.0f, 0);
+			CGameObjectWall_5->ComponentTransform.Translation = XMVectorSet(-15.0f, 5.0f, -12.0f, 0);
 			CGameObjectWall_5->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, 0);
 			CGameObjectWall_5->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_5->UpdateWorldMatrix();
@@ -273,7 +299,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_6{ GameWindow.AddGameObject("Wall_6") };
 		{
-			CGameObjectWall_6->ComponentTransform.Translation = XMVectorSet(-15.0f, 0.0f, 4.0f, 0);
+			CGameObjectWall_6->ComponentTransform.Translation = XMVectorSet(-15.0f, 5.0f, 4.0f, 0);
 			CGameObjectWall_6->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, 0);
 			CGameObjectWall_6->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_6->UpdateWorldMatrix();
@@ -285,7 +311,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_7{ GameWindow.AddGameObject("Wall_7") };
 		{
-			CGameObjectWall_7->ComponentTransform.Translation = XMVectorSet(-12.0f, 0.0f, 15.0f, 0);
+			CGameObjectWall_7->ComponentTransform.Translation = XMVectorSet(-12.0f, 5.0f, 15.0f, 0);
 			CGameObjectWall_7->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, 0);
 			CGameObjectWall_7->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_7->UpdateWorldMatrix();
@@ -297,7 +323,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		}
 		CGameObject* CGameObjectWall_8{ GameWindow.AddGameObject("Wall_8") };
 		{
-			CGameObjectWall_8->ComponentTransform.Translation = XMVectorSet(4.0f, 0.0f, 15.0f, 0);
+			CGameObjectWall_8->ComponentTransform.Translation = XMVectorSet(4.0f, 5.0f, 15.0f, 0);
 			CGameObjectWall_8->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, 0);
 			CGameObjectWall_8->ComponentTransform.Scaling = XMVectorSet(4.0f, 4.0f, 4.0f, 0);
 			CGameObjectWall_8->UpdateWorldMatrix();
@@ -474,25 +500,30 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		 	SCameraData* CurCamera = GameWindow.GetCurrentCamera();
 
 			std::string logFPS = "FPS: " + std::to_string(fps) + "\n\n";
-			//XMFLOAT4 cameraFocus;
+			std::string logGameMode = "";
+			switch(GameWindow.GetGameState())
+			{
+			case EGameState::Playing:
+				logGameMode = "Gamemode: Playing\n\n";
+				break;
+			case EGameState::Paused:
+				logGameMode = "Gamemode: Paused\n\n";
+				break;
+			case EGameState::GameOver:
+				logGameMode = "Gamemode: GameOver\n\n";
+				break;
+			case EGameState::DebugMode:
+				logGameMode = "Gamemode: DebugMode\n\n";
+				break;
+			default:
+				logGameMode = "Gamemode: undefined\n\n";
+				break;
+
+			}
 			
 			XMFLOAT4 cameraPos;
 			DirectX::XMStoreFloat4(&cameraPos, CurCamera->EyePosition);
-
-
-			//XMFLOAT4 cameraFocus4;
-			//XMVECTOR cameraFocus{ XMVector4Transform(XMVectorSet(0, 0, 1, 1), XMMatrixRotationQuaternion(XMQuaternionRotationRollPitchYaw(0, CurCamera->Yaw, CurCamera->Pitch))) };
-			
-			//DirectX::XMStoreFloat4(&cameraFocus, XMQuaternionRotationRollPitchYaw(0, CurCamera->Yaw, CurCamera->Pitch));
-			//DirectX::XMStoreFloat4(&cameraFocus4, cameraFocus);
-			//XMFLOAT3 cameraFocus3{cameraFocus4.x, cameraFocus4.y, cameraFocus4.z};
-
 			XMFLOAT3 cameraFocus{sin(CurCamera->Yaw), -sin(CurCamera->Pitch), cos(CurCamera->Yaw) };
-			//XMFLOAT3 cameraFocus2{ XMVector3Normalize(cameraFocus) };
-			//cameraFocus2.x = cameraFocus.x * cos(CurCamera->Yaw) - cameraFocus.z * sin(CurCamera->Yaw);
-			//cameraFocus2.z = cameraFocus.x * sin(CurCamera->Yaw) + cameraFocus.z * cos(CurCamera->Yaw);
-
-			
 
 			std::string logCameraPos = "Camera pos:\n\tx: " + std::to_string(cameraPos.x) + 
 				"\n\ty: " + std::to_string(cameraPos.y) +
@@ -528,10 +559,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			if (isPicking) {
 				std::string pickedObj = GameWindow.GetPickedGameObjectName();
 				std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
-				logInfo = logFPS + logCameraPos + pickInfo + help;
+				logInfo = logFPS + logGameMode + logCameraPos + pickInfo + help;
 			}
 			else {
-				logInfo = logFPS + logCameraPos + help;
+				logInfo = logFPS + logGameMode + logCameraPos + help;
 			}
 
 			//SpotlightDirection
@@ -542,7 +573,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			SpotlightPosition = XMVectorSet(cameraPos.x, cameraPos.y, cameraPos.z, cameraW);
 			if (isSpotlight) {
 				GameWindow.SetSpotLight(
-					XMVectorSet(1, 1, 1, 0.0f), //Цвет
+					vlightColor, //Цвет
 					SpotlightPosition, //Позиция
 					cameraFocus, //Направление света
 					LightAttenuationRange_3250, //Угасание света
@@ -553,7 +584,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			else
 			{
 				GameWindow.SetSpotLight(
-					XMVectorSet(1, 1, 1, 0.0f), //Цвет
+					vlightColor, //Цвет
 					SpotlightPosition, //Позиция
 					cameraFocus, //Направление света
 					LightAttenuationRange_0, //Угасание света
@@ -572,19 +603,19 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			if (KeyState.W)
 			{
-				GameWindow.MoveCamera(ECameraMovementDirection::Forward, 0.01f);
+				GameWindow.MoveCamera(ECameraMovementDirection::Forward, speedCamera);
 			}
 			if (KeyState.S)
 			{
-				GameWindow.MoveCamera(ECameraMovementDirection::Backward, 0.01f);
+				GameWindow.MoveCamera(ECameraMovementDirection::Backward, speedCamera);
 			}
 			if (KeyState.A)
 			{
-				GameWindow.MoveCamera(ECameraMovementDirection::Leftward, 0.01f);
+				GameWindow.MoveCamera(ECameraMovementDirection::Leftward, speedCamera);
 			}
 			if (KeyState.D)
 			{
-				GameWindow.MoveCamera(ECameraMovementDirection::Rightward, 0.01f);
+				GameWindow.MoveCamera(ECameraMovementDirection::Rightward, speedCamera);
 			}
 			if (keyPressDelay == 0) {
 				keyPressDelay = fps / 10;
@@ -638,6 +669,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			{
 				isPicking = true;
 				GameWindow.Pick(windowWight / 2, windowHeight / 2);
+				if (std::string(GameWindow.GetPickedGameObjectName()).find("Ghost", 0) != std::string::npos) 
+				{
+					CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+				}
 			}
 			if (MouseState.x != MouseX || MouseState.y != MouseY)
 			{
@@ -657,7 +692,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			}
 			if (MouseState.scrollWheelValue)
 			{
-				GameWindow.ZoomCamera(MouseState.scrollWheelValue, 0.01f);
+				//GameWindow.ZoomCamera(MouseState.scrollWheelValue, 0.01f);
 			}
 			//рисуем обьекты
 			GameWindow.AnimateGameObjects();

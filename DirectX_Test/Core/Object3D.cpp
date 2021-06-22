@@ -57,9 +57,6 @@ void CObject3D::Create(const SModel& Model)
 		}
 		else if (Material.bHasTexture) 
 		{
-			//TODO: hotfix
-			if (Material.TextureFileName.find("ghost-color.png", 0) != std::string::npos) return;
-
 			m_vEmbeddedTextures.emplace_back(make_unique<CTexture>(m_PtrDevice, m_PtrDeviceContext));
 
 			m_vEmbeddedTextures.back()->CreateFromFile(std::wstring(Material.TextureFileName.begin(), Material.TextureFileName.end()));

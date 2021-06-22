@@ -43,6 +43,29 @@ enum class EFlagsGameRendering
 ENUM_CLASS_FLAG(EFlagsGameRendering)
 
 /// <summary>
+/// Состояния игры
+/// </summary>
+enum class EGameState 
+{
+	/// <summary>
+	/// Обычное
+	/// </summary>
+	Playing,
+	/// <summary>
+	/// Пауза
+	/// </summary>
+	Paused,
+	/// <summary>
+	/// Игра окончена
+	/// </summary>
+	GameOver,
+	/// <summary>
+	/// Дебаг
+	/// </summary>
+	DebugMode
+};
+
+/// <summary>
 /// Тип камеры
 /// </summary>
 enum class ECameraType
@@ -608,6 +631,9 @@ public:
 	SpriteFont* GetSpriteFontPtr() { return m_SpriteFont.get(); }
 #pragma endregion
 
+	void SetGameState(EGameState newState);//TODO
+	EGameState GetGameState();
+
 private:
 	/// <summary>
 	/// Инициализация окна приложения
@@ -977,4 +1003,8 @@ private:
 	/// </summary>
 	SCBPSSkyTimeData				cbPSSkyTimeData{};
 #pragma endregion
+	/// <summary>
+	/// Текущее состояние игры
+	/// </summary>
+	EGameState m_gameState;
 };

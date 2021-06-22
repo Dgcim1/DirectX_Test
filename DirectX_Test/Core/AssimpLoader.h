@@ -95,6 +95,12 @@ static vector<SMaterial> LoadMaterialsFromFile(const aiScene* Scene, const strin
 		else
 		{
 			std::string mtlfile = FileName; 
+			//TODO: hotfix
+			if (FileName == "Asset\\Floating+Cape+2.obj") break;
+			if (FileName == "Asset/Floating+Cape+2.obj") break;
+			if (FileName == "succube.obj") break;
+			if (FileName == "") break;
+
 			int index = mtlfile.find(".obj", 0);
 			if (index == std::string::npos) break;
 			mtlfile.replace(index, 4, ".mtl");

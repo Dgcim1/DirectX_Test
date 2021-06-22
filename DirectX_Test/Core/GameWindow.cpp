@@ -803,8 +803,55 @@ void CGameWindow::DrawPickedTriangle()
 	m_Object3DPickedTriangle->Draw();
 }
 
+void CGameWindow::SetGameState(EGameState newState) {
+	m_gameState = newState;
+}
+EGameState CGameWindow::GetGameState() {
+	return m_gameState;
+}
+
 void CGameWindow::UpdateGameObject(CGameObject* PtrGO, float DeltaTime)
 {
+	//logic block begin // TODO
+
+	if (std::string(PtrGO->m_Name).find("Ghost", 0) != std::string::npos) {
+		XMVECTOR Move = m_PtrCurrentCamera->EyePosition - PtrGO->ComponentTransform.Translation;
+		XMFLOAT4 Move4;
+		XMFLOAT4 MoveN4XZ;
+		XMStoreFloat4(&Move4, Move);
+		Move4.y = 0;
+		Move4.w = 0;
+		XMVECTOR MoveNXZ{ XMVector4Normalize(XMLoadFloat4(&Move4)) };
+		XMStoreFloat4(&MoveN4XZ, MoveNXZ);
+		MoveNXZ *= DeltaTime;
+		XMVECTOR length = XMVector4Length(Move);
+		float distance = 0.0f;
+		XMStoreFloat(&distance, length);
+		if (GetGameState() == EGameState::Playing && distance < 3.5f) {
+			SetGameState(EGameState::GameOver);
+		}
+		else {
+			double c1 = acos(MoveN4XZ.z);
+			double c2 = -c1;
+			double s1 = asin(MoveN4XZ.x);
+			double s2 = MoveN4XZ.x > 0 ? XM_PI - s1 : -XM_PI - s1;
+			double angle;
+			double eps = 0.001;
+			if (abs(c1 - s1) < eps) angle = c1;
+			if (abs(c1 - s2) < eps) angle = c1;
+			if (abs(c2 - s1) < eps) angle = c2;
+			if (abs(c2 - s2) < eps) angle = c2;
+			PtrGO->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, angle + XM_PI, 0);
+			PtrGO->ComponentTransform.Translation += MoveNXZ;
+			PtrGO->UpdateWorldMatrix();
+		}
+	}
+
+	//logic block end
+
+
+
+
 	CShader* VS{ m_VSBase.get() };
 	CShader* PS{ m_PSBase.get() };
 
