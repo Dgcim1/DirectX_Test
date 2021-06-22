@@ -854,7 +854,7 @@ void CGameWindow::UpdateGameObject(CGameObject* PtrGO, float DeltaTime)
 			if (abs(c2 - s1) < eps) angle = c2;
 			if (abs(c2 - s2) < eps) angle = c2;
 			PtrGO->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, angle + XM_PI, 0);
-			PtrGO->ComponentTransform.Translation += MoveNXZ;
+			PtrGO->ComponentTransform.Translation += MoveNXZ * 3;
 			PtrGO->UpdateWorldMatrix();
 		}
 	}

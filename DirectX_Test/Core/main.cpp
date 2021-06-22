@@ -8,16 +8,6 @@
 //IA (input-assembler) - первая часть граф конвейера
 
 /*
-
-	m_vMiniAxisGameObjects[0]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, 0, -XM_PIDIV2);
-	m_vMiniAxisGameObjects[1]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[1].get();
-	m_vMiniAxisGameObjects[2]->ComponentRender.PtrObject3D = m_vMiniAxisObject3Ds[2].get();
-	m_vMiniAxisGameObjects[2]->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, -XM_PIDIV2, -XM_PIDIV2);
-
-
-*/
-
-/*
 	СТРОКА 116 и 98 AssimpLoader.h ИСПРАВИТЬ!!!!!!!!!
 */
 
@@ -25,12 +15,9 @@
 	ТУДУ
 
 	сделать обводку призракам
-	сделать уничтожение призраков
-	сделать механику смерти
 	настроить ограничивающие сферы для стен
 	исправить прожекторный свет
 	система частиц огня
-
 */
 
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
@@ -40,6 +27,7 @@ static int ghostCounterMain = 0;
 static int ghostCounterCurrent = 0;
 
 static float speedCamera = 0.05f;
+static float ghostGenerationRadius = 25.0f;
 
 static EGameState startGameState = EGameState::Playing;
 //static EGameState startGameState = EGameState::DebugMode;
@@ -48,7 +36,7 @@ void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* Text
 	float seed = rand() / (2 * XM_PI);
 	CGameObject* CGameObjectGhost{ GameWindow.AddGameObject("Ghost" + std::to_string(ghostCounterMain)) };
 	{
-		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(cos(seed) * 25.0f, 0.0f, sin(seed) * 25.0f, 0.0f);
+		CGameObjectGhost->ComponentTransform.Translation = XMVectorSet(cos(seed) * ghostGenerationRadius, 0.0f, sin(seed) * ghostGenerationRadius, 0.0f);
 		CGameObjectGhost->ComponentTransform.Scaling = XMVectorSet(2.2f, 2.2f, 2.2f, 0.0f);
 		CGameObjectGhost->UpdateWorldMatrix();
 
@@ -165,7 +153,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		//SModel Model{ LoadStaticModelFromFile("Asset/succube.obj") };
 		ObjectGhost->Create(Model);
 	}
-	//CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
 	
 	CObject3D* ObjectDagger3{ GameWindow.AddObject3D() };
 	{
@@ -424,47 +414,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		GroundObject->ComponentPhysics.BoundingSphere.Radius = 50.0f;
 	}
-	
-	//снеговик
-
-	// CObject3D* SnowmanSphere1Object3D{ GameWindow.AddObject3D() };
-	// {
-	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
-	// 	Material.SpecularExponent = 2.0f;
-	// 	Material.SpecularIntensity = 0.51f;
-	// 	SnowmanSphere1Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	// }
-	// CGameObject* SnowmanSphere1Object{ GameWindow.AddGameObject("snowball1") };
-	// SnowmanSphere1Object->ComponentTransform.Scaling = XMVectorSet(2.0f, 2.0f, 2.0f, 0);
-	// SnowmanSphere1Object->ComponentTransform.Translation = XMVectorSet(-5.0f, -0.2f, +5.0f, 0);
-	// SnowmanSphere1Object->UpdateWorldMatrix();
-	// SnowmanSphere1Object->ComponentRender.PtrObject3D = SnowmanSphere1Object3D;
-	// 
-	// CObject3D* SnowmanSphere2Object3D{ GameWindow.AddObject3D() };
-	// {
-	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
-	// 	Material.SpecularExponent = 2.0f;
-	// 	Material.SpecularIntensity = 0.51f;
-	// 	SnowmanSphere2Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	// }
-	// CGameObject* SnowmanSphere2Object{ GameWindow.AddGameObject("snowball2") };
-	// SnowmanSphere2Object->ComponentTransform.Scaling = XMVectorSet(1.6f, 1.6f, 1.6f, 0);
-	// SnowmanSphere2Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 2.2f, +5.0f, 0);
-	// SnowmanSphere2Object->UpdateWorldMatrix();
-	// SnowmanSphere2Object->ComponentRender.PtrObject3D = SnowmanSphere2Object3D;
-	// 
-	// CObject3D* SnowmanSphere3Object3D{ GameWindow.AddObject3D() };
-	// {
-	// 	SMaterial Material{ XMFLOAT3(Colors::White) };
-	// 	Material.SpecularExponent = 2.0f;
-	// 	Material.SpecularIntensity = 0.51f;
-	// 	SnowmanSphere3Object3D->Create(GenerateSphere(64, Colors::White), Material);
-	// }
-	// CGameObject* SnowmanSphere3Object{ GameWindow.AddGameObject("snowball3") };
-	// SnowmanSphere3Object->ComponentTransform.Scaling = XMVectorSet(1.3f, 1.3f, 1.3f, 0);
-	// SnowmanSphere3Object->ComponentTransform.Translation = XMVectorSet(-5.0f, 4.2f, +5.0f, 0);
-	// SnowmanSphere3Object->UpdateWorldMatrix();
-	// SnowmanSphere3Object->ComponentRender.PtrObject3D = SnowmanSphere3Object3D;
 
 	int rotationDeg = 0;
 	bool isCaptureCursor = false;
@@ -566,13 +515,77 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			
 
 			//лог
-			if (isPicking) {
-				std::string pickedObj = GameWindow.GetPickedGameObjectName();
-				std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
-				logInfo = logFPS + logGameMode + logCameraPos + pickInfo + help;
+			if (GameWindow.GetGameState() == EGameState::GameOver) {
+				logInfo = "Game Over! Press Esc to exit!\n\n\n" + logFPS + logGameMode + help;
+				//начало рендеринга
+				GameWindow.BeginRendering(Colors::Black);
+				//проверяем состояние клавиатуры
+				Keyboard::State KeyState{ GameWindow.GetKeyState() };
+				if (KeyState.Escape)
+				{
+					DestroyWindow(GameWindow.GetHWND());
+				}
+				//получаем указатели на набор спрайтов и на спрайт шрифтов
+				SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
+				SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
+				//начало рендеринга спрайтов
+				PtrSpriteBatch->Begin();
+				if (isPrintLog) {
+					//пишем текст
+					PtrSpriteFont->DrawString(PtrSpriteBatch, logInfo.c_str(), XMVectorSet(0, 0, 0, 0));
+				}
+				//окончание рендеринга спрайтов
+				PtrSpriteBatch->End();
+				//окончание рендеринга
+				GameWindow.EndRendering();
+				continue;
 			}
-			else {
-				logInfo = logFPS + logGameMode + logCameraPos + help;
+			if (GameWindow.GetGameState() == EGameState::Paused) {
+				logInfo = "Paused! Press P to exit!\n\n\n" + logFPS + logGameMode + help;
+				//начало рендеринга
+				GameWindow.BeginRendering(Colors::Black);
+				//проверяем состояние клавиатуры
+				Keyboard::State KeyState{ GameWindow.GetKeyState() };
+				if (KeyState.Escape)
+				{
+					DestroyWindow(GameWindow.GetHWND());
+				}
+				if (keyPressDelay == 0) {
+					keyPressDelay = fps / 10;
+					if (KeyState.P)
+					{
+						GameWindow.SetGameState(EGameState::Playing);
+					}
+				}
+				else
+				{
+					keyPressDelay--;
+				}
+				//получаем указатели на набор спрайтов и на спрайт шрифтов
+				SpriteBatch* PtrSpriteBatch{ GameWindow.GetSpriteBatchPtr() };
+				SpriteFont* PtrSpriteFont{ GameWindow.GetSpriteFontPtr() };
+				//начало рендеринга спрайтов
+				PtrSpriteBatch->Begin();
+				if (isPrintLog) {
+					//пишем текст
+					PtrSpriteFont->DrawString(PtrSpriteBatch, logInfo.c_str(), XMVectorSet(0, 0, 0, 0));
+				}
+				//окончание рендеринга спрайтов
+				PtrSpriteBatch->End();
+				//окончание рендеринга
+				GameWindow.EndRendering();
+				continue;
+			}
+			else
+			{
+				if (isPicking) {
+					std::string pickedObj = GameWindow.GetPickedGameObjectName();
+					std::string pickInfo = "Picking obj: " + pickedObj + "\n\n";
+					logInfo = logFPS + logGameMode + logCameraPos + pickInfo + help;
+				}
+				else {
+					logInfo = logFPS + logGameMode + logCameraPos + help;
+				}
 			}
 
 			//SpotlightDirection
@@ -666,6 +679,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				{
 					isSpotlight = !isSpotlight;
 				}
+				if (KeyState.P)
+				{
+					GameWindow.SetGameState(EGameState::Paused);
+				}
 			}
 			else
 			{
@@ -681,7 +698,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				GameWindow.Pick(windowWight / 2, windowHeight / 2);
 				if (std::string(GameWindow.GetPickedGameObjectName()).find("Ghost", 0) != std::string::npos) 
 				{
-					CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+					float seed = rand() / (2 * XM_PI);
+					GameWindow.GetGameObject(GameWindow.GetPickedGameObjectName())->ComponentTransform.Translation = XMVectorSet(cos(seed) * ghostGenerationRadius, 0.0f, sin(seed) * ghostGenerationRadius, 0.0f);
+					GameWindow.GetGameObject(GameWindow.GetPickedGameObjectName())->UpdateWorldMatrix();
 				}
 			}
 			if (MouseState.x != MouseX || MouseState.y != MouseY)
