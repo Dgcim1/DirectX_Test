@@ -314,6 +314,18 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 	m_SpriteBatch = make_unique<SpriteBatch>(m_DeviceContext.Get());
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
 	m_CommonStates = make_unique<CommonStates>(m_Device.Get());
+
+	m_2dFrame = new CGameObject("_gameFrame");
+	{
+		m_2dFrame->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, 0.0f, 0);
+		m_2dFrame->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, 0.0f, 0);
+		m_2dFrame->UpdateWorldMatrix();
+		//m_2dFrame->ComponentRender.PtrObject3D = ObjectDagger3;
+		m_2dFrame->ComponentRender.IsTransparent = false;
+		m_2dFrame->ComponentPhysics.bIsPickable = false;
+		m_2dFrame->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		m_2dFrame->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+	}
 }
 
 void CGameWindow::CreateSwapChain(bool bWindowed)
@@ -337,14 +349,14 @@ void CGameWindow::CreateSwapChain(bool bWindowed)
 	SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;//параметры обработки пикселей на поверхности отображения после вызова Present1() (как то связано с мультисэмплингом)
 	SwapChainDesc.Windowed = bWindowed;//true - оконный / false - полноэкранный режим
 	//создаем устройство - адаптер дисплея и цепочку подкачки
-	D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0, D3D11_SDK_VERSION,
+	D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D10_CREATE_DEVICE_FLAG::D3D10_CREATE_DEVICE_DEBUG, nullptr, 0, D3D11_SDK_VERSION,
 		&SwapChainDesc, &m_SwapChain, &m_Device, nullptr, &m_DeviceContext);
 }
 
 void CGameWindow::CreateSetViews()
 {
 	ComPtr<ID3D11Texture2D> BackBuffer{};
-	m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer);//получаем указатель на 1-йзадний буфер подкачки
+	m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer);//получаем указатель на 1-й задний буфер подкачки
 
 	m_Device->CreateRenderTargetView(BackBuffer.Get(), nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
 
@@ -449,6 +461,12 @@ void CGameWindow::CreateShaders()
 
 	m_PSLine = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
 	m_PSLine->Create(EShaderType::PixelShader, L"Shader\\PSLine.hlsl", "main");
+
+	m_PSOutlineGlowing = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSOutlineGlowing->Create(EShaderType::PixelShader, L"Shader\\PSOutlineGlowing.hlsl", "main");
+
+	m_PSStencil = make_unique<CShader>(m_Device.Get(), m_DeviceContext.Get());
+	m_PSStencil->Create(EShaderType::PixelShader, L"Shader\\PSStencil.hlsl", "main");
 }
 
 void CGameWindow::CreateMiniAxes()
@@ -714,6 +732,7 @@ void CGameWindow::DrawGameObjects(float DeltaTime)
 		if (go->ComponentRender.IsTransparent) continue;
 
 		UpdateGameObject(go.get(), DeltaTime);
+		DrawGameObjectOutlineGlowing(go.get());
 		DrawGameObject(go.get());
 		DrawGameObjectBoundingSphere(go.get());
 	}
@@ -723,6 +742,7 @@ void CGameWindow::DrawGameObjects(float DeltaTime)
 		if (!go->ComponentRender.IsTransparent) continue;
 
 		UpdateGameObject(go.get(), DeltaTime);
+		DrawGameObjectOutlineGlowing(go.get());
 		DrawGameObject(go.get());
 		DrawGameObjectBoundingSphere(go.get());
 	}
@@ -818,6 +838,7 @@ void CGameWindow::DrawPickedTriangle()
 void CGameWindow::SetGameState(EGameState newState) {
 	m_gameState = newState;
 }
+
 EGameState CGameWindow::GetGameState() {
 	return m_gameState;
 }
@@ -826,7 +847,7 @@ void CGameWindow::UpdateGameObject(CGameObject* PtrGO, float DeltaTime)
 {
 	//logic block begin // TODO
 
-	if (std::string(PtrGO->m_Name).find("Ghost", 0) != std::string::npos) {
+	if (GetGameState() == EGameState::Playing && std::string(PtrGO->m_Name).find("Ghost", 0) != std::string::npos) {
 		XMVECTOR Move = m_PtrCurrentCamera->EyePosition - PtrGO->ComponentTransform.Translation;
 		XMFLOAT4 Move4;
 		XMFLOAT4 MoveN4XZ;
@@ -1005,6 +1026,94 @@ void CGameWindow::DrawGameObject(CGameObject* PtrGO)
 	}
 
 	PtrGO->ComponentRender.PtrObject3D->Draw();
+}
+
+void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO) 
+{
+	if (PtrGO->ComponentRender.IsOutlineGlowing) {
+
+		//сохраняем состояние заднего буфера
+		D3D11_RENDER_TARGET_VIEW_DESC* renderTargetStage = NULL;
+		m_RenderTargetView->GetDesc(renderTargetStage);
+		ComPtr<ID3D11Texture2D> BackBuffer2{};
+		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
+
+
+		//сохраняем состояние буфера глубины
+		ID3D11DepthStencilState* depthStensilState;
+		m_DeviceContext->OMGetDepthStencilState(&depthStensilState, 0);
+		
+		
+		//очищаем буферы
+		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), Colors::Black);//делаем заливку всей области заданным цветом
+		m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
+
+
+		//рендерим трафарет модели
+		m_DeviceContext->RSSetState(m_CommonStates->CullNone());
+		m_VSBase->Use();
+		m_PSStencil->Use();
+		PtrGO->ComponentRender.PtrObject3D->Draw();
+		//for (size_t iMesh = 0; iMesh < PtrGO->ComponentRender.PtrObject3D->m_Model.vMeshes.size(); ++iMesh)
+		//{
+		//	const SMesh& Mesh{ PtrGO->ComponentRender.PtrObject3D->m_Model.vMeshes[iMesh] };
+		//	const SMaterial& Material{ PtrGO->ComponentRender.PtrObject3D->m_Model.vMaterials[Mesh.MaterialID] };
+		//
+		//	m_DeviceContext->IASetIndexBuffer(PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);//привязка индексного буфера к этапу IA
+		//	m_DeviceContext->IASetVertexBuffers(0, 1, PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBuffer.GetAddressOf(),//привязка вертексного буфера к этапу IA
+		//		&PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBufferStride, &PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBufferOffset);
+		//
+		//	if (PtrGO->ComponentRender.PtrObject3D->m_Model.bIsAnimated)
+		//	{
+		//		m_DeviceContext->IASetVertexBuffers(1, 1, PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBufferAnimation.GetAddressOf(),
+		//			&PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBufferAnimationStride, &PtrGO->ComponentRender.PtrObject3D->m_vMeshBuffers[iMesh].VertexBufferAnimationOffset);
+		//	}
+		//
+		//	m_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);//указываем информацию о типе примитива и порядке данных которые описывают входные данные этапа IA (что это полигоны)
+		//
+		//	m_DeviceContext->DrawIndexed(static_cast<UINT>(Mesh.vTriangles.size() * 3), 0, 0);//Рисуем индексированные примитивы
+		//}
+		
+
+		//получаем текстуру модели
+		D3D11_TEXTURE2D_DESC texDesc;
+		ID3D11Texture2D* textureStencil;
+		ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		texDesc.Width = 1000;//TODO hardcode
+		texDesc.Height = 600;
+		texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		texDesc.Usage = D3D11_USAGE_DEFAULT;
+		texDesc.SampleDesc.Count = 1;
+		texDesc.SampleDesc.Quality = 0;
+		texDesc.CPUAccessFlags = 0;
+		texDesc.ArraySize = 1;
+		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		texDesc.MiscFlags = 0;
+		texDesc.MipLevels = 1;
+		m_Device->CreateTexture2D(&texDesc, NULL, &textureStencil);
+
+
+		//вовзращаем состояние заднего буфера
+		m_Device->CreateRenderTargetView(BackBuffer2.Get(), nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
+		m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());
+
+
+		//рендер свечения обьекта
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = texDesc.Format;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = 1;
+		ID3D11ShaderResourceView* shaderView;
+		m_Device->CreateShaderResourceView(textureStencil, &srvDesc, &shaderView);
+		m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
+		m_PSOutlineGlowing->Use();
+
+
+
+		//возвращаем состояние буфера глубины
+		m_DeviceContext->OMSetDepthStencilState(depthStensilState, 0);
+	}
 }
 
 void CGameWindow::DrawGameObjectNormal(CGameObject* PtrGO)

@@ -20,6 +20,41 @@
 	система частиц огня
 */
 
+/*
+	БЕЗУМНЫЕ АЛГОРИТМЫ
+
+	1. Копирование исходного RenderTargetView в текстуру
+	2. Копирование DepthStensilBuffer
+	3. Обнуление DepthStensilBuffer
+	4. Заливка области рендеринга черным
+	5. Отрисовка модели (настройка PS - рендер непрозрачных белых пикселей)
+	6. Находим разность в яркости между соседними текселями
+
+			float fTexel = 1.0 / 256;  размер текселя
+
+			float2 sampling1 = TextureUV + float2( fTexel, 0 );
+			float2 sampling2 = TextureUV + float2( -fTexel, 0 );
+			float2 sampling3 = TextureUV + float2( 0, fTexel );
+			float2 sampling4 = TextureUV + float2( 0, -fTexel );
+
+			float2 intensity_x0 = texIntensityMap.Sample( sampler1, sampling1 ).xy;
+			float2 intensity_x1 = texIntensityMap.Sample( sampler1, sampling2 ).xy;
+			float2 intensity_diff_x = intensity_x0 - intensity_x1;
+
+			float2 intensity_y0 = texIntensityMap.Sample( sampler1, sampling3 ).xy;
+			float2 intensity_y1 = texIntensityMap.Sample( sampler1, sampling4 ).xy;
+			float2 intensity_diff_y = intensity_y0 - intensity_y1;
+
+			float2 maxAbsDifference = max( abs(intensity_diff_x), abs(intensity_diff_y) );
+
+			maxAbsDifference = saturate(maxAbsDifference);
+
+	7. Делаем белые пиксели черными, серые - белыми (???)
+	--- получен белый контур модели ---
+	8. Обработка для достижения нужного эффекта контура (???)
+	9. Сохранение текущего View в текстуру
+*/
+
 //ОМ - этап слияния вывода, последний этап для определения видимых пикселей
 
 
@@ -29,8 +64,8 @@ static int ghostCounterCurrent = 0;
 static float speedCamera = 0.05f;
 static float ghostGenerationRadius = 25.0f;
 
-static EGameState startGameState = EGameState::Playing;
-//static EGameState startGameState = EGameState::DebugMode;
+//static EGameState startGameState = EGameState::Playing;
+static EGameState startGameState = EGameState::DebugMode;
 
 void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
 	float seed = rand() / (2 * XM_PI);
@@ -47,6 +82,7 @@ void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* Text
 		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
+		//CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
 	}
 	ghostCounterMain++;
 	ghostCounterCurrent++;
@@ -499,7 +535,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			std::string helpF6 = "F6: Toggle log visible";
 			std::string helpF7 = "F7: Toggle picking visible";
 			std::string helpF8 = "F8: Toggle visible bounding-sphere";
-			std::string helpH = "H: Enable/disable flashlight";
+			//std::string helpH = "H: Enable/disable flashlight";
+			std::string helpH = "";
 			std::string help = "Help menu:\n\t" +
 				helpF1 + "\n\t" +
 				helpF2 + "\n\t" +

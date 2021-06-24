@@ -58,6 +58,10 @@ struct SComponentRender
 	/// Прозрачная ли текстура
 	/// </summary>
 	bool IsTransparent{ false };
+	/// <summary>
+	/// Отрисовывать ли свечение
+	/// </summary>
+	bool IsOutlineGlowing{ false };
 };
 
 struct SBoundingSphere

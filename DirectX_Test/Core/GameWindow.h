@@ -669,6 +669,10 @@ private:
 	/// <param name="PtrGO">Указатель на игровой обьект</param>
 	void DrawGameObject(CGameObject* PtrGO);
 	/// <summary>
+	/// Отрисовка свечения заданного обьекта
+	/// </summary>
+	void DrawGameObjectOutlineGlowing(CGameObject* PtrGO);
+	/// <summary>
 	/// Отрисовка нормалей отдельного игрового обьекта
 	/// </summary>
 	/// <param name="PtrGO">Указатель на игровой обьект</param>
@@ -832,6 +836,14 @@ private:
 	/// Указатель на пиксельный шейдер линий
 	/// </summary>
 	unique_ptr<CShader>				m_PSLine{};
+	/// <summary>
+	/// Указатель на пиксельный шейдер формирования обводки свечения
+	/// </summary>
+	unique_ptr<CShader>				m_PSOutlineGlowing{};
+	/// <summary>
+	/// Указатель на пиксельный шейдер формирования трафарета обьекта
+	/// </summary>
+	unique_ptr<CShader>				m_PSStencil{};
 
 #pragma endregion
 
@@ -931,6 +943,10 @@ private:
 	/// </summary>
 	ComPtr<ID3D11RenderTargetView>	m_RenderTargetView{};
 	/// <summary>
+	/// Указатель на дополнительный задний буфер (буфер подкачки)
+	/// </summary>
+	// ComPtr<ID3D11RenderTargetView>	m_OtherRenderTargetView{};
+	/// <summary>
 	/// Указатель на трафарет глубины
 	/// </summary>
 	ComPtr<ID3D11DepthStencilView>	m_DepthStencilView{};
@@ -1016,4 +1032,12 @@ private:
 	/// Текущее состояние игры
 	/// </summary>
 	EGameState m_gameState;
+	/// <summary>
+	/// 2D квадрат перед камерой
+	/// </summary>
+	CGameObject* m_2dFrame;
+	/// <summary>
+	/// 2D квадрат перед камерой
+	/// </summary>
+	CObject3D* m_2dFrame3d;
 };
