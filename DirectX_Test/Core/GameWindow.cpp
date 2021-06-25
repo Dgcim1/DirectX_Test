@@ -315,12 +315,16 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 	m_SpriteFont = make_unique<SpriteFont>(m_Device.Get(), FontFileName.c_str());
 	m_CommonStates = make_unique<CommonStates>(m_Device.Get());
 
+	m_2dFrame3d = new CObject3D(m_Device.Get(), m_DeviceContext.Get(), this);
+	{
+		m_2dFrame3d->Create(GenerateSquareXYPlane());
+	}
 	m_2dFrame = new CGameObject("_gameFrame");
 	{
 		m_2dFrame->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, 0.0f, 0);
 		m_2dFrame->ComponentTransform.Translation = XMVectorSet(0.0f, 0.0f, 0.0f, 0);
 		m_2dFrame->UpdateWorldMatrix();
-		//m_2dFrame->ComponentRender.PtrObject3D = ObjectDagger3;
+		m_2dFrame->ComponentRender.PtrObject3D = m_2dFrame3d;
 		m_2dFrame->ComponentRender.IsTransparent = false;
 		m_2dFrame->ComponentPhysics.bIsPickable = false;
 		m_2dFrame->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
@@ -329,7 +333,7 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 
 	D3D11_TEXTURE2D_DESC desc{};//создаем трафаретную поверхность глубины
 	desc.ArraySize = 1;//количество текстур в массиве текстур
-	desc.BindFlags = D3D11_BIND_RENDER_TARGET;//описывает как привязать данную текстуру к конвейеру (сейчас как буфер (трафарет) глубины)
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;//описывает как привязать данную текстуру к конвейеру (сейчас как буфер (трафарет) глубины)
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;//тип доступа к ЦП (0- доступ к ЦП не требуется) (тут может быть 0)
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//формат буфера (сейчас 24 бита глубины и 8 бит трафарета)
 	desc.Width = static_cast<UINT>(m_WindowSize.x);//ширина текстуры
@@ -1050,24 +1054,19 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 	if (PtrGO->ComponentRender.IsOutlineGlowing) {
 
 		HRESULT result;
-
-		//сохраняем состояние заднего буфера в pTextureOther1
-		ID3D11Texture2D* BackBuffer2{};
-		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
-		m_DeviceContext->CopyResource(pTextureOther1, BackBuffer2);
 		
 
 		//меняем renderTarget
-		//m_DeviceContext->OMSetRenderTargets(1, &m_OtherRenderTargetView, m_DepthStencilView.Get());
+		m_DeviceContext->OMSetRenderTargets(1, &m_OtherRenderTargetView, m_DepthStencilView.Get());
 
 		//сохраняем состояние буфера глубины
-		ID3D11DepthStencilState* depthStensilState;
-		m_DeviceContext->OMGetDepthStencilState(&depthStensilState, 0);
+		//ID3D11DepthStencilState* depthStensilState;
+		//m_DeviceContext->OMGetDepthStencilState(&depthStensilState, 0);
 		
 		
-		//очищаем буферы
-		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), Colors::Black);//делаем заливку всей области заданным цветом
-		m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
+		//очищаем буфер
+		m_DeviceContext->ClearRenderTargetView(m_OtherRenderTargetView, Colors::Black);//делаем заливку всей области заданным цветом
+		//m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
 
 
 		//рендерим трафарет модели
@@ -1095,6 +1094,11 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		//	m_DeviceContext->DrawIndexed(static_cast<UINT>(Mesh.vTriangles.size() * 3), 0, 0);//Рисуем индексированные примитивы
 		//}
 		
+		//сохраняем состояние заднего буфера в pTextureOther1
+		ID3D11Texture2D* BackBuffer2{};
+		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
+		m_DeviceContext->CopyResource(pTextureOther1, pTextureRenderTarget);
+		BackBuffer2->Release();
 
 		//тут где-то утечка памяти
 		////получаем текстуру модели
@@ -1114,30 +1118,63 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		//texDesc.MipLevels = 1;
 		//
 		//m_Device->CreateTexture2D(&texDesc, NULL, &textureStencil);
-		//
-		//
+		
+		
 		//вовзращаем состояние заднего буфера
-		result = m_Device->CreateRenderTargetView(BackBuffer2, nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
 		m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());
-		//BackBuffer2->Release();
-		//
-		////рендер свечения обьекта
-		//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		//srvDesc.Format = texDesc.Format;
-		//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		//srvDesc.Texture2D.MostDetailedMip = 0;
-		//srvDesc.Texture2D.MipLevels = 1;
-		//
-		//
-		//ID3D11ShaderResourceView* shaderView;
-		//m_Device->CreateShaderResourceView(textureStencil, &srvDesc, &shaderView);
-		//m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
-		//m_PSOutlineGlowing->Use();
-		//textureStencil->Release();
-		//
-		//
+		m_PSBase->Use();
+
+
+		//рендер свечения обьекта
+		D3D11_TEXTURE2D_DESC textDesc{};
+		pTextureOther1->GetDesc(&textDesc);
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = textDesc.Format;//DXGI_FORMAT_R8G8B8A8_UNORM
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		srvDesc.Texture2D.MostDetailedMip = 0;
+		srvDesc.Texture2D.MipLevels = 1;
+		ID3D11ShaderResourceView* shaderView = nullptr;
+		m_Device->CreateShaderResourceView(pTextureOther1, &srvDesc, &shaderView);
+		m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
+		m_PSOutlineGlowing->Use();
+		XMVECTOR Move = m_PtrCurrentCamera->EyePosition - PtrGO->ComponentTransform.Translation;
+		XMFLOAT4 Move4;
+		XMFLOAT4 MoveN4XZ;
+		XMStoreFloat4(&Move4, Move);
+		Move4.y = 0;
+		Move4.w = 0;
+		XMVECTOR MoveNXZ{ XMVector4Normalize(XMLoadFloat4(&Move4)) };
+		XMStoreFloat4(&MoveN4XZ, MoveNXZ);
+		XMVECTOR length = XMVector4Length(Move);
+		float distance = 0.0f;
+		XMStoreFloat(&distance, length);
+		double c1 = acos(MoveN4XZ.z);
+		double c2 = -c1;
+		double s1 = asin(MoveN4XZ.x);
+		double s2 = MoveN4XZ.x > 0 ? XM_PI - s1 : -XM_PI - s1;
+		double angle;
+		double eps = 0.001;
+		if (abs(c1 - s1) < eps) angle = c1;
+		if (abs(c1 - s2) < eps) angle = c1;
+		if (abs(c2 - s1) < eps) angle = c2;
+		if (abs(c2 - s2) < eps) angle = c2;
+		m_2dFrame->ComponentTransform.Translation = m_PtrCurrentCamera->EyePosition;
+		m_2dFrame->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(0, angle + XM_PI, 0);
+		m_2dFrame->UpdateWorldMatrix();
+		cbVSSpaceData.World = XMMatrixTranspose(m_2dFrame->ComponentTransform.MatrixWorld);
+		cbVSSpaceData.WVP = XMMatrixTranspose(m_2dFrame->ComponentTransform.MatrixWorld * m_MatrixView * m_MatrixProjection);
+		m_VSBase->UpdateAllConstantBuffers();
+		m_VSBase->Use();
+		DrawGameObject(m_2dFrame);
+
+		
 		////возвращаем состояние буфера глубины
 		//m_DeviceContext->OMSetDepthStencilState(depthStensilState, 0);
+
+
+		cbVSSpaceData.World = XMMatrixTranspose(PtrGO->ComponentTransform.MatrixWorld);
+		cbVSSpaceData.WVP = XMMatrixTranspose(PtrGO->ComponentTransform.MatrixWorld * m_MatrixView * m_MatrixProjection);
+		m_VSBase->UpdateAllConstantBuffers();
 	}
 }
 

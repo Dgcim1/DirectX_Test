@@ -64,8 +64,8 @@ static int ghostCounterCurrent = 0;
 static float speedCamera = 0.05f;
 static float ghostGenerationRadius = 25.0f;
 
-//static EGameState startGameState = EGameState::Playing;
-static EGameState startGameState = EGameState::DebugMode;
+static EGameState startGameState = EGameState::Playing;
+//static EGameState startGameState = EGameState::DebugMode;
 
 void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
 	float seed = rand() / (2 * XM_PI);

@@ -167,6 +167,32 @@ static SMesh GenerateTriangle(const XMVECTOR& V0, const XMVECTOR& V1, const XMVE
 }
 
 /// <summary>
+/// Генерация структуры квадрата в плоскости XY с отрисовкой верхней грани
+/// </summary>
+/// <param name="Color">Цвет фигуры</param>
+/// <returns>Обьект, хранящий данные о квадрате</returns>
+static SMesh GenerateSquareXYPlane(const XMVECTOR& Color = XMVectorSet(1, 1, 1, 1))
+{
+	SMesh Data{};
+
+	constexpr float HalfLengthX{ 1.0f };
+	constexpr float HalfLengthY{ 1.0f };
+
+	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, +HalfLengthY, +0.0f, 1), Color, XMVectorSet(0, 0, 0, 0));
+	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, +HalfLengthY, +0.0f, 1), Color, XMVectorSet(1, 0, 0, 0));
+	Data.vVertices.emplace_back(XMVectorSet(-HalfLengthX, -HalfLengthY, +0.0f, 1), Color, XMVectorSet(0, 1, 0, 0));
+	Data.vVertices.emplace_back(XMVectorSet(+HalfLengthX, -HalfLengthY, +0.0f, 1), Color, XMVectorSet(1, 1, 0, 0));
+
+	Data.vTriangles = GenerateContinuousFaces(1);
+
+	CalculateFaceNormals(Data);
+
+	CalculateVertexNormalsFromFaceNormals(Data);
+
+	return Data;
+}
+
+/// <summary>
 /// Генерация структуры квадрата в плоскости XZ с отрисовкой верхней грани
 /// </summary>
 /// <param name="Color">Цвет фигуры</param>
