@@ -1033,11 +1033,27 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 	if (PtrGO->ComponentRender.IsOutlineGlowing) {
 
 		//сохраняем состояние заднего буфера
-		D3D11_RENDER_TARGET_VIEW_DESC* renderTargetStage = NULL;
-		m_RenderTargetView->GetDesc(renderTargetStage);
-		ComPtr<ID3D11Texture2D> BackBuffer2{};
-		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), &BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
+		ID3D11Texture2D* BackBuffer2{};
+		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
 
+		D3D11_TEXTURE2D_DESC desc;
+		desc.Width = static_cast<UINT>(m_WindowSize.x);//TODO hardcode
+		desc.Height = static_cast<UINT>(m_WindowSize.y);
+		desc.MipLevels = 0;
+		desc.ArraySize = 1;
+		desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.MiscFlags = 0;
+
+		ID3D11Texture2D* pTexture = NULL;
+		m_Device->CreateTexture2D(&desc, NULL, &pTexture);//pTexture не заполняется
+		//m_Device->CreateTexture2D(&desc, BackBuffer2, &pTexture);
+		m_DeviceContext->CopyResource(pTexture, BackBuffer2);
+		
 
 		//сохраняем состояние буфера глубины
 		ID3D11DepthStencilState* depthStensilState;
@@ -1090,11 +1106,12 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		texDesc.MiscFlags = 0;
 		texDesc.MipLevels = 1;
+
 		m_Device->CreateTexture2D(&texDesc, NULL, &textureStencil);
 
 
 		//вовзращаем состояние заднего буфера
-		m_Device->CreateRenderTargetView(BackBuffer2.Get(), nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
+		m_Device->CreateRenderTargetView(BackBuffer2, nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
 		m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());
 
 
@@ -1104,6 +1121,8 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MostDetailedMip = 0;
 		srvDesc.Texture2D.MipLevels = 1;
+
+
 		ID3D11ShaderResourceView* shaderView;
 		m_Device->CreateShaderResourceView(textureStencil, &srvDesc, &shaderView);
 		m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
