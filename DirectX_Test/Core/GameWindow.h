@@ -283,13 +283,13 @@ struct SCBPSSpotLightsData
 	/// </summary>
 	XMFLOAT3	SpotlightDirection{ 0.0f, 0.0f, 1.0f };
 	/// <summary>
-	/// Вектор угасания света с расстоянием
-	/// </summary>
-	XMFLOAT3	SpotlightAttenuation{ 1.0f, 0.14f, 0.07f };
-	/// <summary>
 	/// Зона 100% освещенности (угол в виде косинуса)
 	/// </summary>
 	float		SpotlightCutOffCosin{ 0.57f };
+	/// <summary>
+	/// Вектор угасания света с расстоянием
+	/// </summary>
+	XMFLOAT3	SpotlightAttenuation{ 1.0f, 0.14f, 0.07f };
 	/// <summary>
 	/// Зона, за пределами которого нет освещенности (угол в виде косинуса)
 	/// </summary>

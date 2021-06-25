@@ -125,7 +125,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	GameWindow.SetCamera(0);
 	//устанавливаем свет
 	XMVECTORF32 clightColor = Colors::White;
-	XMVECTOR vlightColor = { clightColor.v };
+	//XMVECTOR vlightColor = { clightColor.v };
+	XMVECTOR vlightColor = { XMVectorSet(1, 1, 1, 0.01f) };
 
 	GameWindow.SetAmbientlLight(XMFLOAT3(clightColor), 0.15f);
 	GameWindow.SetDirectionalLight(XMVectorSet(0, 1, 0, 0), vlightColor * 0.38f);
@@ -141,16 +142,16 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	XMFLOAT3 LightAttenuationRange_200{ 1.0f, 0.022f, 0.0019f };
 	XMFLOAT3 LightAttenuationRange_3250{ 1.0f, 0.0014f, 0.000007f };
 
-	//const float CosSpotLightCutOff = 0.57f;
-	//const float outerCosSpotLightCutOff = 0.5f;
-	const float CosSpotLightCutOff = 0.94f;
-	const float outerCosSpotLightCutOff = 0.87f;
+	const float CosSpotLightCutOff = 0.67f;
+	const float outerCosSpotLightCutOff = 0.57f;
+	//const float CosSpotLightCutOff = 0.94f;
+	//const float outerCosSpotLightCutOff = 0.87f;
 	const float cameraW = 0.0f;
 
-	//GameWindow.SetPointLight(0, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	//GameWindow.SetPointLight(1, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	//GameWindow.SetPointLight(2, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
-	//GameWindow.SetPointLight(3, XMVectorSet(1, 1, 1, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(1, XMVectorSet(0, 0, 0, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(2, XMVectorSet(0, 0, 0, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(0, XMVectorSet(0, 0, 0, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
+	//GameWindow.SetPointLight(3, XMVectorSet(0, 0, 0, 0.5f), XMVectorSet(0, 0, 0, 1.0f), LightAttenuationRange_0);
 
 	GameWindow.SetPointLight(0, vlightColor, XMVectorSet(8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
 	GameWindow.SetPointLight(1, vlightColor, XMVectorSet(-8.0f, 2.7f, 0.0f, 1.0f), LightAttenuationRange_32);
@@ -160,10 +161,10 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	XMVECTOR SpotlightPosition{ XMVectorSet(0, 0, 0, cameraW) };
 	XMFLOAT3 SpotlightDirection{ 0, 0, 1 };
 	GameWindow.SetSpotLight(
-		XMVectorSet(1, 1, 1, 0.0f), //Цвет
+		XMVectorSet(1, 1, 1, 0.01f), //Цвет
 		SpotlightPosition, //Позиция
 		SpotlightDirection, //Направление света
-		LightAttenuationRange_3250, //Угасание света
+		LightAttenuationRange_32, //Угасание света
 		CosSpotLightCutOff, //Угол, в пределах которого свет есть
 		outerCosSpotLightCutOff //Угол, за пределами которого света нет
 	);
@@ -535,8 +536,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			std::string helpF6 = "F6: Toggle log visible";
 			std::string helpF7 = "F7: Toggle picking visible";
 			std::string helpF8 = "F8: Toggle visible bounding-sphere";
-			//std::string helpH = "H: Enable/disable flashlight";
-			std::string helpH = "";
+			std::string helpH = "H: Enable/disable flashlight";
 			std::string help = "Help menu:\n\t" +
 				helpF1 + "\n\t" +
 				helpF2 + "\n\t" +
@@ -636,7 +636,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					vlightColor, //Цвет
 					SpotlightPosition, //Позиция
 					cameraFocus, //Направление света
-					LightAttenuationRange_3250, //Угасание света
+					LightAttenuationRange_32, //Угасание света
 					CosSpotLightCutOff, //Угол, в пределах которого свет есть
 					outerCosSpotLightCutOff //Угол, за пределами которого света нет
 				);
