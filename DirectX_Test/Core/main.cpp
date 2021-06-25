@@ -64,8 +64,8 @@ static int ghostCounterCurrent = 0;
 static float speedCamera = 0.05f;
 static float ghostGenerationRadius = 25.0f;
 
-//static EGameState startGameState = EGameState::Playing;
-static EGameState startGameState = EGameState::DebugMode;
+static EGameState startGameState = EGameState::Playing;
+//static EGameState startGameState = EGameState::DebugMode;
 
 void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
 	float seed = rand() / (2 * XM_PI);
@@ -82,7 +82,7 @@ void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* Text
 		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
-		CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
+		//CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
 	}
 	ghostCounterMain++;
 	ghostCounterCurrent++;
@@ -257,6 +257,38 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 		CGameObjectAltarCandlet_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
 		CGameObjectAltarCandlet_1->CreateCollision();
+	}
+
+	CObject3D* ObjectFloor{ GameWindow.AddObject3D() };
+	{
+		SModel Model{ LoadStaticModelFromFile("Asset/Underworld/Wood_Floor_001_OBJ.obj") };
+		ObjectFloor->Create(Model);
+	}
+	CGameObject* CGameObjectFloor_1{ GameWindow.AddGameObject("Floor_1") };
+	{
+		CGameObjectFloor_1->ComponentTransform.Translation = XMVectorSet(-8.0f, -1.0f, 0.0f, 0);
+		CGameObjectFloor_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(XM_PIDIV2, 0, 0);
+		CGameObjectFloor_1->ComponentTransform.Scaling = XMVectorSet(8.0f, 8.0f, 1.0f, 0);
+		CGameObjectFloor_1->UpdateWorldMatrix();
+		CGameObjectFloor_1->ComponentRender.PtrObject3D = ObjectFloor;
+		CGameObjectFloor_1->ComponentRender.IsTransparent = false;
+		CGameObjectFloor_1->ComponentPhysics.bIsPickable = true;
+		CGameObjectFloor_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectFloor_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		CGameObjectFloor_1->CreateCollision();
+	}
+	CGameObject* CGameObjectCeiling_1{ GameWindow.AddGameObject("Ceiling_1") };
+	{
+		CGameObjectCeiling_1->ComponentTransform.Translation = XMVectorSet(-8.0f, 12.0f, 0.0f, 0);
+		CGameObjectCeiling_1->ComponentTransform.RotationQuaternion = XMQuaternionRotationRollPitchYaw(-XM_PIDIV2, 0, 0);
+		CGameObjectCeiling_1->ComponentTransform.Scaling = XMVectorSet(8.0f, 8.0f, 1.0f, 0);
+		CGameObjectCeiling_1->UpdateWorldMatrix();
+		CGameObjectCeiling_1->ComponentRender.PtrObject3D = ObjectFloor;
+		CGameObjectCeiling_1->ComponentRender.IsTransparent = false;
+		CGameObjectCeiling_1->ComponentPhysics.bIsPickable = true;
+		CGameObjectCeiling_1->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
+		CGameObjectCeiling_1->ComponentPhysics.BoundingSphere.Radius = 1.8f;
+		CGameObjectCeiling_1->CreateCollision();
 	}
 
 	CObject3D* ObjectWall{ GameWindow.AddObject3D() };
@@ -437,20 +469,20 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	// 	SphereObject->ComponentRender.PtrObject3D = SphereObject3D;
 	// }
 
-	CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
-	{
-		GroundObject3D->Create(GenerateSquareXZPlane());
-	}
-	CGameObject* GroundObject{ GameWindow.AddGameObject("ground") };
-	{
-		GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
-		GroundObject->ComponentTransform.Scaling = XMVectorSet(30.0f, 1.0f, 30.0f, 0);
-		GroundObject->UpdateWorldMatrix();
-		GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
-		GroundObject->ComponentRender.PtrTexture = TextureGround;
-
-		GroundObject->ComponentPhysics.BoundingSphere.Radius = 50.0f;
-	}
+	//CObject3D* GroundObject3D{ GameWindow.AddObject3D() };
+	//{
+	//	GroundObject3D->Create(GenerateSquareXZPlane());
+	//}
+	//CGameObject* GroundObject{ GameWindow.AddGameObject("ground") };
+	//{
+	//	GroundObject->ComponentTransform.Translation = XMVectorSet(0.0f, -1.0f, 0.0f, 0);
+	//	GroundObject->ComponentTransform.Scaling = XMVectorSet(30.0f, 1.0f, 30.0f, 0);
+	//	GroundObject->UpdateWorldMatrix();
+	//	GroundObject->ComponentRender.PtrObject3D = GroundObject3D;
+	//	GroundObject->ComponentRender.PtrTexture = TextureGround;
+	//
+	//	GroundObject->ComponentPhysics.BoundingSphere.Radius = 50.0f;
+	//}
 
 	int rotationDeg = 0;
 	bool isCaptureCursor = false;
