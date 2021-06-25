@@ -82,7 +82,7 @@ void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* Text
 		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
-		//CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
+		CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
 	}
 	ghostCounterMain++;
 	ghostCounterCurrent++;
