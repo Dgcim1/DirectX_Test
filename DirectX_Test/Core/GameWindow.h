@@ -943,10 +943,6 @@ private:
 	/// </summary>
 	ComPtr<ID3D11RenderTargetView>	m_RenderTargetView{};
 	/// <summary>
-	/// Указатель на дополнительный задний буфер (буфер подкачки)
-	/// </summary>
-	// ComPtr<ID3D11RenderTargetView>	m_OtherRenderTargetView{};
-	/// <summary>
 	/// Указатель на трафарет глубины
 	/// </summary>
 	ComPtr<ID3D11DepthStencilView>	m_DepthStencilView{};
@@ -1040,4 +1036,20 @@ private:
 	/// 2D квадрат перед камерой
 	/// </summary>
 	CObject3D* m_2dFrame3d;
+	/// <summary>
+	/// Текстура для использования спецэффектов
+	/// </summary>
+	ID3D11Texture2D* pTextureOther1;
+	/// <summary>
+	/// Текстура для использования спецэффектов
+	/// </summary>
+	ID3D11Texture2D* pTextureOther2;
+	/// <summary>
+	/// Текстура для отрисовки RenderTarget
+	/// </summary>
+	ID3D11Texture2D* pTextureRenderTarget;
+	/// <summary>
+	/// Указатель на дополнительный задний буфер (буфер подкачки)
+	/// </summary>
+	ID3D11RenderTargetView*	m_OtherRenderTargetView{};
 };

@@ -326,6 +326,23 @@ void CGameWindow::InitializeDirectX(const wstring& FontFileName, bool bWindowed)
 		m_2dFrame->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.6f, 0.0f, 0);
 		m_2dFrame->ComponentPhysics.BoundingSphere.Radius = 1.8f;
 	}
+
+	D3D11_TEXTURE2D_DESC desc{};//создаем трафаретную поверхность глубины
+	desc.ArraySize = 1;//количество текстур в массиве текстур
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET;//описывает как привязать данную текстуру к конвейеру (сейчас как буфер (трафарет) глубины)
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;//тип доступа к ЦП (0- доступ к ЦП не требуется) (тут может быть 0)
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//формат буфера (сейчас 24 бита глубины и 8 бит трафарета)
+	desc.Width = static_cast<UINT>(m_WindowSize.x);//ширина текстуры
+	desc.Height = static_cast<UINT>(m_WindowSize.y);//высота текстуры
+	desc.MipLevels = 1;//максимальное количество уровней MIP-карты текстуры (0 для отображения без мультисемплинга)
+	desc.MiscFlags = 0;//флаги
+	desc.SampleDesc.Count = 1;//количество мультисэмплов на пиксель
+	desc.SampleDesc.Quality = 0;//уровень качества изображения
+	desc.Usage = D3D11_USAGE_DEFAULT;//способ чтения и записи текстуры (сейчас все со стороны GPU) (D3D11_USAGE_DYNAMIC все ломает)
+	m_Device->CreateTexture2D(&desc, nullptr, &pTextureOther1);
+	m_Device->CreateTexture2D(&desc, nullptr, &pTextureOther2);
+	m_Device->CreateTexture2D(&desc, nullptr, &pTextureRenderTarget);
+	m_Device->CreateRenderTargetView(pTextureRenderTarget, nullptr, &m_OtherRenderTargetView);//создаем представление для доступа к данным
 }
 
 void CGameWindow::CreateSwapChain(bool bWindowed)
@@ -1032,43 +1049,16 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 {
 	if (PtrGO->ComponentRender.IsOutlineGlowing) {
 
-		//сохраняем состояние заднего буфера
+		HRESULT result;
+
+		//сохраняем состояние заднего буфера в pTextureOther1
 		ID3D11Texture2D* BackBuffer2{};
 		m_SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&BackBuffer2);//получаем указатель на 1-й задний буфер подкачки
-
-		//D3D11_TEXTURE2D_DESC desc;
-		//desc.Width = static_cast<UINT>(m_WindowSize.x);//TODO hardcode
-		//desc.Height = static_cast<UINT>(m_WindowSize.y);
-		//desc.MipLevels = 0;
-		//desc.ArraySize = 1;
-		////desc.Format = DXGI_FORMAT_R8G8B8A8_FLOAT;
-		//desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		//desc.SampleDesc.Count = 1;
-		//desc.SampleDesc.Quality = 0;
-		//desc.Usage = D3D11_USAGE_DYNAMIC;
-		//desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		//desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		//desc.MiscFlags = 0;
-
-		D3D11_TEXTURE2D_DESC desc{};//создаем трафаретную поверхность глубины
-		desc.ArraySize = 1;//количество текстур в массиве текстур
-		desc.BindFlags = D3D11_BIND_RENDER_TARGET;//описывает как привязать данную текстуру к конвейеру (сейчас как буфер (трафарет) глубины)
-		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;//тип доступа к ЦП (0- доступ к ЦП не требуется) (тут может быть 0)
-		desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;//формат буфера (сейчас 24 бита глубины и 8 бит трафарета)
-		desc.Width = static_cast<UINT>(m_WindowSize.x);//ширина текстуры
-		desc.Height = static_cast<UINT>(m_WindowSize.y);//высота текстуры
-		desc.MipLevels = 0;//максимальное количество уровней MIP-карты текстуры (0 для отображения без мультисемплинга)
-		desc.MiscFlags = 0;//флаги
-		desc.SampleDesc.Count = 1;//количество мультисэмплов на пиксель
-		desc.SampleDesc.Quality = 0;//уровень качества изображения
-		desc.Usage = D3D11_USAGE_DEFAULT;//способ чтения и записи текстуры (сейчас все со стороны GPU) (D3D11_USAGE_DYNAMIC все ломает)
-
-
-		ID3D11Texture2D* pTexture = NULL;
-		HRESULT result = m_Device->CreateTexture2D(&desc, nullptr, &pTexture);//pTexture не заполняется
-		//m_Device->CreateTexture2D(&desc, BackBuffer2, &pTexture);
-		m_DeviceContext->CopyResource(pTexture, BackBuffer2);
+		m_DeviceContext->CopyResource(pTextureOther1, BackBuffer2);
 		
+
+		//меняем renderTarget
+		//m_DeviceContext->OMSetRenderTargets(1, &m_OtherRenderTargetView, m_DepthStencilView.Get());
 
 		//сохраняем состояние буфера глубины
 		ID3D11DepthStencilState* depthStensilState;
@@ -1076,7 +1066,7 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		
 		
 		//очищаем буферы
-		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), Colors::Yellow);//делаем заливку всей области заданным цветом
+		m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), Colors::Black);//делаем заливку всей области заданным цветом
 		m_DeviceContext->ClearDepthStencilView(m_DepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);//очистка трафарета глубины
 
 
@@ -1106,47 +1096,48 @@ void CGameWindow::DrawGameObjectOutlineGlowing(CGameObject* PtrGO)
 		//}
 		
 
-		//получаем текстуру модели
-		D3D11_TEXTURE2D_DESC texDesc;
-		ID3D11Texture2D* textureStencil;
-		ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
-		texDesc.Width = 1000;//TODO hardcode
-		texDesc.Height = 600;
-		texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		texDesc.Usage = D3D11_USAGE_DEFAULT;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-		texDesc.CPUAccessFlags = 0;
-		texDesc.ArraySize = 1;
-		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		texDesc.MiscFlags = 0;
-		texDesc.MipLevels = 1;
-
-		m_Device->CreateTexture2D(&texDesc, NULL, &textureStencil);
-
-
+		//тут где-то утечка памяти
+		////получаем текстуру модели
+		//D3D11_TEXTURE2D_DESC texDesc;
+		//ID3D11Texture2D* textureStencil;
+		//ZeroMemory(&texDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		//texDesc.Width = 1000;//TODO hardcode
+		//texDesc.Height = 600;
+		//texDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		//texDesc.Usage = D3D11_USAGE_DEFAULT;
+		//texDesc.SampleDesc.Count = 1;
+		//texDesc.SampleDesc.Quality = 0;
+		//texDesc.CPUAccessFlags = 0;
+		//texDesc.ArraySize = 1;
+		//texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		//texDesc.MiscFlags = 0;
+		//texDesc.MipLevels = 1;
+		//
+		//m_Device->CreateTexture2D(&texDesc, NULL, &textureStencil);
+		//
+		//
 		//вовзращаем состояние заднего буфера
-		m_Device->CreateRenderTargetView(BackBuffer2, nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
+		result = m_Device->CreateRenderTargetView(BackBuffer2, nullptr, &m_RenderTargetView);//создаем представление для доступа к данным
 		m_DeviceContext->OMSetRenderTargets(1, m_RenderTargetView.GetAddressOf(), m_DepthStencilView.Get());
-
-
-		//рендер свечения обьекта
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		srvDesc.Format = texDesc.Format;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MostDetailedMip = 0;
-		srvDesc.Texture2D.MipLevels = 1;
-
-
-		ID3D11ShaderResourceView* shaderView;
-		m_Device->CreateShaderResourceView(textureStencil, &srvDesc, &shaderView);
-		m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
-		m_PSOutlineGlowing->Use();
-
-
-
-		//возвращаем состояние буфера глубины
-		m_DeviceContext->OMSetDepthStencilState(depthStensilState, 0);
+		//BackBuffer2->Release();
+		//
+		////рендер свечения обьекта
+		//D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		//srvDesc.Format = texDesc.Format;
+		//srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		//srvDesc.Texture2D.MostDetailedMip = 0;
+		//srvDesc.Texture2D.MipLevels = 1;
+		//
+		//
+		//ID3D11ShaderResourceView* shaderView;
+		//m_Device->CreateShaderResourceView(textureStencil, &srvDesc, &shaderView);
+		//m_DeviceContext->PSSetShaderResources(0, 1, &shaderView);
+		//m_PSOutlineGlowing->Use();
+		//textureStencil->Release();
+		//
+		//
+		////возвращаем состояние буфера глубины
+		//m_DeviceContext->OMSetDepthStencilState(depthStensilState, 0);
 	}
 }
 

@@ -64,8 +64,8 @@ static int ghostCounterCurrent = 0;
 static float speedCamera = 0.05f;
 static float ghostGenerationRadius = 25.0f;
 
-static EGameState startGameState = EGameState::Playing;
-//static EGameState startGameState = EGameState::DebugMode;
+//static EGameState startGameState = EGameState::Playing;
+static EGameState startGameState = EGameState::DebugMode;
 
 void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* TextureGhostColor) {
 	float seed = rand() / (2 * XM_PI);
@@ -82,7 +82,7 @@ void CreateGhost(CGameWindow& GameWindow, CObject3D* ObjectGhost, CTexture* Text
 		CGameObjectGhost->ComponentPhysics.bIsPickable = true;
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.CenterOffset = XMVectorSet(0.0f, 1.0f, 0.0f, 0);
 		CGameObjectGhost->ComponentPhysics.BoundingSphere.Radius = 3.0f;
-		CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
+		//CGameObjectGhost->ComponentRender.IsOutlineGlowing = true;
 	}
 	ghostCounterMain++;
 	ghostCounterCurrent++;
@@ -191,8 +191,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		ObjectGhost->Create(Model);
 	}
 	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
-	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
-	CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	//CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
+	//CreateGhost(GameWindow, ObjectGhost, TextureGhostColor);
 	
 	CObject3D* ObjectDagger3{ GameWindow.AddObject3D() };
 	{
